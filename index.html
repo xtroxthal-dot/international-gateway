@@ -16384,7 +16384,1607 @@ body.ig-splash-lock{
 
 })();
 </script>
+<!-- =========================================================
+     INTERNATIONAL GATEWAY
+     REPARADOR FINAL DEL CHECKOUT
+     
+     - Retiro en el local
+     - Envío a domicilio opcional
+     - Corrige RLS de ig_shipping_quotes
+     - Usa RPC seguro para cotizaciones
+     - No modifica tablas ni políticas RLS
+     - Se instala al final del index.html
+     ========================================================= -->
 
+<style>
+/* =========================================================
+   CHECKOUT — OPCIONES DE ENTREGA
+   ========================================================= */
+
+#igDeliveryMethodBox{
+  margin:18px 0;
+  padding:18px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  background:#f7f7f7;
+}
+
+#igDeliveryMethodBox h3{
+  margin:0 0 8px;
+}
+
+#igDeliveryMethodBox p{
+  margin:0 0 14px;
+  color:#666;
+}
+
+.ig-delivery-options{
+  display:grid;
+  gap:10px;
+}
+
+.ig-delivery-option{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:11px;
+  background:#fff;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.ig-delivery-option:hover{
+  border-color:#111;
+}
+
+.ig-delivery-option.ig-selected{
+  border-color:#111;
+  background:#f0f0f0;
+}
+
+.ig-delivery-option input{
+  margin-top:3px;
+  flex:none;
+}
+
+.ig-delivery-option strong{
+  display:block;
+  margin-bottom:2px;
+}
+
+.ig-delivery-option small{
+  color:#666;
+}
+
+#igShippingBox.ig-hidden-shipping{
+  display:none!important;
+}
+
+.ig-delivery-note{
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:9px;
+  background:#e8f5ec;
+  color:#17652f;
+  font-size:14px;
+}
+
+.ig-delivery-note.shipping{
+  background:#fff2df;
+  color:#754800;
+}
+
+@media(max-width:700px){
+  #igDeliveryMethodBox{
+    padding:14px;
+  }
+
+  .ig-delivery-option{
+    padding:13px;
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_FINAL_CHECKOUT_REPAIR_2026){
+    return;
+  }
+
+  window.__IG_FINAL_CHECKOUT_REPAIR_2026 = true;
+
+
+  /* =========================================================
+     UTILIDADES
+     ========================================================= */
+
+  function waitForCheckout(callback){
+
+    let attempts = 0;
+
+    const timer = setInterval(function(){
+
+      attempts++;
+
+      const form =
+        document.getElementById("checkoutForm");
+
+      if(form){
+
+        clearInterval(timer);
+
+        callback(form);
+
+        return;
+      }
+
+      if(attempts >= 100){
+
+        clearInterval(timer);
+
+        console.warn(
+          "International Gateway: no se encontró checkoutForm."
+        );
+
+      }
+
+    },100);
+
+  }
+
+
+  function message(text,type){
+
+    if(typeof setMessage === "function"){
+
+      setMessage(
+        "checkoutMessage",
+        text,
+        type || "error"
+      );
+
+      return;
+    }
+
+    const box =
+      document.getElementById(
+        "checkoutMessage"
+      );
+
+    if(box){
+
+      box.textContent = text;
+
+      box.className =
+        "notice " +
+        (type || "error");
+
+    }
+
+  }
+
+
+  function readValue(id){
+
+    const element =
+      document.getElementById(id);
+
+    return element
+      ? String(element.value || "").trim()
+      : "";
+
+  }
+
+
+  /* =========================================================
+     OPCIONES DE ENTREGA
+     ========================================================= */
+
+  function getDeliveryMethod(){
+
+    const selected =
+      document.querySelector(
+        'input[name="igDeliveryMethod"]:checked'
+      );
+
+    return selected
+      ? selected.value
+      : "pickup";
+
+  }
+
+
+  function setShippingVisibility(){
+
+    const shippingBox =
+      document.getElementById(
+        "igShippingBox"
+      );
+
+    if(!shippingBox){
+      return;
+    }
+
+    const method =
+      getDeliveryMethod();
+
+    if(method === "shipping"){
+
+      shippingBox.classList.remove(
+        "ig-hidden-shipping"
+      );
+
+    }else{
+
+      shippingBox.classList.add(
+        "ig-hidden-shipping"
+      );
+
+    }
+
+    document
+      .querySelectorAll(
+        "#igShippingBox input, #igShippingBox textarea"
+      )
+      .forEach(function(field){
+
+        /*
+         * Los campos siguen existiendo pero solo
+         * son obligatorios cuando hay envío.
+         */
+
+        if(
+          field.id === "igShipName" ||
+          field.id === "igShipPhone" ||
+          field.id === "igShipAddress" ||
+          field.id === "igShipNumber" ||
+          field.id === "igShipLocality" ||
+          field.id === "igShipProvince" ||
+          field.id === "igShipPostal" ||
+          field.id === "igShipCountry"
+        ){
+
+          field.required =
+            method === "shipping";
+
+        }
+
+        if(method !== "shipping"){
+
+          field.setCustomValidity("");
+
+        }
+
+      });
+
+
+    document
+      .querySelectorAll(
+        ".ig-delivery-option"
+      )
+      .forEach(function(option){
+
+        const input =
+          option.querySelector(
+            'input[name="igDeliveryMethod"]'
+          );
+
+        option.classList.toggle(
+          "ig-selected",
+          !!input && input.checked
+        );
+
+      });
+
+  }
+
+
+  function injectDeliverySelector(){
+
+    const form =
+      document.getElementById(
+        "checkoutForm"
+      );
+
+    const shippingBox =
+      document.getElementById(
+        "igShippingBox"
+      );
+
+    if(!form || !shippingBox){
+      return false;
+    }
+
+
+    if(
+      document.getElementById(
+        "igDeliveryMethodBox"
+      )
+    ){
+
+      setShippingVisibility();
+
+      return true;
+    }
+
+
+    const box =
+      document.createElement("div");
+
+    box.id =
+      "igDeliveryMethodBox";
+
+
+    box.innerHTML = `
+
+      <h3>
+        📦 ¿Cómo quieres recibir tu pedido?
+      </h3>
+
+      <p>
+        Elegí una opción para continuar.
+      </p>
+
+      <div class="ig-delivery-options">
+
+        <label class="ig-delivery-option">
+
+          <input
+            type="radio"
+            name="igDeliveryMethod"
+            value="pickup"
+            checked>
+
+          <span>
+
+            <strong>
+              🛍️ Retiro en el local
+            </strong>
+
+            <small>
+              Retirá tu pedido personalmente.
+              No se cobra envío y no necesitás
+              completar los datos de domicilio.
+            </small>
+
+          </span>
+
+        </label>
+
+
+        <label class="ig-delivery-option">
+
+          <input
+            type="radio"
+            name="igDeliveryMethod"
+            value="shipping">
+
+          <span>
+
+            <strong>
+              🚚 Envío a domicilio
+            </strong>
+
+            <small>
+              Completá los datos de entrega.
+              El administrador calculará el costo
+              del envío antes de habilitar el pago.
+            </small>
+
+          </span>
+
+        </label>
+
+      </div>
+
+      <div
+        id="igDeliveryNote"
+        class="ig-delivery-note">
+
+        🛍️ Seleccionaste retiro en el local.
+        No hace falta completar datos de envío.
+
+      </div>
+
+    `;
+
+
+    /*
+     * Colocamos el selector inmediatamente
+     * antes del módulo de envío.
+     */
+
+    shippingBox.parentNode.insertBefore(
+      box,
+      shippingBox
+    );
+
+
+    function update(){
+
+      const method =
+        getDeliveryMethod();
+
+      const note =
+        document.getElementById(
+          "igDeliveryNote"
+        );
+
+      if(note){
+
+        if(method === "shipping"){
+
+          note.className =
+            "ig-delivery-note shipping";
+
+          note.innerHTML =
+            "🚚 Seleccionaste envío a domicilio. " +
+            "Completá los datos de entrega para " +
+            "solicitar la cotización.";
+
+        }else{
+
+          note.className =
+            "ig-delivery-note";
+
+          note.innerHTML =
+            "🛍️ Seleccionaste retiro en el local. " +
+            "No hace falta completar datos de envío.";
+
+        }
+
+      }
+
+      setShippingVisibility();
+
+    }
+
+
+    box
+      .querySelectorAll(
+        'input[name="igDeliveryMethod"]'
+      )
+      .forEach(function(input){
+
+        input.addEventListener(
+          "change",
+          update
+        );
+
+      });
+
+
+    update();
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     LECTURA DE DATOS DE ENVÍO
+     ========================================================= */
+
+  function readShipping(){
+
+    return {
+
+      full_name:
+        readValue("igShipName"),
+
+      phone:
+        readValue("igShipPhone"),
+
+      address:
+        readValue("igShipAddress"),
+
+      address_number:
+        readValue("igShipNumber"),
+
+      floor_department:
+        readValue("igShipFloor"),
+
+      locality:
+        readValue("igShipLocality"),
+
+      province:
+        readValue("igShipProvince"),
+
+      postal_code:
+        readValue("igShipPostal"),
+
+      country:
+        readValue("igShipCountry") ||
+        "Argentina",
+
+      delivery_notes:
+        readValue("igShipNotes")
+
+    };
+
+  }
+
+
+  /* =========================================================
+     VALIDACIÓN DE ENVÍO
+     ========================================================= */
+
+  function validateShipping(shipping){
+
+    const required = [
+
+      [
+        "Nombre y apellido",
+        shipping.full_name
+      ],
+
+      [
+        "Teléfono / WhatsApp",
+        shipping.phone
+      ],
+
+      [
+        "Dirección",
+        shipping.address
+      ],
+
+      [
+        "Número",
+        shipping.address_number
+      ],
+
+      [
+        "Localidad",
+        shipping.locality
+      ],
+
+      [
+        "Provincia",
+        shipping.province
+      ],
+
+      [
+        "Código postal",
+        shipping.postal_code
+      ],
+
+      [
+        "País",
+        shipping.country
+      ]
+
+    ];
+
+
+    const missing =
+      required
+        .filter(function(item){
+          return !item[1];
+        })
+        .map(function(item){
+          return item[0];
+        });
+
+
+    if(missing.length){
+
+      message(
+        "Completá los siguientes datos de envío: " +
+        missing.join(", ") +
+        ".",
+        "error"
+      );
+
+      return false;
+    }
+
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     CREACIÓN SEGURA DE COTIZACIÓN
+     
+     IMPORTANTE:
+     No hacemos:
+       .from("ig_shipping_quotes")
+       .insert(...)
+       .select(...)
+     
+     porque eso provoca el problema RLS.
+     
+     Usamos exclusivamente el RPC seguro.
+     ========================================================= */
+
+  async function createShippingQuote(
+    orderNumber,
+    email,
+    shipping
+  ){
+
+    const result =
+      await supabaseClient.rpc(
+        "crear_cotizacion_envio_international_gateway",
+        {
+
+          p_order_number:
+            Number(orderNumber),
+
+          p_customer_email:
+            String(email),
+
+          p_full_name:
+            String(
+              shipping.full_name || ""
+            ),
+
+          p_phone:
+            String(
+              shipping.phone || ""
+            ),
+
+          p_address:
+            String(
+              shipping.address || ""
+            ),
+
+          p_address_number:
+            String(
+              shipping.address_number || ""
+            ),
+
+          p_floor_department:
+            String(
+              shipping.floor_department || ""
+            ),
+
+          p_locality:
+            String(
+              shipping.locality || ""
+            ),
+
+          p_province:
+            String(
+              shipping.province || ""
+            ),
+
+          p_postal_code:
+            String(
+              shipping.postal_code || ""
+            ),
+
+          p_delivery_notes:
+            String(
+              shipping.delivery_notes || ""
+            )
+
+        }
+      );
+
+
+    if(result.error){
+
+      throw result.error;
+
+    }
+
+
+    if(
+      !result.data ||
+      result.data.success !== true
+    ){
+
+      throw new Error(
+        "No se pudo registrar la solicitud de envío."
+      );
+
+    }
+
+
+    return {
+
+      id:
+        result.data.id || null,
+
+      access_token:
+        result.data.access_token || null
+
+    };
+
+  }
+
+
+  /* =========================================================
+     LIMPIEZA DE PEDIDO
+     ========================================================= */
+
+  async function cleanupOrder(orderId){
+
+    if(!orderId){
+      return;
+    }
+
+
+    try{
+
+      /*
+       * Primero eliminamos los ítems.
+       */
+
+      await supabaseClient
+        .from("ig_order_items")
+        .delete()
+        .eq(
+          "order_id",
+          orderId
+        );
+
+
+    }catch(error){
+
+      console.warn(
+        "International Gateway: error limpiando ítems:",
+        error
+      );
+
+    }
+
+
+    try{
+
+      /*
+       * Después eliminamos el pedido.
+       */
+
+      await supabaseClient
+        .from("ig_orders")
+        .delete()
+        .eq(
+          "id",
+          orderId
+        );
+
+
+    }catch(error){
+
+      console.warn(
+        "International Gateway: error limpiando pedido:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     CHECKOUT REPARADO
+     ========================================================= */
+
+  async function repairedCreateOrder(event){
+
+    event.preventDefault();
+
+    if(event.stopImmediatePropagation){
+      event.stopImmediatePropagation();
+    }
+
+
+    if(
+      !window.supabaseClient ||
+      typeof supabaseClient.from !== "function"
+    ){
+
+      message(
+        "No se pudo conectar con el sistema de pedidos.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    if(
+      !Array.isArray(window.cart) &&
+      typeof cart === "undefined"
+    ){
+
+      message(
+        "No se pudo acceder al carrito.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Utilizamos la variable cart existente.
+     */
+
+    const currentCart =
+      typeof cart !== "undefined"
+        ? cart
+        : window.cart;
+
+
+    if(
+      !Array.isArray(currentCart) ||
+      !currentCart.length
+    ){
+
+      message(
+        "El carrito está vacío.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const name =
+      readValue("customerName");
+
+    const phone =
+      readValue("customerPhone");
+
+    const email =
+      readValue("customerEmail");
+
+    const paymentMethod =
+      document
+        .getElementById("paymentMethod")
+        ?.value || "";
+
+
+    if(
+      !name ||
+      !phone ||
+      !email ||
+      !paymentMethod
+    ){
+
+      message(
+        "Completá todos los datos del cliente y seleccioná un método de pago.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const deliveryMethod =
+      getDeliveryMethod();
+
+
+    const shipping =
+      readShipping();
+
+
+    /*
+     * =======================================================
+     * OBTENER PRODUCTOS ACTUALES
+     *
+     * No confiamos en precios guardados en localStorage.
+     * Consultamos Supabase para conservar la seguridad
+     * del checkout existente.
+     * =======================================================
+     */
+
+    let validItems = [];
+    let subtotal = 0;
+
+
+    try{
+
+      const productIds =
+        currentCart
+          .map(function(item){
+
+            return item.product_id ||
+                   item.id ||
+                   item.productId;
+
+          })
+          .filter(Boolean);
+
+
+      if(!productIds.length){
+
+        throw new Error(
+          "No se encontraron productos válidos en el carrito."
+        );
+
+      }
+
+
+      const productsResult =
+        await supabaseClient
+          .from("ig_products")
+          .select(`
+            id,
+            name,
+            price,
+            available
+          `)
+          .in(
+            "id",
+            productIds
+          );
+
+
+      if(productsResult.error){
+
+        throw productsResult.error;
+
+      }
+
+
+      const currentProducts =
+        productsResult.data || [];
+
+
+      for(
+        const item of currentCart
+      ){
+
+        const productId =
+          item.product_id ||
+          item.id ||
+          item.productId;
+
+
+        const product =
+          currentProducts.find(function(p){
+
+            return String(p.id) ===
+                   String(productId);
+
+          });
+
+
+        if(!product){
+
+          continue;
+
+        }
+
+
+        /*
+         * Si available es falso, no permitimos
+         * que se genere un pedido de ese producto.
+         */
+
+        if(
+          product.available === false ||
+          product.available === 0
+        ){
+
+          throw new Error(
+            "El producto \"" +
+            product.name +
+            "\" ya no está disponible."
+          );
+
+        }
+
+
+        const quantity =
+          Math.max(
+            1,
+            Number(
+              item.quantity || 1
+            )
+          );
+
+
+        const price =
+          Number(product.price);
+
+
+        if(
+          !Number.isFinite(price) ||
+          price < 0
+        ){
+
+          throw new Error(
+            "Precio inválido para \"" +
+            product.name +
+            "\"."
+          );
+
+        }
+
+
+        const itemSubtotal =
+          price * quantity;
+
+
+        validItems.push({
+
+          product_id:
+            product.id,
+
+          product_name:
+            product.name,
+
+          product_price:
+            price,
+
+          quantity:
+            quantity,
+
+          subtotal:
+            itemSubtotal
+
+        });
+
+
+        subtotal +=
+          itemSubtotal;
+
+      }
+
+
+      if(!validItems.length){
+
+        throw new Error(
+          "No hay productos válidos para registrar."
+        );
+
+      }
+
+
+    }catch(error){
+
+      console.error(
+        "International Gateway checkout products:",
+        error
+      );
+
+      message(
+        error.message ||
+        "No se pudieron comprobar los productos.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * =======================================================
+     * CREAR PEDIDO
+     * =======================================================
+     */
+
+    const orderId =
+      crypto.randomUUID();
+
+    const orderNumber =
+      Date.now();
+
+
+    let orderCreated = false;
+
+
+    try{
+
+      const orderResult =
+        await supabaseClient
+          .from("ig_orders")
+          .insert({
+
+            id:
+              orderId,
+
+            order_number:
+              orderNumber,
+
+            customer_name:
+              name,
+
+            customer_phone:
+              phone,
+
+            customer_email:
+              email,
+
+            payment_method:
+              paymentMethod,
+
+            payment_status:
+              "pending",
+
+            order_status:
+              "pending",
+
+            subtotal:
+              subtotal,
+
+            total:
+              subtotal
+
+          });
+
+
+      if(orderResult.error){
+
+        throw orderResult.error;
+
+      }
+
+
+      orderCreated = true;
+
+
+      /*
+       * =====================================================
+       * INSERTAR ÍTEMS
+       * =====================================================
+       */
+
+      const itemRows =
+        validItems.map(function(item){
+
+          return {
+
+            order_id:
+              orderId,
+
+            product_id:
+              item.product_id,
+
+            product_name:
+              item.product_name,
+
+            product_price:
+              item.product_price,
+
+            quantity:
+              item.quantity,
+
+            subtotal:
+              item.subtotal
+
+          };
+
+        });
+
+
+      const itemsResult =
+        await supabaseClient
+          .from("ig_order_items")
+          .insert(itemRows);
+
+
+      if(itemsResult.error){
+
+        throw itemsResult.error;
+
+      }
+
+
+      /*
+       * =====================================================
+       * ENVÍO OPCIONAL
+       *
+       * RETIRO:
+       *   No hacemos absolutamente nada sobre
+       *   ig_shipping_quotes.
+       *
+       * ENVÍO:
+       *   Utilizamos el RPC seguro.
+       * =====================================================
+       */
+
+      let shippingRow = null;
+
+
+      if(
+        deliveryMethod === "shipping"
+      ){
+
+        if(
+          !validateShipping(shipping)
+        ){
+
+          throw new Error(
+            "Faltan datos obligatorios de envío."
+          );
+
+        }
+
+
+        shippingRow =
+          await createShippingQuote(
+            orderNumber,
+            email,
+            shipping
+          );
+
+
+        /*
+         * Guardamos únicamente una referencia local
+         * para el seguimiento del cliente.
+         */
+
+        localStorage.setItem(
+          "ig_shipping_order",
+          JSON.stringify({
+
+            order_number:
+              orderNumber,
+
+            phone:
+              shipping.phone,
+
+            access_token:
+              shippingRow.access_token,
+
+            delivery_method:
+              "shipping"
+
+          })
+        );
+
+
+      }else{
+
+        /*
+         * RETIRO EN EL LOCAL
+         *
+         * No se crea cotización.
+         */
+
+        localStorage.setItem(
+          "ig_shipping_order",
+          JSON.stringify({
+
+            order_number:
+              orderNumber,
+
+            phone:
+              phone,
+
+            access_token:
+              null,
+
+            delivery_method:
+              "pickup"
+
+          })
+        );
+
+      }
+
+
+      /*
+       * Guardamos información local adicional.
+       */
+
+      localStorage.setItem(
+        "ig_last_order_delivery_method",
+        deliveryMethod
+      );
+
+
+      localStorage.setItem(
+        "ig_last_order_number",
+        String(orderNumber)
+      );
+
+
+      /*
+       * =====================================================
+       * VACIAR CARRITO
+       * =====================================================
+       */
+
+      if(
+        typeof saveCart === "function"
+      ){
+
+        /*
+         * La variable cart existente se vacía
+         * para respetar la implementación actual.
+         */
+
+        cart = [];
+
+        saveCart();
+
+      }else{
+
+        localStorage.removeItem(
+          "ig_cart"
+        );
+
+      }
+
+
+      if(
+        typeof updateCartCount === "function"
+      ){
+
+        updateCartCount();
+
+      }
+
+
+      /*
+       * =====================================================
+       * CONFIRMACIÓN
+       * =====================================================
+       */
+
+      if(
+        typeof showConfirmation === "function"
+      ){
+
+        showConfirmation(
+          {
+
+            id:
+              orderId,
+
+            order_number:
+              orderNumber,
+
+            total:
+              subtotal,
+
+            subtotal:
+              subtotal,
+
+            delivery_method:
+              deliveryMethod,
+
+            shipping:
+              shippingRow
+
+          },
+          paymentMethod
+        );
+
+
+      }else{
+
+        /*
+         * Respaldo por si la función de confirmación
+         * no estuviera disponible.
+         */
+
+        message(
+          "Pedido #" +
+          orderNumber +
+          " registrado correctamente.",
+          "success"
+        );
+
+      }
+
+
+      /*
+       * Intentamos adaptar el texto de confirmación
+       * al método elegido sin tocar la función original.
+       */
+
+      setTimeout(function(){
+
+        const confirmation =
+          document.querySelector(
+            "#confirmationView, .confirmation, [data-confirmation]"
+          );
+
+
+        if(
+          deliveryMethod === "pickup"
+        ){
+
+          document
+            .querySelectorAll(
+              "body *"
+            )
+            .forEach(function(element){
+
+              /*
+               * Solo reemplazamos textos claramente
+               * relacionados con envío pendiente.
+               */
+
+              if(
+                element.children.length === 0 &&
+                /Envío pendiente de cotización/i.test(
+                  element.textContent || ""
+                )
+              ){
+
+                element.textContent =
+                  "🛍️ Retiro en el local";
+
+              }
+
+            });
+
+        }
+
+      },100);
+
+
+    }catch(error){
+
+      console.error(
+        "International Gateway checkout repair:",
+        error
+      );
+
+
+      /*
+       * Si el pedido llegó a crearse y después
+       * falló algo, intentamos limpiarlo.
+       *
+       * No tocamos ig_shipping_quotes aquí:
+       * el RPC es SECURITY DEFINER y el cliente
+       * no debe intentar borrar cotizaciones.
+       */
+
+      if(orderCreated){
+
+        await cleanupOrder(
+          orderId
+        );
+
+      }
+
+
+      message(
+        error.message ||
+        "No se pudo registrar el pedido.",
+        "error"
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     INSTALACIÓN
+     ========================================================= */
+
+  function install(form){
+
+    /*
+     * Primero instalamos selector de entrega.
+     */
+
+    let selectorReady =
+      injectDeliverySelector();
+
+
+    /*
+     * El módulo de envío existente puede crearse
+     * ligeramente después. Reintentamos.
+     */
+
+    if(!selectorReady){
+
+      let attempts = 0;
+
+      const retry =
+        setInterval(function(){
+
+          attempts++;
+
+          if(
+            injectDeliverySelector()
+          ){
+
+            clearInterval(retry);
+
+          }
+
+          if(attempts >= 100){
+
+            clearInterval(retry);
+
+          }
+
+        },100);
+
+    }
+
+
+    /*
+     * =======================================================
+     * INTERCEPTOR CAPTURE
+     *
+     * Se ejecuta ANTES que el listener antiguo.
+     * Por eso no necesitamos modificar ni borrar
+     * createOrder() original.
+     * =======================================================
+     */
+
+    form.addEventListener(
+      "submit",
+      function(event){
+
+        /*
+         * Evitamos que el listener antiguo continúe.
+         */
+
+        if(
+          event.stopImmediatePropagation
+        ){
+
+          event.stopImmediatePropagation();
+
+        }
+
+        repairedCreateOrder(event);
+
+      },
+      true
+    );
+
+
+    /*
+     * Aseguramos que los campos de envío
+     * no queden obligatorios al cargar.
+     */
+
+    setTimeout(
+      setShippingVisibility,
+      150
+    );
+
+
+    console.log(
+      "International Gateway: checkout reparado correctamente."
+    );
+
+  }
+
+
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function(){
+
+        waitForCheckout(
+          install
+        );
+
+      },
+      {once:true}
+    );
+
+  }else{
+
+    waitForCheckout(
+      install
+    );
+
+  }
+
+
+})();
 </script>
 </body>
 </html>
