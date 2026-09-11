@@ -10777,5 +10777,141 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     CONTADOR DE VISITAS
+     ========================================================= -->
+<script>
+(function () {
+    "use strict";
+
+    const VISITOR_KEY = "ig_visitor_id";
+    const SESSION_KEY = "ig_visit_registered";
+
+    // No contar varias veces durante la misma sesión
+    if (sessionStorage.getItem(SESSION_KEY)) {
+        return;
+    }
+
+    // Obtener o crear identificador anónimo del visitante
+    let visitorId = localStorage.getItem(VISITOR_KEY);
+
+    if (!visitorId) {
+        visitorId =
+            "ig_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random().toString(36).substring(2, 15);
+
+        localStorage.setItem(VISITOR_KEY, visitorId);
+    }
+
+    // Detectar dispositivo
+    const userAgent = navigator.userAgent.toLowerCase();
+
+    let device = "desktop";
+
+    if (
+        /ipad|tablet|playbook|silk/.test(userAgent)
+    ) {
+        device = "tablet";
+    } else if (
+        /mobile|android|iphone|ipod/.test(userAgent)
+    ) {
+        device = "mobile";
+    }
+
+    // Página actual
+    const page =
+        window.location.pathname ||
+        "/";
+
+    // Buscar el cliente Supabase existente
+    function registrarVisita() {
+
+        // Compatible con las formas habituales de inicializar Supabase
+        let cliente = null;
+
+        if (
+            typeof window.supabaseClient !== "undefined" &&
+            window.supabaseClient
+        ) {
+            cliente = window.supabaseClient;
+        }
+
+        if (
+            !cliente &&
+            typeof window.supabase !== "undefined" &&
+            window.supabase &&
+            typeof window.supabase.rpc === "function"
+        ) {
+            cliente = window.supabase;
+        }
+
+        if (!cliente) {
+            console.warn(
+                "International Gateway: no se encontró el cliente Supabase."
+            );
+            return;
+        }
+
+        cliente
+            .rpc(
+                "registrar_visita_international_gateway",
+                {
+                    p_visitor_id: visitorId,
+                    p_page: page,
+                    p_device: device
+                }
+            )
+            .then(function (resultado) {
+
+                if (resultado.error) {
+                    console.warn(
+                        "Contador de visitas:",
+                        resultado.error.message
+                    );
+                    return;
+                }
+
+                // Marcar la sesión como registrada
+                sessionStorage.setItem(
+                    SESSION_KEY,
+                    "1"
+                );
+
+                // Guardar estadísticas disponibles
+                if (resultado.data) {
+                    window.internationalGatewayStats =
+                        resultado.data;
+
+                    console.log(
+                        "International Gateway — visita registrada",
+                        resultado.data
+                    );
+                }
+            })
+            .catch(function (error) {
+                console.warn(
+                    "International Gateway — error del contador:",
+                    error
+                );
+            });
+    }
+
+    // Esperar a que cargue la aplicación
+    if (
+        document.readyState === "loading"
+    ) {
+        document.addEventListener(
+            "DOMContentLoaded",
+            registrarVisita
+        );
+    } else {
+        registrarVisita();
+    }
+
+})();
+</script>
 </body>
 </html>
