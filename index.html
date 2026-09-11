@@ -6052,5 +6052,761 @@ init();
 
 })();
 </script>
+  <script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   MÓDULO DEFINITIVO — CATEGORÍAS PÚBLICAS
+
+   INTEGRACIÓN CON LA APP EXISTENTE
+
+   NO reemplaza:
+   - renderProducts()
+   - loadProducts()
+   - showStore()
+   - carrito
+   - administración
+   - autenticación
+   - pedidos
+
+   NO modifica datos de Supabase.
+   ============================================================ */
+
+(function () {
+
+  "use strict";
+
+  const VERSION = "IG-CATEGORIES-1.0.0";
+
+  let currentCategory = "all";
+  let observer = null;
+  let initialized = false;
+
+  /* ==========================================================
+     ESCAPE HTML
+     ========================================================== */
+
+  function escapeCategory(value) {
+
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* ==========================================================
+     ESPERAR A QUE EXISTA LA TIENDA
+     ========================================================== */
+
+  function waitForStore(callback, attempts = 100) {
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if (container) {
+
+      callback(container);
+
+      return;
+
+    }
+
+    if (attempts <= 0) {
+
+      console.warn(
+        "[IG Categorías] No se encontró productsContainer."
+      );
+
+      return;
+
+    }
+
+    setTimeout(
+      function () {
+
+        waitForStore(
+          callback,
+          attempts - 1
+        );
+
+      },
+      200
+    );
+
+  }
+
+
+  /* ==========================================================
+     ESTILOS
+     ========================================================== */
+
+  function injectStyles() {
+
+    if (
+      document.getElementById(
+        "igCategoriesStyles"
+      )
+    ) {
+
+      return;
+
+    }
+
+    const style =
+      document.createElement("style");
+
+    style.id =
+      "igCategoriesStyles";
+
+    style.textContent = `
+
+      #igPublicCategories {
+        width:100%;
+        margin:0 0 28px 0;
+      }
+
+      #igPublicCategoriesTitle {
+        text-align:center;
+        font-size:20px;
+        font-weight:800;
+        margin-bottom:14px;
+      }
+
+      #igPublicCategoriesList {
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:8px;
+      }
+
+      .ig-public-category-button {
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        min-height:42px;
+        padding:9px 14px;
+        border-radius:999px;
+        border:1px solid #d5d5d5;
+        background:#fff;
+        color:#111;
+        font-weight:700;
+        cursor:pointer;
+        transition:
+          background .15s ease,
+          color .15s ease,
+          border-color .15s ease,
+          transform .1s ease;
+      }
+
+      .ig-public-category-button:hover {
+        background:#f0f0f0;
+      }
+
+      .ig-public-category-button:active {
+        transform:scale(.97);
+      }
+
+      .ig-public-category-button.active {
+        background:#111;
+        color:#fff;
+        border-color:#111;
+      }
+
+      .ig-public-category-icon {
+        font-size:17px;
+        line-height:1;
+      }
+
+      #igCategoryEmpty {
+        grid-column:1/-1;
+        text-align:center;
+        padding:35px 20px;
+        background:#fff;
+        border-radius:14px;
+        box-shadow:var(--shadow);
+      }
+
+      #igCategoryEmpty h3 {
+        margin-bottom:8px;
+      }
+
+      #igCategoryEmpty p {
+        color:#666;
+      }
+
+      @media(max-width:700px){
+
+        #igPublicCategoriesList {
+          justify-content:flex-start;
+          flex-wrap:nowrap;
+          overflow-x:auto;
+          padding:3px 2px 10px;
+          -webkit-overflow-scrolling:touch;
+          scrollbar-width:thin;
+        }
+
+        .ig-public-category-button {
+          flex:0 0 auto;
+          white-space:nowrap;
+        }
+
+      }
+
+    `;
+
+    document.head.appendChild(style);
+
+  }
+
+
+  /* ==========================================================
+     CREAR CONTENEDOR DE CATEGORÍAS
+     ========================================================== */
+
+  function createCategoryArea(
+    productsContainer
+  ) {
+
+    let area =
+      document.getElementById(
+        "igPublicCategories"
+      );
+
+    if (area) {
+
+      return area;
+
+    }
+
+    area =
+      document.createElement("div");
+
+    area.id =
+      "igPublicCategories";
+
+    area.innerHTML = `
+
+      <div id="igPublicCategoriesTitle">
+        Categorías
+      </div>
+
+      <div
+        id="igPublicCategoriesList"
+        aria-label="Categorías de productos">
+      </div>
+
+    `;
+
+    productsContainer.parentNode.insertBefore(
+      area,
+      productsContainer
+    );
+
+    return area;
+
+  }
+
+
+  /* ==========================================================
+     CARGAR CATEGORÍAS DESDE SUPABASE
+     ========================================================== */
+
+  async function loadCategories() {
+
+    const list =
+      document.getElementById(
+        "igPublicCategoriesList"
+      );
+
+    if (!list) {
+
+      return;
+
+    }
+
+    if (
+      typeof supabaseClient ===
+      "undefined"
+    ) {
+
+      console.error(
+        "[IG Categorías] supabaseClient no disponible."
+      );
+
+      return;
+
+    }
+
+    list.innerHTML = `
+      <button
+        type="button"
+        class="ig-public-category-button active"
+        data-category="all">
+        Todas
+      </button>
+    `;
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("ig_categories")
+          .select(
+            "name,slug,icon,sort_order"
+          )
+          .eq(
+            "active",
+            true
+          )
+          .order(
+            "sort_order",
+            {
+              ascending:true
+            }
+          );
+
+      if (error) {
+
+        console.error(
+          "[IG Categorías] Error:",
+          error
+        );
+
+        return;
+
+      }
+
+      const categories =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      categories.forEach(
+        function (category) {
+
+          const name =
+            String(
+              category.name || ""
+            ).trim();
+
+          if (!name) {
+
+            return;
+
+          }
+
+          const button =
+            document.createElement(
+              "button"
+            );
+
+          button.type =
+            "button";
+
+          button.className =
+            "ig-public-category-button";
+
+          button.dataset.category =
+            name;
+
+          const icon =
+            category.icon
+              ? `
+                <span
+                  class="ig-public-category-icon">
+                  ${escapeCategory(category.icon)}
+                </span>
+              `
+              : "";
+
+          button.innerHTML =
+            icon +
+            escapeCategory(name);
+
+          button.addEventListener(
+            "click",
+            function () {
+
+              selectCategory(
+                name
+              );
+
+            }
+          );
+
+          list.appendChild(
+            button
+          );
+
+        }
+      );
+
+      const allButton =
+        list.querySelector(
+          '[data-category="all"]'
+        );
+
+      if (allButton) {
+
+        allButton.addEventListener(
+          "click",
+          function () {
+
+            selectCategory(
+              "all"
+            );
+
+          }
+        );
+
+      }
+
+      applyFilter();
+
+    } catch (error) {
+
+      console.error(
+        "[IG Categorías] Error inesperado:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     SELECCIONAR CATEGORÍA
+     ========================================================== */
+
+  function selectCategory(
+    category
+  ) {
+
+    currentCategory =
+      category || "all";
+
+    document
+      .querySelectorAll(
+        ".ig-public-category-button"
+      )
+      .forEach(
+        function (button) {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.category ===
+              currentCategory
+          );
+
+        }
+      );
+
+    applyFilter();
+
+    const productsSection =
+      document.getElementById(
+        "productsSection"
+      );
+
+    if (
+      productsSection &&
+      window.innerWidth < 701
+    ) {
+
+      productsSection.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     APLICAR FILTRO
+     ========================================================== */
+
+  function applyFilter() {
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if (!container) {
+
+      return;
+
+    }
+
+    const cards =
+      container.querySelectorAll(
+        ".product-card"
+      );
+
+    let visible =
+      0;
+
+    cards.forEach(
+      function (card) {
+
+        const categoryElement =
+          card.querySelector(
+            ".product-category"
+          );
+
+        const cardCategory =
+          categoryElement
+            ? categoryElement.textContent
+                .trim()
+            : "";
+
+        const matches =
+          currentCategory === "all" ||
+          cardCategory ===
+            currentCategory;
+
+        card.style.display =
+          matches
+            ? ""
+            : "none";
+
+        if (matches) {
+
+          visible++;
+
+        }
+
+      }
+    );
+
+    updateEmptyMessage(
+      container,
+      cards.length,
+      visible
+    );
+
+  }
+
+
+  /* ==========================================================
+     MENSAJE SIN RESULTADOS
+     ========================================================== */
+
+  function updateEmptyMessage(
+    container,
+    total,
+    visible
+  ) {
+
+    const old =
+      document.getElementById(
+        "igCategoryEmpty"
+      );
+
+    if (old) {
+
+      old.remove();
+
+    }
+
+    if (
+      currentCategory === "all"
+    ) {
+
+      return;
+
+    }
+
+    if (
+      total > 0 &&
+      visible === 0
+    ) {
+
+      const message =
+        document.createElement(
+          "div"
+        );
+
+      message.id =
+        "igCategoryEmpty";
+
+      message.innerHTML = `
+
+        <h3>
+          No hay productos en esta categoría
+        </h3>
+
+        <p>
+          Probá con otra categoría.
+        </p>
+
+      `;
+
+      container.appendChild(
+        message
+      );
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     OBSERVAR NUEVOS RENDERIZADOS
+     
+     IMPORTANTE:
+     La app actual ejecuta renderProducts().
+     No la reemplazamos.
+     
+     Si renderProducts() vuelve a crear las tarjetas,
+     este observador vuelve a aplicar el filtro.
+     ========================================================== */
+
+  function watchProducts() {
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if (!container) {
+
+      return;
+
+    }
+
+    if (observer) {
+
+      observer.disconnect();
+
+    }
+
+    observer =
+      new MutationObserver(
+        function () {
+
+          requestAnimationFrame(
+            function () {
+
+              applyFilter();
+
+            }
+          );
+
+        }
+      );
+
+    observer.observe(
+      container,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+    applyFilter();
+
+  }
+
+
+  /* ==========================================================
+     INICIALIZACIÓN
+     ========================================================== */
+
+  function initialize() {
+
+    if (initialized) {
+
+      return;
+
+    }
+
+    initialized = true;
+
+    waitForStore(
+      async function (productsContainer) {
+
+        injectStyles();
+
+        createCategoryArea(
+          productsContainer
+        );
+
+        await loadCategories();
+
+        watchProducts();
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================================
+     API DE DIAGNÓSTICO
+     ========================================================== */
+
+  window.InternationalGatewayCategories = {
+
+    version:VERSION,
+
+    current:function () {
+
+      return currentCategory;
+
+    },
+
+    showAll:function () {
+
+      selectCategory("all");
+
+    },
+
+    refresh:function () {
+
+      loadCategories();
+
+    }
+
+  };
+
+
+  /* ==========================================================
+     ARRANQUE
+     ========================================================== */
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialize,
+      {
+        once:true
+      }
+    );
+
+  } else {
+
+    initialize();
+
+  }
+
+})();
+</script>
 </body>
 </html>
