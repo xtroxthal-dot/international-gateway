@@ -10913,5 +10913,550 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     ESTADÍSTICAS DE VISITAS — SOLO ADMINISTRACIÓN
+========================================================= -->
+
+<style>
+#ig-admin-visits{
+  display:none;
+  margin:0 0 25px;
+}
+
+#ig-admin-visits .ig-visits-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+#ig-admin-visits .ig-visits-title{
+  font-size:22px;
+  font-weight:800;
+}
+
+#ig-admin-visits .ig-visits-subtitle{
+  color:#777;
+  font-size:13px;
+  margin-top:3px;
+}
+
+#ig-admin-visits .ig-visits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+}
+
+#ig-admin-visits .ig-visit-card{
+  background:#fff;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 5px 20px rgba(0,0,0,.08);
+  border:1px solid #eee;
+}
+
+#ig-admin-visits .ig-visit-card small{
+  display:block;
+  color:#777;
+  font-size:13px;
+}
+
+#ig-admin-visits .ig-visit-card strong{
+  display:block;
+  font-size:30px;
+  margin-top:5px;
+}
+
+#ig-admin-visits .ig-visits-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+#ig-admin-visits .ig-refresh{
+  background:#111;
+  color:#fff;
+  border:0;
+  border-radius:8px;
+  padding:9px 13px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+#ig-admin-visits .ig-refresh:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+#ig-admin-visits .ig-visits-error{
+  display:none;
+  margin-top:12px;
+  padding:12px;
+  border-radius:9px;
+  background:#fde8ec;
+  color:#8c001a;
+  font-size:14px;
+}
+</style>
+
+<div id="ig-admin-visits">
+
+  <div class="ig-visits-header">
+
+    <div>
+      <div class="ig-visits-title">
+        Estadísticas de visitas
+      </div>
+
+      <div class="ig-visits-subtitle">
+        Estadísticas de International Gateway
+      </div>
+    </div>
+
+    <div class="ig-visits-actions">
+      <button
+        type="button"
+        class="ig-refresh"
+        id="ig-refresh-visits">
+        Actualizar
+      </button>
+    </div>
+
+  </div>
+
+  <div class="ig-visits-grid">
+
+    <div class="ig-visit-card">
+      <small>Visitas totales</small>
+      <strong id="ig-visits-total">—</strong>
+    </div>
+
+    <div class="ig-visit-card">
+      <small>Visitas de hoy</small>
+      <strong id="ig-visits-today">—</strong>
+    </div>
+
+    <div class="ig-visit-card">
+      <small>Últimos 7 días</small>
+      <strong id="ig-visits-7days">—</strong>
+    </div>
+
+    <div class="ig-visit-card">
+      <small>Este mes</small>
+      <strong id="ig-visits-month">—</strong>
+    </div>
+
+    <div class="ig-visit-card">
+      <small>Visitantes únicos</small>
+      <strong id="ig-visits-unique">—</strong>
+    </div>
+
+  </div>
+
+  <div
+    id="ig-visits-error"
+    class="ig-visits-error">
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  "use strict";
+
+  const PANEL_ID = "ig-admin-visits";
+
+  let panelInserted = false;
+  let loading = false;
+
+  function getPanel(){
+    return document.getElementById(PANEL_ID);
+  }
+
+  function getAdminShell(){
+
+    const shells =
+      document.querySelectorAll(".admin-shell");
+
+    for(const shell of shells){
+
+      const style =
+        window.getComputedStyle(shell);
+
+      if(
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        shell.offsetParent !== null
+      ){
+        return shell;
+      }
+
+    }
+
+    return null;
+  }
+
+  function insertarPanel(){
+
+    const panel = getPanel();
+
+    if(!panel){
+      return false;
+    }
+
+    const adminShell = getAdminShell();
+
+    if(!adminShell){
+
+      panel.style.display = "none";
+      panelInserted = false;
+
+      return false;
+    }
+
+    const adminMain =
+      adminShell.querySelector(".admin-main");
+
+    if(!adminMain){
+
+      panel.style.display = "none";
+
+      return false;
+    }
+
+    /*
+      Colocamos el panel dentro de Administración.
+    */
+
+    if(panel.parentElement !== adminMain){
+
+      adminMain.insertBefore(
+        panel,
+        adminMain.firstElementChild
+      );
+
+    }
+
+    panel.style.display = "block";
+    panelInserted = true;
+
+    return true;
+  }
+
+
+  async function cargarEstadisticas(){
+
+    if(loading){
+      return;
+    }
+
+    const panel = getPanel();
+
+    if(!panel){
+      return;
+    }
+
+    if(!insertarPanel()){
+      return;
+    }
+
+    const cliente =
+      window.supabaseClient;
+
+    if(!cliente){
+
+      mostrarError(
+        "No se encontró la conexión con Supabase."
+      );
+
+      return;
+    }
+
+    loading = true;
+
+    const boton =
+      document.getElementById(
+        "ig-refresh-visits"
+      );
+
+    if(boton){
+
+      boton.disabled = true;
+      boton.textContent = "Actualizando...";
+
+    }
+
+    ocultarError();
+
+    try{
+
+      /*
+        Comprobamos que exista una sesión
+        antes de mostrar las estadísticas.
+      */
+
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await cliente.auth.getSession();
+
+      if(
+        sessionError ||
+        !sessionData ||
+        !sessionData.session
+      ){
+
+        panel.style.display = "none";
+
+        return;
+      }
+
+
+      /*
+        RPC DE SOLO LECTURA.
+        No registra una visita adicional.
+      */
+
+      const {
+        data,
+        error
+      } = await cliente.rpc(
+        "obtener_estadisticas_visitas_international_gateway"
+      );
+
+      if(error){
+
+        console.error(
+          "Error obteniendo estadísticas:",
+          error
+        );
+
+        mostrarError(
+          "No se pudieron cargar las estadísticas."
+        );
+
+        return;
+      }
+
+
+      const estadisticas =
+        data || {};
+
+
+      document.getElementById(
+        "ig-visits-total"
+      ).textContent =
+        Number(
+          estadisticas.total || 0
+        ).toLocaleString("es-AR");
+
+
+      document.getElementById(
+        "ig-visits-today"
+      ).textContent =
+        Number(
+          estadisticas.today || 0
+        ).toLocaleString("es-AR");
+
+
+      document.getElementById(
+        "ig-visits-7days"
+      ).textContent =
+        Number(
+          estadisticas.last_7_days || 0
+        ).toLocaleString("es-AR");
+
+
+      document.getElementById(
+        "ig-visits-month"
+      ).textContent =
+        Number(
+          estadisticas.this_month || 0
+        ).toLocaleString("es-AR");
+
+
+      document.getElementById(
+        "ig-visits-unique"
+      ).textContent =
+        Number(
+          estadisticas.unique_visitors || 0
+        ).toLocaleString("es-AR");
+
+
+    }catch(error){
+
+      console.error(
+        "Error estadísticas:",
+        error
+      );
+
+      mostrarError(
+        "Ocurrió un error al cargar las estadísticas."
+      );
+
+    }finally{
+
+      loading = false;
+
+      if(boton){
+
+        boton.disabled = false;
+        boton.textContent = "Actualizar";
+
+      }
+
+    }
+
+  }
+
+
+  function mostrarError(mensaje){
+
+    const caja =
+      document.getElementById(
+        "ig-visits-error"
+      );
+
+    if(!caja){
+      return;
+    }
+
+    caja.textContent = mensaje;
+    caja.style.display = "block";
+  }
+
+
+  function ocultarError(){
+
+    const caja =
+      document.getElementById(
+        "ig-visits-error"
+      );
+
+    if(caja){
+
+      caja.style.display = "none";
+
+    }
+
+  }
+
+
+  function iniciar(){
+
+    insertarPanel();
+
+
+    /*
+      Detecta cuando International Gateway
+      entra o vuelve a entrar en Administración.
+    */
+
+    const observer =
+      new MutationObserver(function(){
+
+        const estabaInsertado =
+          panelInserted;
+
+        const estaInsertado =
+          insertarPanel();
+
+
+        if(
+          estaInsertado &&
+          !estabaInsertado
+        ){
+
+          cargarEstadisticas();
+
+        }
+
+      });
+
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true,
+        attributes:true,
+        attributeFilter:[
+          "class",
+          "style"
+        ]
+      }
+    );
+
+
+    /*
+      Comprobación inicial.
+    */
+
+    let intentos = 0;
+
+    const intervalo =
+      setInterval(function(){
+
+        intentos++;
+
+        const estaEnAdmin =
+          insertarPanel();
+
+        if(estaEnAdmin){
+
+          cargarEstadisticas();
+
+        }
+
+        if(intentos >= 20){
+
+          clearInterval(intervalo);
+
+        }
+
+      },1000);
+
+  }
+
+
+  document.addEventListener(
+    "click",
+    function(event){
+
+      if(
+        event.target &&
+        event.target.id ===
+        "ig-refresh-visits"
+      ){
+
+        cargarEstadisticas();
+
+      }
+
+    }
+  );
+
+
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+})();
+</script>
 </body>
 </html>
