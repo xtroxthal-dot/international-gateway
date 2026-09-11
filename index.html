@@ -9022,5 +9022,1760 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     COTIZACIÓN DE ENVÍO — INTEGRACIÓN V1
+     ========================================================= -->
+
+<style>
+.ig-shipping-box{
+  margin:18px 0;
+  padding:18px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  background:#f7f7f7;
+}
+
+.ig-shipping-box h3{
+  margin:0 0 8px;
+}
+
+.ig-shipping-box > p{
+  margin:0 0 15px;
+  color:#555;
+}
+
+.ig-shipping-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.ig-shipping-grid .full{
+  grid-column:1 / -1;
+}
+
+.ig-shipping-status{
+  margin-top:14px;
+  padding:12px;
+  border-radius:10px;
+  background:#fff3cd;
+  color:#664d03;
+}
+
+.ig-shipping-status.success{
+  background:#d1e7dd;
+  color:#0f5132;
+}
+
+.ig-shipping-admin{
+  margin-top:18px;
+  padding:16px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:#f7f7f7;
+}
+
+.ig-shipping-admin-address{
+  margin-top:10px;
+  padding:12px;
+  border-radius:9px;
+  background:#fff;
+  line-height:1.6;
+}
+
+.ig-shipping-admin-controls{
+  display:grid;
+  grid-template-columns:180px 1fr auto;
+  gap:10px;
+  align-items:end;
+  margin-top:12px;
+}
+
+.ig-shipping-final-total{
+  margin-top:14px;
+  padding:14px;
+  border-radius:10px;
+  background:#111;
+  color:#fff;
+  font-size:18px;
+  font-weight:700;
+}
+
+.ig-shipping-detail{
+  margin-top:12px;
+  padding:12px;
+  border-radius:10px;
+  background:#f5f5f5;
+  line-height:1.7;
+}
+
+@media(max-width:700px){
+
+  .ig-shipping-grid{
+    grid-template-columns:1fr;
+  }
+
+  .ig-shipping-grid .full{
+    grid-column:auto;
+  }
+
+  .ig-shipping-admin-controls{
+    grid-template-columns:1fr;
+  }
+
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_SHIPPING_V1__) return;
+  window.__IG_SHIPPING_V1__ = true;
+
+  /* =========================================================
+     UTILIDADES
+     ========================================================= */
+
+  function igEsc(value){
+
+    return String(value ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+
+  }
+
+  function igMoney(value){
+
+    if(typeof money === "function"){
+      return money(Number(value || 0));
+    }
+
+    return new Intl.NumberFormat("es-AR",{
+      style:"currency",
+      currency:"ARS"
+    }).format(Number(value || 0));
+
+  }
+
+  function igMsg(text,type){
+
+    if(typeof setMessage === "function"){
+      setMessage(
+        "checkoutMessage",
+        text,
+        type || "error"
+      );
+    }else if(typeof showToast === "function"){
+      showToast(text);
+    }
+
+  }
+
+
+  /* =========================================================
+     FORMULARIO DE ENVÍO
+     ========================================================= */
+
+  function igInjectShippingForm(){
+
+    const form =
+      document.getElementById("checkoutForm");
+
+    if(!form) return false;
+
+    if(document.getElementById("igShippingBox")){
+      return true;
+    }
+
+    const box =
+      document.createElement("div");
+
+    box.id="igShippingBox";
+
+    box.className="ig-shipping-box";
+
+    box.innerHTML=`
+
+      <h3>🚚 Presupuestar envío</h3>
+
+      <p>
+        Completá los datos de entrega.
+        El administrador calculará el costo del envío
+        antes de habilitar el pago.
+      </p>
+
+      <div class="ig-shipping-grid">
+
+        <div class="field">
+          <label>Nombre y apellido *</label>
+          <input
+            id="igShipName"
+            type="text"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Teléfono / WhatsApp *</label>
+          <input
+            id="igShipPhone"
+            type="tel"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Dirección *</label>
+          <input
+            id="igShipAddress"
+            type="text"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Número *</label>
+          <input
+            id="igShipNumber"
+            type="text"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Piso / Departamento</label>
+          <input
+            id="igShipFloor"
+            type="text">
+        </div>
+
+        <div class="field">
+          <label>Localidad *</label>
+          <input
+            id="igShipLocality"
+            type="text"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Provincia *</label>
+          <input
+            id="igShipProvince"
+            type="text"
+            value="Buenos Aires"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Código postal *</label>
+          <input
+            id="igShipPostal"
+            type="text"
+            required>
+        </div>
+
+        <div class="field">
+          <label>País *</label>
+          <input
+            id="igShipCountry"
+            type="text"
+            value="Argentina"
+            required>
+        </div>
+
+        <div class="field full">
+          <label>Observaciones de entrega</label>
+          <textarea
+            id="igShipNotes"
+            rows="3"
+            placeholder="Referencias, horario, indicaciones, etc."></textarea>
+        </div>
+
+      </div>
+
+      <div class="ig-shipping-status">
+
+        🕐 El envío queda pendiente de cotización.
+        Primero registraremos el pedido y luego
+        el administrador informará el costo.
+
+      </div>
+
+    `;
+
+    const submitButton =
+      form.querySelector(
+        "#finishOrderButton"
+      ) ||
+      form.querySelector(
+        "button[type='submit']"
+      );
+
+    if(submitButton){
+
+      form.insertBefore(
+        box,
+        submitButton
+      );
+
+    }else{
+
+      form.appendChild(box);
+
+    }
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     LEER DATOS DE ENVÍO
+     ========================================================= */
+
+  function igReadShipping(){
+
+    return {
+
+      full_name:
+        document
+          .getElementById("igShipName")
+          ?.value
+          .trim(),
+
+      phone:
+        document
+          .getElementById("igShipPhone")
+          ?.value
+          .trim(),
+
+      address:
+        document
+          .getElementById("igShipAddress")
+          ?.value
+          .trim(),
+
+      address_number:
+        document
+          .getElementById("igShipNumber")
+          ?.value
+          .trim(),
+
+      floor_department:
+        document
+          .getElementById("igShipFloor")
+          ?.value
+          .trim(),
+
+      locality:
+        document
+          .getElementById("igShipLocality")
+          ?.value
+          .trim(),
+
+      province:
+        document
+          .getElementById("igShipProvince")
+          ?.value
+          .trim(),
+
+      postal_code:
+        document
+          .getElementById("igShipPostal")
+          ?.value
+          .trim(),
+
+      country:
+        document
+          .getElementById("igShipCountry")
+          ?.value
+          .trim(),
+
+      delivery_notes:
+        document
+          .getElementById("igShipNotes")
+          ?.value
+          .trim()
+
+    };
+
+  }
+
+
+  /* =========================================================
+     CREAR PEDIDO CON ENVÍO PENDIENTE
+     ========================================================= */
+
+  async function igCreateOrderWithShipping(){
+
+    if(!cart || !cart.length){
+
+      showToast("El carrito está vacío.");
+      return;
+
+    }
+
+    const name =
+      document
+        .getElementById("customerName")
+        ?.value
+        .trim();
+
+    const phone =
+      document
+        .getElementById("customerPhone")
+        ?.value
+        .trim();
+
+    const email =
+      document
+        .getElementById("customerEmail")
+        ?.value
+        .trim();
+
+    const paymentMethod =
+      document
+        .getElementById("paymentMethod")
+        ?.value;
+
+    const shipping =
+      igReadShipping();
+
+    if(
+      !name ||
+      !phone ||
+      !email ||
+      !paymentMethod
+    ){
+
+      igMsg(
+        "Completá todos los datos del cliente y seleccioná un método de pago.",
+        "error"
+      );
+
+      return;
+
+    }
+
+    const requiredShipping = [
+
+      shipping.full_name,
+      shipping.phone,
+      shipping.address,
+      shipping.address_number,
+      shipping.locality,
+      shipping.province,
+      shipping.postal_code,
+      shipping.country
+
+    ];
+
+    if(
+      requiredShipping.some(
+        value=>!value
+      )
+    ){
+
+      igMsg(
+        "Completá todos los datos necesarios para presupuestar el envío.",
+        "error"
+      );
+
+      return;
+
+    }
+
+    const button =
+      document.getElementById(
+        "finishOrderButton"
+      );
+
+    if(button){
+
+      button.disabled=true;
+      button.textContent=
+        "Registrando pedido...";
+
+    }
+
+    let orderId=null;
+
+    try{
+
+      /* -----------------------------------------------------
+         VERIFICAR PRODUCTOS ACTUALES
+         ----------------------------------------------------- */
+
+      const ids =
+        cart.map(
+          item=>item.id
+        );
+
+      const {
+        data:currentProducts,
+        error:productsError
+      } =
+        await supabaseClient
+          .from("ig_products")
+          .select(`
+            id,
+            name,
+            price,
+            available,
+            active
+          `)
+          .in("id",ids);
+
+      if(productsError){
+        throw productsError;
+      }
+
+      let validItems=[];
+      let subtotal=0;
+
+      for(
+        const item of cart
+      ){
+
+        const product =
+          (currentProducts || [])
+            .find(
+              p=>p.id===item.id
+            );
+
+        if(
+          !product ||
+          !product.active ||
+          !product.available
+        ){
+
+          throw new Error(
+            `El producto "${item.name}" ya no está disponible.`
+          );
+
+        }
+
+        const quantity =
+          Math.max(
+            1,
+            Number(item.quantity)
+          );
+
+        const price =
+          Number(product.price);
+
+        const itemSubtotal =
+          price * quantity;
+
+        validItems.push({
+
+          product_id:
+            product.id,
+
+          product_name:
+            product.name,
+
+          product_price:
+            price,
+
+          quantity:
+            quantity,
+
+          subtotal:
+            itemSubtotal
+
+        });
+
+        subtotal +=
+          itemSubtotal;
+
+      }
+
+
+      /* -----------------------------------------------------
+         CREAR PEDIDO
+         ----------------------------------------------------- */
+
+      orderId =
+        crypto.randomUUID();
+
+      const orderNumber =
+        Date.now();
+
+      const {
+        error:orderError
+      } =
+        await supabaseClient
+          .from("ig_orders")
+          .insert({
+
+            id:
+              orderId,
+
+            order_number:
+              orderNumber,
+
+            customer_name:
+              name,
+
+            customer_phone:
+              phone,
+
+            customer_email:
+              email,
+
+            payment_method:
+              paymentMethod,
+
+            payment_status:
+              "pending",
+
+            order_status:
+              "pending",
+
+            subtotal:
+              subtotal,
+
+            total:
+              subtotal
+
+          });
+
+      if(orderError){
+        throw orderError;
+      }
+
+
+      /* -----------------------------------------------------
+         ITEMS
+         ----------------------------------------------------- */
+
+      const {
+        error:itemsError
+      } =
+        await supabaseClient
+          .from("ig_order_items")
+          .insert(
+            validItems.map(
+              item=>({
+
+                order_id:
+                  orderId,
+
+                ...item
+
+              })
+            )
+          );
+
+      if(itemsError){
+        throw itemsError;
+      }
+
+
+      /* -----------------------------------------------------
+         SOLICITUD DE ENVÍO
+         ----------------------------------------------------- */
+
+      const {
+        data:shippingRow,
+        error:shippingError
+      } =
+        await supabaseClient
+          .from("ig_shipping_quotes")
+          .insert({
+
+            order_id:
+              orderId,
+
+            full_name:
+              shipping.full_name,
+
+            phone:
+              shipping.phone,
+
+            email:
+              email,
+
+            address:
+              shipping.address,
+
+            address_number:
+              shipping.address_number,
+
+            floor_department:
+              shipping.floor_department || null,
+
+            locality:
+              shipping.locality,
+
+            province:
+              shipping.province,
+
+            postal_code:
+              shipping.postal_code,
+
+            country:
+              shipping.country,
+
+            delivery_notes:
+              shipping.delivery_notes || null,
+
+            shipping_cost:
+              0,
+
+            status:
+              "pending"
+
+          })
+          .select(
+            "id,access_token"
+          )
+          .single();
+
+      if(shippingError){
+        throw shippingError;
+      }
+
+
+      /* -----------------------------------------------------
+         GUARDAR REFERENCIA LOCAL
+         ----------------------------------------------------- */
+
+      localStorage.setItem(
+        "ig_shipping_order",
+        JSON.stringify({
+
+          order_number:
+            orderNumber,
+
+          phone:
+            shipping.phone,
+
+          access_token:
+            shippingRow?.access_token ||
+            null
+
+        })
+      );
+
+
+      /* -----------------------------------------------------
+         LIMPIAR CARRITO
+         ----------------------------------------------------- */
+
+      cart=[];
+
+      saveCart();
+      updateCartCount();
+
+
+      /* -----------------------------------------------------
+         CONFIRMACIÓN
+         ----------------------------------------------------- */
+
+      igShowPendingConfirmation({
+
+        order_number:
+          orderNumber,
+
+        subtotal:
+          subtotal,
+
+        paymentMethod:
+          paymentMethod
+
+      });
+
+    }catch(error){
+
+      console.error(
+        "IG shipping checkout:",
+        error
+      );
+
+      /*
+        Limpieza para evitar pedidos huérfanos
+        si falla algún paso posterior.
+      */
+
+      if(orderId){
+
+        await supabaseClient
+          .from("ig_shipping_quotes")
+          .delete()
+          .eq("order_id",orderId);
+
+        await supabaseClient
+          .from("ig_order_items")
+          .delete()
+          .eq("order_id",orderId);
+
+        await supabaseClient
+          .from("ig_orders")
+          .delete()
+          .eq("id",orderId);
+
+      }
+
+      igMsg(
+        error.message ||
+        "No se pudo registrar el pedido.",
+        "error"
+      );
+
+    }finally{
+
+      if(button){
+
+        button.disabled=false;
+
+        button.textContent=
+          "Confirmar pedido";
+
+      }
+
+    }
+
+  }
+
+
+  /* =========================================================
+     CONFIRMACIÓN DEL CLIENTE
+     ========================================================= */
+
+  function igShowPendingConfirmation(order){
+
+    document
+      .getElementById("storeView")
+      ?.classList.add("hidden");
+
+    document
+      .getElementById("cartView")
+      ?.classList.add("hidden");
+
+    document
+      .getElementById("checkoutView")
+      ?.classList.add("hidden");
+
+    document
+      .getElementById("confirmationView")
+      ?.classList.remove("hidden");
+
+    const number =
+      document.getElementById(
+        "confirmationNumber"
+      );
+
+    if(number){
+
+      number.textContent =
+        "#" + order.order_number;
+
+    }
+
+    const total =
+      document.getElementById(
+        "confirmationTotal"
+      );
+
+    if(total){
+
+      total.textContent =
+        igMoney(order.subtotal);
+
+    }
+
+    const paymentBox =
+      document.getElementById(
+        "paymentAction"
+      );
+
+    if(!paymentBox)return;
+
+    paymentBox.innerHTML=`
+
+      <div class="ig-shipping-status">
+
+        🚚 <strong>Envío pendiente de cotización</strong>
+
+        <br><br>
+
+        Pedido registrado correctamente.
+
+        <br><br>
+
+        Productos:
+        <strong>${igMoney(order.subtotal)}</strong>
+
+        <br>
+
+        Envío:
+        <strong>Pendiente</strong>
+
+        <br><br>
+
+        <strong>
+          El pago se habilitará cuando el administrador
+          confirme el costo del envío.
+        </strong>
+
+      </div>
+
+      <div
+        id="igClientQuoteResult"
+        class="ig-shipping-detail">
+
+        🕐 Consultando estado del envío...
+
+      </div>
+
+      <br>
+
+      <button
+        type="button"
+        class="button full"
+        id="igCheckQuoteButton">
+
+        🔄 Consultar cotización
+
+      </button>
+
+    `;
+
+    document
+      .getElementById(
+        "igCheckQuoteButton"
+      )
+      ?.addEventListener(
+        "click",
+        igCheckClientQuote
+      );
+
+    igCheckClientQuote();
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  }
+
+
+  /* =========================================================
+     CONSULTAR COTIZACIÓN
+     ========================================================= */
+
+  async function igCheckClientQuote(){
+
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          "ig_shipping_order"
+        ) || "null"
+      );
+
+    const result =
+      document.getElementById(
+        "igClientQuoteResult"
+      );
+
+    if(!saved || !result){
+      return;
+    }
+
+    result.innerHTML=
+      "🔄 Consultando cotización...";
+
+    try{
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .rpc(
+            "ig_get_shipping_quote",
+            {
+
+              p_order_number:
+                Number(saved.order_number),
+
+              p_phone:
+                saved.phone,
+
+              p_access_token:
+                saved.access_token || null
+
+            }
+          );
+
+      if(error){
+        throw error;
+      }
+
+      const quote =
+        Array.isArray(data)
+          ? data[0]
+          : data;
+
+      if(!quote){
+
+        result.innerHTML=`
+          <div class="ig-shipping-status">
+
+            🕐 Envío pendiente de cotización.
+
+          </div>
+        `;
+
+        return;
+
+      }
+
+      if(
+        quote.shipping_status !==
+        "quoted"
+      ){
+
+        result.innerHTML=`
+          <div class="ig-shipping-status">
+
+            🕐 El administrador todavía
+            no ha confirmado el costo del envío.
+
+          </div>
+        `;
+
+        return;
+
+      }
+
+      const subtotal =
+        Number(
+          quote.subtotal || 0
+        );
+
+      const shipping =
+        Number(
+          quote.shipping_cost || 0
+        );
+
+      const total =
+        subtotal + shipping;
+
+      result.innerHTML=`
+
+        <div class="ig-shipping-status success">
+
+          ✅ <strong>Envío cotizado</strong>
+
+        </div>
+
+        <div class="ig-shipping-detail">
+
+          Productos:
+          <strong>${igMoney(subtotal)}</strong>
+
+          <br>
+
+          Envío:
+          <strong>${igMoney(shipping)}</strong>
+
+        </div>
+
+        <div class="ig-shipping-final-total">
+
+          TOTAL FINAL:
+          ${igMoney(total)}
+
+        </div>
+
+        ${
+          quote.admin_notes
+            ? `
+              <div class="ig-shipping-detail">
+                📝 ${igEsc(quote.admin_notes)}
+              </div>
+            `
+            : ""
+        }
+
+        <br>
+
+        ${
+          settings.mercadopago_url
+            ? `
+              <button
+                type="button"
+                class="button success full"
+                onclick="window.open('${igEsc(settings.mercadopago_url)}','_blank')">
+
+                💳 Pagar con Mercado Pago
+
+              </button>
+
+              <br><br>
+
+              <small>
+                Importe final informado:
+                <strong>${igMoney(total)}</strong>
+              </small>
+            `
+            : `
+              <div class="ig-shipping-status">
+                El administrador todavía no configuró
+                el enlace de Mercado Pago.
+              </div>
+            `
+        }
+
+      `;
+
+    }catch(error){
+
+      console.error(
+        "IG shipping quote:",
+        error
+      );
+
+      result.innerHTML=`
+        <div class="ig-shipping-status">
+          No se pudo consultar la cotización.
+          Intentá nuevamente.
+        </div>
+      `;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     ADMINISTRADOR
+     ========================================================= */
+
+  async function igGetShippingQuotes(){
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("ig_shipping_quotes")
+        .select("*")
+        .order(
+          "created_at",
+          {ascending:false}
+        );
+
+    if(error){
+
+      console.error(
+        "IG admin shipping:",
+        error
+      );
+
+      return [];
+
+    }
+
+    return data || [];
+
+  }
+
+
+  function igAdminShippingHtml(
+    order,
+    quote
+  ){
+
+    const address =
+      [
+        quote.address,
+        quote.address_number,
+        quote.floor_department
+      ]
+      .filter(Boolean)
+      .join(" ");
+
+    return `
+
+      <div
+        class="ig-shipping-admin"
+        data-ig-shipping="1">
+
+        <strong>
+          🚚 Cotización de envío
+        </strong>
+
+        <div class="ig-shipping-status
+          ${
+            quote.status === "quoted"
+              ? "success"
+              : ""
+          }">
+
+          ${
+            quote.status === "quoted"
+              ? "✅ Envío cotizado"
+              : "🕐 Pendiente de cotización"
+          }
+
+        </div>
+
+        <div class="ig-shipping-admin-address">
+
+          <strong>Datos de entrega</strong>
+
+          <br><br>
+
+          👤 ${igEsc(quote.full_name)}
+
+          <br>
+
+          📱 ${igEsc(quote.phone)}
+
+          <br>
+
+          📧 ${igEsc(quote.email || "")}
+
+          <br>
+
+          📍 ${igEsc(address)}
+
+          <br>
+
+          ${igEsc(quote.locality)},
+          ${igEsc(quote.province)}
+
+          <br>
+
+          CP ${igEsc(quote.postal_code)}
+          · ${igEsc(quote.country)}
+
+          ${
+            quote.delivery_notes
+              ? `
+                <br><br>
+                📝 ${igEsc(quote.delivery_notes)}
+              `
+              : ""
+          }
+
+        </div>
+
+        <div class="ig-shipping-admin-controls">
+
+          <div class="field">
+
+            <label>
+              Costo del envío
+            </label>
+
+            <input
+              id="igShipCost_${order.id}"
+              type="number"
+              min="0"
+              step="0.01"
+              value="${Number(
+                quote.shipping_cost || 0
+              )}">
+
+          </div>
+
+          <div class="field">
+
+            <label>
+              Nota para el cliente
+            </label>
+
+            <input
+              id="igShipNote_${order.id}"
+              type="text"
+              value="${igEsc(
+                quote.admin_notes || ""
+              )}"
+              placeholder="Opcional">
+
+          </div>
+
+          <button
+            type="button"
+            class="button success"
+            onclick="igConfirmShipping('${order.id}','${quote.id}')">
+
+            💾 Confirmar envío
+
+          </button>
+
+        </div>
+
+        ${
+          quote.status === "quoted"
+            ? `
+              <div class="ig-shipping-detail">
+
+                Total de productos:
+                <strong>
+                  ${igMoney(order.subtotal)}
+                </strong>
+
+                <br>
+
+                Envío:
+                <strong>
+                  ${igMoney(quote.shipping_cost)}
+                </strong>
+
+                <br>
+
+                TOTAL:
+                <strong>
+                  ${igMoney(
+                    Number(order.subtotal) +
+                    Number(quote.shipping_cost)
+                  )}
+                </strong>
+
+              </div>
+            `
+            : ""
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* =========================================================
+     CONFIRMAR ENVÍO DESDE ADMIN
+     ========================================================= */
+
+  async function igConfirmShipping(
+    orderId,
+    quoteId
+  ){
+
+    const costInput =
+      document.getElementById(
+        "igShipCost_" + orderId
+      );
+
+    const noteInput =
+      document.getElementById(
+        "igShipNote_" + orderId
+      );
+
+    if(!costInput)return;
+
+    const shippingCost =
+      Number(
+        costInput.value
+      );
+
+    if(
+      !Number.isFinite(shippingCost) ||
+      shippingCost < 0
+    ){
+
+      showToast(
+        "Ingresá un costo de envío válido."
+      );
+
+      return;
+
+    }
+
+    try{
+
+      const {
+        data:order,
+        error:orderError
+      } =
+        await supabaseClient
+          .from("ig_orders")
+          .select(
+            "subtotal"
+          )
+          .eq(
+            "id",
+            orderId
+          )
+          .single();
+
+      if(orderError){
+        throw orderError;
+      }
+
+      const finalTotal =
+        Number(order.subtotal || 0) +
+        shippingCost;
+
+
+      /* -----------------------------------------------------
+         ACTUALIZAR COTIZACIÓN
+         ----------------------------------------------------- */
+
+      const {
+        error:quoteError
+      } =
+        await supabaseClient
+          .from("ig_shipping_quotes")
+          .update({
+
+            shipping_cost:
+              shippingCost,
+
+            status:
+              "quoted",
+
+            admin_notes:
+              noteInput?.value.trim() ||
+              null,
+
+            updated_at:
+              new Date().toISOString()
+
+          })
+          .eq(
+            "id",
+            quoteId
+          )
+          .eq(
+            "order_id",
+            orderId
+          );
+
+      if(quoteError){
+        throw quoteError;
+      }
+
+
+      /* -----------------------------------------------------
+         ACTUALIZAR TOTAL DEL PEDIDO
+         ----------------------------------------------------- */
+
+      const {
+        error:updateOrderError
+      } =
+        await supabaseClient
+          .from("ig_orders")
+          .update({
+
+            total:
+              finalTotal,
+
+            updated_at:
+              new Date().toISOString()
+
+          })
+          .eq(
+            "id",
+            orderId
+          );
+
+      if(updateOrderError){
+        throw updateOrderError;
+      }
+
+
+      showToast(
+        "Cotización de envío confirmada."
+      );
+
+      await loadAdminOrders();
+
+    }catch(error){
+
+      console.error(
+        "IG confirm shipping:",
+        error
+      );
+
+      showToast(
+        error.message ||
+        "No se pudo guardar la cotización."
+      );
+
+    }
+
+  }
+
+  window.igConfirmShipping =
+    igConfirmShipping;
+
+
+  /* =========================================================
+     DECORAR PEDIDOS DEL ADMIN
+     ========================================================= */
+
+  function igWrapAdminOrders(){
+
+    if(
+      typeof window.loadAdminOrders !==
+      "function"
+    ){
+
+      return false;
+
+    }
+
+    if(
+      window.loadAdminOrders
+        .__igShippingWrapped
+    ){
+
+      return true;
+
+    }
+
+    const original =
+      window.loadAdminOrders;
+
+    async function wrapped(){
+
+      await original();
+
+      try{
+
+        const quotes =
+          await igGetShippingQuotes();
+
+        if(!quotes.length){
+          return;
+        }
+
+        const {
+          data:orders,
+          error
+        } =
+          await supabaseClient
+            .from("ig_orders")
+            .select(
+              "id,order_number,subtotal"
+            );
+
+        if(error){
+          throw error;
+        }
+
+        const container =
+          document.getElementById(
+            "adminOrdersList"
+          );
+
+        if(!container)return;
+
+        const cards =
+          Array.from(
+            container.querySelectorAll(
+              ".order-card"
+            )
+          );
+
+        (orders || []).forEach(
+          order=>{
+
+            const quote =
+              quotes.find(
+                q=>q.order_id===order.id
+              );
+
+            if(!quote)return;
+
+            const card =
+              cards.find(
+                card=>{
+
+                  const strong =
+                    card.querySelector(
+                      ".order-head strong"
+                    );
+
+                  if(!strong)return false;
+
+                  return strong.textContent
+                    .includes(
+                      "#" +
+                      order.order_number
+                    );
+
+                }
+              );
+
+            if(!card)return;
+
+            if(
+              card.querySelector(
+                "[data-ig-shipping='1']"
+              )
+            ){
+
+              const old =
+                card.querySelector(
+                  "[data-ig-shipping='1']"
+                );
+
+              old.remove();
+
+            }
+
+            const wrapper =
+              document.createElement(
+                "div"
+              );
+
+            wrapper.innerHTML =
+              igAdminShippingHtml(
+                order,
+                quote
+              );
+
+            card.appendChild(
+              wrapper.firstElementChild
+            );
+
+          }
+        );
+
+      }catch(error){
+
+        console.error(
+          "IG admin shipping decoration:",
+          error
+        );
+
+      }
+
+    }
+
+    wrapped.__igShippingWrapped=true;
+
+    window.loadAdminOrders =
+      wrapped;
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     INTERCEPTAR CHECKOUT
+     ========================================================= */
+
+  function igInstallCheckout(){
+
+    const form =
+      document.getElementById(
+        "checkoutForm"
+      );
+
+    if(!form)return false;
+
+    if(
+      form.dataset.igShippingInstalled
+    ){
+
+      return true;
+
+    }
+
+    igInjectShippingForm();
+
+    form.addEventListener(
+      "submit",
+      function(event){
+
+        /*
+          CAPTURE:
+          este listener se ejecuta antes
+          del listener original createOrder().
+        */
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        igCreateOrderWithShipping();
+
+      },
+      true
+    );
+
+    form.dataset.igShippingInstalled =
+      "1";
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     ARRANQUE SEGURO
+     ========================================================= */
+
+  function igBoot(){
+
+    igInstallCheckout();
+    igWrapAdminOrders();
+
+  }
+
+  igBoot();
+
+  setTimeout(
+    igBoot,
+    300
+  );
+
+  setTimeout(
+    igBoot,
+    1000
+  );
+
+  setTimeout(
+    igBoot,
+    2000
+  );
+
+  const observer =
+    new MutationObserver(
+      function(){
+
+        igBoot();
+
+      }
+    );
+
+  if(document.body){
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+  window.InternationalGatewayShipping = {
+
+    version:"1.0",
+
+    refresh:
+      igCheckClientQuote,
+
+    install:
+      igBoot
+
+  };
+
+})();
+</script>
 </body>
 </html>
