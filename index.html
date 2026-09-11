@@ -17986,5 +17986,72 @@ body.ig-splash-lock{
 
 })();
 </script>
+    <script>
+(function () {
+  "use strict";
+
+  if (window.__IG_CHECKOUT_MESSAGE_REPAIR) return;
+  window.__IG_CHECKOUT_MESSAGE_REPAIR = true;
+
+  function limpiarMensajeEnvioParaRetiro() {
+    const radios = document.querySelectorAll(
+      'input[name="igDeliveryMethod"]'
+    );
+
+    let pickup = false;
+
+    radios.forEach(function (radio) {
+      if (
+        radio.checked &&
+        (
+          radio.value === "pickup" ||
+          radio.value === "retiro" ||
+          radio.value === "local"
+        )
+      ) {
+        pickup = true;
+      }
+    });
+
+    if (!pickup) return;
+
+    document.querySelectorAll("body *").forEach(function (element) {
+      if (element.children.length > 0) return;
+
+      const texto = (element.textContent || "").trim();
+
+      if (
+        texto ===
+        "Completá todos los datos necesarios para presupuestar el envío."
+      ) {
+        element.style.display = "none";
+      }
+    });
+  }
+
+  function observarCambios() {
+    limpiarMensajeEnvioParaRetiro();
+
+    const observer = new MutationObserver(function () {
+      limpiarMensajeEnvioParaRetiro();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      observarCambios,
+      { once: true }
+    );
+  } else {
+    observarCambios();
+  }
+})();
+</script>
 </body>
 </html>
