@@ -5966,6 +5966,91 @@ async function init(){
 init();
 
 </script>
+<!-- BOTÓN COMPARTIR APP — INTERNATIONAL GATEWAY -->
+<div style="display:flex;justify-content:center;padding:18px 16px;">
+  <button
+    id="shareAppButton"
+    type="button"
+    style="
+      width:100%;
+      max-width:420px;
+      padding:14px 20px;
+      border:2px solid #111;
+      border-radius:12px;
+      background:#111;
+      color:#fff;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+    "
+  >
+    📤 Compartir International Gateway
+  </button>
+</div>
 
+<script>
+(function(){
+
+  const shareButton = document.getElementById("shareAppButton");
+
+  if(!shareButton) return;
+
+  shareButton.addEventListener("click", async function(){
+
+    const shareData = {
+      title: "International Gateway",
+      text: "🛍️ Descubrí International Gateway — nuestra tienda online.",
+      url: "https://xtroxthal-dot.github.io/international-gateway/"
+    };
+
+    try {
+
+      if(navigator.share){
+
+        await navigator.share(shareData);
+
+      }else{
+
+        await navigator.clipboard.writeText(shareData.url);
+
+        if(typeof showToast === "function"){
+          showToast("📋 Enlace de la app copiado");
+        }else{
+          alert("📋 Enlace de la app copiado al portapapeles.");
+        }
+
+      }
+
+    }catch(error){
+
+      if(error.name === "AbortError"){
+        return;
+      }
+
+      console.error("Error al compartir la aplicación:", error);
+
+      try{
+
+        await navigator.clipboard.writeText(shareData.url);
+
+        if(typeof showToast === "function"){
+          showToast("📋 Enlace de la app copiado");
+        }else{
+          alert("📋 Enlace de la app copiado al portapapeles.");
+        }
+
+      }catch(copyError){
+
+        console.error("No se pudo copiar el enlace:", copyError);
+
+      }
+
+    }
+
+  });
+
+})();
+</script>
 </body>
 </html>
