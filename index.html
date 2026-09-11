@@ -12322,5 +12322,1249 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — FAVORITOS
+     VERSIÓN SEGURA 1.0
+     ========================================================= -->
+
+<style>
+
+.ig-favorite-button{
+  position:absolute;
+  top:12px;
+  right:12px;
+
+  width:42px;
+  height:42px;
+
+  border-radius:50%;
+
+  background:rgba(255,255,255,.95);
+  color:#777;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:22px;
+
+  box-shadow:0 3px 10px rgba(0,0,0,.16);
+
+  z-index:5;
+
+  transition:
+    transform .18s ease,
+    color .18s ease,
+    background .18s ease;
+}
+
+.ig-favorite-button:hover{
+  transform:scale(1.08);
+}
+
+.ig-favorite-button.active{
+  color:#d00000;
+  background:#fff;
+}
+
+.ig-favorite-button:active{
+  transform:scale(.92);
+}
+
+.product-card{
+  position:relative;
+}
+
+
+/* Botón flotante de favoritos */
+
+#igFavoritesLauncher{
+  position:fixed;
+
+  right:18px;
+  bottom:88px;
+
+  min-width:52px;
+  height:48px;
+
+  padding:0 15px;
+
+  border-radius:24px;
+
+  background:#111;
+  color:#fff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  font-weight:bold;
+  font-size:14px;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.22);
+
+  z-index:890;
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+#igFavoritesLauncher:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.28);
+}
+
+#igFavoritesCount{
+  min-width:21px;
+  height:21px;
+
+  padding:0 5px;
+
+  border-radius:50%;
+
+  background:#d00000;
+  color:#fff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:11px;
+}
+
+
+/* Panel */
+
+#igFavoritesPanel{
+  position:fixed;
+  inset:0;
+
+  background:rgba(0,0,0,.62);
+
+  z-index:3200;
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:15px;
+}
+
+#igFavoritesPanel.open{
+  display:flex;
+}
+
+#igFavoritesBox{
+  width:min(650px,100%);
+  max-height:90vh;
+
+  overflow:auto;
+
+  background:#fff;
+
+  border-radius:16px;
+
+  padding:20px;
+}
+
+#igFavoritesHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:15px;
+
+  margin-bottom:18px;
+}
+
+#igFavoritesHeader h2{
+  margin:0;
+}
+
+#igFavoritesClose{
+  width:38px;
+  height:38px;
+
+  border-radius:50%;
+
+  background:#eee;
+
+  font-size:20px;
+}
+
+#igFavoritesList{
+  display:grid;
+  gap:10px;
+}
+
+.ig-favorite-item{
+  display:flex;
+  align-items:center;
+
+  gap:12px;
+
+  padding:12px;
+
+  border:1px solid #ddd;
+  border-radius:12px;
+}
+
+.ig-favorite-item-image{
+  width:65px;
+  height:65px;
+
+  flex:none;
+
+  border-radius:9px;
+
+  overflow:hidden;
+
+  background:#eee;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.ig-favorite-item-image img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+.ig-favorite-item-info{
+  flex:1;
+  min-width:0;
+}
+
+.ig-favorite-item-info strong{
+  display:block;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.ig-favorite-item-price{
+  color:#666;
+  font-size:13px;
+  margin-top:3px;
+}
+
+.ig-favorite-remove{
+  width:38px;
+  height:38px;
+
+  border-radius:8px;
+
+  background:#eee;
+  color:#900;
+
+  flex:none;
+}
+
+.ig-favorites-empty{
+  text-align:center;
+
+  padding:35px 15px;
+
+  color:#666;
+}
+
+
+/* Móvil */
+
+@media(max-width:600px){
+
+  #igFavoritesLauncher{
+    right:15px;
+    bottom:80px;
+
+    height:46px;
+
+    padding:0 13px;
+  }
+
+  #igFavoritesBox{
+    padding:16px;
+
+    max-height:88vh;
+  }
+
+  .ig-favorite-button{
+    width:40px;
+    height:40px;
+
+    top:10px;
+    right:10px;
+  }
+
+}
+
+
+/* Menos movimiento */
+
+@media(prefers-reduced-motion:reduce){
+
+  .ig-favorite-button,
+  #igFavoritesLauncher{
+    transition:none;
+  }
+
+}
+
+</style>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+
+  /*
+   * Evita instalar el sistema dos veces.
+   */
+  if(window.__IG_FAVORITES_LOADED){
+    return;
+  }
+
+  window.__IG_FAVORITES_LOADED = true;
+
+
+  const STORAGE_KEY =
+    "ig_favorite_products_v1";
+
+
+  let favorites = [];
+
+
+  /*
+   * -------------------------------------------------------
+   * ALMACENAMIENTO
+   * -------------------------------------------------------
+   */
+
+  function cargarFavoritos(){
+
+    try{
+
+      const guardados =
+        localStorage.getItem(
+          STORAGE_KEY
+        );
+
+      if(!guardados){
+
+        favorites = [];
+
+        return;
+      }
+
+
+      const parsed =
+        JSON.parse(guardados);
+
+
+      if(Array.isArray(parsed)){
+
+        favorites =
+          parsed
+            .map(String)
+            .filter(Boolean);
+
+      }else{
+
+        favorites = [];
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        "[IG Favoritos] No se pudieron cargar los favoritos.",
+        error
+      );
+
+      favorites = [];
+
+    }
+
+  }
+
+
+  function guardarFavoritos(){
+
+    try{
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(favorites)
+      );
+
+    }catch(error){
+
+      console.warn(
+        "[IG Favoritos] No se pudieron guardar los favoritos.",
+        error
+      );
+
+    }
+
+  }
+
+
+  function esFavorito(id){
+
+    return favorites.includes(
+      String(id)
+    );
+
+  }
+
+
+  function actualizarContador(){
+
+    const count =
+      document.getElementById(
+        "igFavoritesCount"
+      );
+
+    if(!count){
+      return;
+    }
+
+    count.textContent =
+      favorites.length;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * BOTONES DE PRODUCTOS
+   * -------------------------------------------------------
+   */
+
+  function actualizarBoton(button){
+
+    const id =
+      String(
+        button.dataset.productId || ""
+      );
+
+    const activo =
+      esFavorito(id);
+
+
+    button.classList.toggle(
+      "active",
+      activo
+    );
+
+
+    button.innerHTML =
+      activo
+        ? "♥"
+        : "♡";
+
+
+    button.setAttribute(
+      "aria-pressed",
+      activo
+        ? "true"
+        : "false"
+    );
+
+
+    button.setAttribute(
+      "aria-label",
+      activo
+        ? "Quitar de favoritos"
+        : "Agregar a favoritos"
+    );
+
+
+    button.title =
+      activo
+        ? "Quitar de favoritos"
+        : "Agregar a favoritos";
+
+  }
+
+
+  function actualizarTodosLosBotones(){
+
+    document
+      .querySelectorAll(
+        ".ig-favorite-button"
+      )
+      .forEach(
+        actualizarBoton
+      );
+
+  }
+
+
+  function alternarFavorito(id){
+
+    id =
+      String(id);
+
+
+    if(!id){
+      return;
+    }
+
+
+    if(esFavorito(id)){
+
+      favorites =
+        favorites.filter(
+          function(item){
+            return item !== id;
+          }
+        );
+
+    }else{
+
+      favorites.push(id);
+
+    }
+
+
+    guardarFavoritos();
+
+    actualizarTodosLosBotones();
+
+    actualizarContador();
+
+    renderFavoritesPanel();
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * AÑADIR BOTÓN A CADA TARJETA
+   * -------------------------------------------------------
+   */
+
+  function decorarProductos(){
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+
+    if(!container){
+      return;
+    }
+
+
+    const cards =
+      container.querySelectorAll(
+        ".product-card"
+      );
+
+
+    cards.forEach(
+      function(card){
+
+        /*
+         * Ya decorada.
+         */
+        if(
+          card.querySelector(
+            ".ig-favorite-button"
+          )
+        ){
+
+          actualizarBoton(
+            card.querySelector(
+              ".ig-favorite-button"
+            )
+          );
+
+          return;
+        }
+
+
+        /*
+         * Obtenemos el ID real del producto
+         * desde el botón del carrito.
+         */
+        const cartButton =
+          card.querySelector(
+            "[onclick*=\"addToCart\"]"
+          );
+
+
+        if(!cartButton){
+          return;
+        }
+
+
+        const match =
+          cartButton
+            .getAttribute("onclick")
+            ?.match(
+              /addToCart\(['"]([^'"]+)['"]\)/
+            );
+
+
+        if(!match || !match[1]){
+          return;
+        }
+
+
+        const productId =
+          String(match[1]);
+
+
+        const favoriteButton =
+          document.createElement(
+            "button"
+          );
+
+
+        favoriteButton.type =
+          "button";
+
+
+        favoriteButton.className =
+          "ig-favorite-button";
+
+
+        favoriteButton.dataset.productId =
+          productId;
+
+
+        favoriteButton.addEventListener(
+          "click",
+          function(event){
+
+            /*
+             * Evita que el toque pueda
+             * activar accidentalmente
+             * otro elemento de la tarjeta.
+             */
+            event.preventDefault();
+
+            event.stopPropagation();
+
+
+            alternarFavorito(
+              productId
+            );
+
+          }
+        );
+
+
+        card.appendChild(
+          favoriteButton
+        );
+
+
+        actualizarBoton(
+          favoriteButton
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * PANEL DE FAVORITOS
+   * -------------------------------------------------------
+   */
+
+  function crearPanel(){
+
+    if(
+      document.getElementById(
+        "igFavoritesPanel"
+      )
+    ){
+      return;
+    }
+
+
+    const panel =
+      document.createElement(
+        "div"
+      );
+
+
+    panel.id =
+      "igFavoritesPanel";
+
+
+    panel.innerHTML = `
+
+      <div
+        id="igFavoritesBox"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="igFavoritesTitle">
+
+        <div id="igFavoritesHeader">
+
+          <h2 id="igFavoritesTitle">
+            ❤️ Mis favoritos
+          </h2>
+
+          <button
+            id="igFavoritesClose"
+            type="button"
+            aria-label="Cerrar favoritos">
+            ×
+          </button>
+
+        </div>
+
+        <div id="igFavoritesList"></div>
+
+      </div>
+
+    `;
+
+
+    document.body.appendChild(
+      panel
+    );
+
+
+    document
+      .getElementById(
+        "igFavoritesClose"
+      )
+      .addEventListener(
+        "click",
+        cerrarPanel
+      );
+
+
+    /*
+     * Cerrar tocando fuera del cuadro.
+     */
+    panel.addEventListener(
+      "click",
+      function(event){
+
+        if(
+          event.target === panel
+        ){
+
+          cerrarPanel();
+
+        }
+
+      }
+    );
+
+
+    /*
+     * Escape.
+     */
+    document.addEventListener(
+      "keydown",
+      function(event){
+
+        if(
+          event.key === "Escape" &&
+          panel.classList.contains("open")
+        ){
+
+          cerrarPanel();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  function abrirPanel(){
+
+    crearPanel();
+
+    renderFavoritesPanel();
+
+
+    const panel =
+      document.getElementById(
+        "igFavoritesPanel"
+      );
+
+
+    if(panel){
+
+      panel.classList.add(
+        "open"
+      );
+
+      document.body.style.overflow =
+        "hidden";
+
+    }
+
+  }
+
+
+  function cerrarPanel(){
+
+    const panel =
+      document.getElementById(
+        "igFavoritesPanel"
+      );
+
+
+    if(panel){
+
+      panel.classList.remove(
+        "open"
+      );
+
+    }
+
+
+    document.body.style.overflow =
+      "";
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * CONSTRUIR LISTA DE FAVORITOS
+   * -------------------------------------------------------
+   */
+
+  function renderFavoritesPanel(){
+
+    const list =
+      document.getElementById(
+        "igFavoritesList"
+      );
+
+
+    if(!list){
+      return;
+    }
+
+
+    /*
+     * Buscamos los productos actuales
+     * en las tarjetas ya renderizadas.
+     *
+     * No modificamos productsContainer.
+     */
+    const cards =
+      Array.from(
+        document.querySelectorAll(
+          "#productsContainer .product-card"
+        )
+      );
+
+
+    const items =
+      [];
+
+
+    favorites.forEach(
+      function(id){
+
+        const card =
+          cards.find(
+            function(item){
+
+              const cartButton =
+                item.querySelector(
+                  "[onclick*=\"addToCart\"]"
+                );
+
+
+              if(!cartButton){
+                return false;
+              }
+
+
+              const match =
+                cartButton
+                  .getAttribute("onclick")
+                  ?.match(
+                    /addToCart\(['"]([^'"]+)['"]\)/
+                  );
+
+
+              return(
+                match &&
+                String(match[1]) ===
+                  String(id)
+              );
+
+            }
+          );
+
+
+        if(card){
+
+          items.push({
+            id:id,
+            card:card
+          });
+
+        }
+
+      }
+    );
+
+
+    if(!items.length){
+
+      list.innerHTML = `
+
+        <div class="ig-favorites-empty">
+
+          <div style="font-size:40px;margin-bottom:10px">
+            ♡
+          </div>
+
+          <strong>
+            Todavía no tienes favoritos.
+          </strong>
+
+          <div style="margin-top:6px">
+            Toca el corazón de un producto
+            para guardarlo aquí.
+          </div>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    list.innerHTML =
+      "";
+
+
+    items.forEach(
+      function(item){
+
+        const card =
+          item.card;
+
+
+        const titleElement =
+          card.querySelector(
+            "h3"
+          );
+
+
+        const priceElement =
+          card.querySelector(
+            ".price"
+          );
+
+
+        const image =
+          card.querySelector(
+            ".product-image img"
+          );
+
+
+        const title =
+          titleElement
+            ? titleElement.textContent.trim()
+            : "Producto";
+
+
+        const price =
+          priceElement
+            ? priceElement.textContent.trim()
+            : "";
+
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+
+        row.className =
+          "ig-favorite-item";
+
+
+        const imageBox =
+          document.createElement(
+            "div"
+          );
+
+
+        imageBox.className =
+          "ig-favorite-item-image";
+
+
+        if(image){
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+
+          img.src =
+            image.src;
+
+
+          img.alt =
+            title;
+
+
+          imageBox.appendChild(
+            img
+          );
+
+        }else{
+
+          imageBox.textContent =
+            "🛍️";
+
+        }
+
+
+        const info =
+          document.createElement(
+            "div"
+          );
+
+
+        info.className =
+          "ig-favorite-item-info";
+
+
+        info.innerHTML =
+          "<strong></strong>" +
+          "<div class=\"ig-favorite-item-price\"></div>";
+
+
+        info
+          .querySelector("strong")
+          .textContent =
+            title;
+
+
+        info
+          .querySelector(
+            ".ig-favorite-item-price"
+          )
+          .textContent =
+            price;
+
+
+        const remove =
+          document.createElement(
+            "button"
+          );
+
+
+        remove.type =
+          "button";
+
+
+        remove.className =
+          "ig-favorite-remove";
+
+
+        remove.textContent =
+          "♥";
+
+
+        remove.title =
+          "Quitar de favoritos";
+
+
+        remove.setAttribute(
+          "aria-label",
+          "Quitar " + title + " de favoritos"
+        );
+
+
+        remove.addEventListener(
+          "click",
+          function(){
+
+            alternarFavorito(
+              item.id
+            );
+
+          }
+        );
+
+
+        row.appendChild(
+          imageBox
+        );
+
+
+        row.appendChild(
+          info
+        );
+
+
+        row.appendChild(
+          remove
+        );
+
+
+        list.appendChild(
+          row
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * BOTÓN FLOTANTE
+   * -------------------------------------------------------
+   */
+
+  function crearLauncher(){
+
+    if(
+      document.getElementById(
+        "igFavoritesLauncher"
+      )
+    ){
+      return;
+    }
+
+
+    const button =
+      document.createElement(
+        "button"
+      );
+
+
+    button.id =
+      "igFavoritesLauncher";
+
+
+    button.type =
+      "button";
+
+
+    button.innerHTML =
+      "❤️ <span>Favoritos</span> " +
+      "<span id=\"igFavoritesCount\">0</span>";
+
+
+    button.setAttribute(
+      "aria-label",
+      "Abrir favoritos"
+    );
+
+
+    button.addEventListener(
+      "click",
+      abrirPanel
+    );
+
+
+    document.body.appendChild(
+      button
+    );
+
+
+    actualizarContador();
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * INICIALIZACIÓN
+   * -------------------------------------------------------
+   */
+
+  function iniciar(){
+
+    cargarFavoritos();
+
+    crearLauncher();
+
+    crearPanel();
+
+    decorarProductos();
+
+    actualizarTodosLosBotones();
+
+    actualizarContador();
+
+
+    /*
+     * Esperamos a que el renderizado inicial
+     * de productos haya terminado.
+     */
+    setTimeout(
+      decorarProductos,
+      300
+    );
+
+
+    setTimeout(
+      decorarProductos,
+      1000
+    );
+
+
+    console.log(
+      "[IG Favoritos] Sistema instalado correctamente."
+    );
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {once:true}
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+
+})();
+</script>
 </body>
 </html>
