@@ -15357,5 +15357,1032 @@ body.ig-splash-lock{
   }
 }
 </style>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — SEGUIMIENTO DE PEDIDOS
+     Bloque independiente.
+     No modifica carrito, productos, favoritos ni administración.
+     ========================================================= -->
+
+<style>
+  #igOrderTrackingSection{
+    padding:24px 16px;
+  }
+
+  #igOrderTrackingSection .ig-tracking-card{
+    max-width:720px;
+    margin:0 auto;
+    background:var(--card,#fff);
+    border-radius:var(--radius,16px);
+    padding:22px;
+    box-shadow:var(--shadow,0 8px 24px rgba(0,0,0,.08));
+  }
+
+  #igOrderTrackingSection h2{
+    margin:0 0 8px;
+  }
+
+  .ig-tracking-intro{
+    color:var(--muted,#666);
+    margin-bottom:20px;
+  }
+
+  .ig-tracking-form{
+    display:grid;
+    gap:14px;
+  }
+
+  .ig-tracking-form label{
+    display:block;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+
+  .ig-tracking-form input{
+    width:100%;
+    box-sizing:border-box;
+    padding:13px 14px;
+    border:1px solid var(--border,#ddd);
+    border-radius:10px;
+    font-size:16px;
+    background:#fff;
+    color:#111;
+  }
+
+  .ig-tracking-result{
+    margin-top:22px;
+  }
+
+  .ig-tracking-error{
+    padding:14px;
+    border-radius:10px;
+    background:#fff0f0;
+    color:#9b1c1c;
+    border:1px solid #f0caca;
+  }
+
+  .ig-order-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+
+  .ig-order-number{
+    font-size:22px;
+    font-weight:800;
+  }
+
+  .ig-order-date{
+    color:var(--muted,#666);
+    font-size:14px;
+    margin-top:4px;
+  }
+
+  .ig-order-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:800;
+    background:#eee;
+  }
+
+  .ig-status-timeline{
+    position:relative;
+    display:grid;
+    gap:0;
+    margin:24px 0;
+  }
+
+  .ig-status-step{
+    position:relative;
+    display:grid;
+    grid-template-columns:42px 1fr;
+    gap:12px;
+    min-height:65px;
+  }
+
+  .ig-status-step:not(:last-child)::before{
+    content:"";
+    position:absolute;
+    left:19px;
+    top:40px;
+    width:4px;
+    height:calc(100% - 15px);
+    background:#ddd;
+    border-radius:10px;
+  }
+
+  .ig-status-step.done:not(:last-child)::before,
+  .ig-status-step.current:not(:last-child)::before{
+    background:#16803c;
+  }
+
+  .ig-status-dot{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:#e5e5e5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    position:relative;
+    z-index:2;
+  }
+
+  .ig-status-step.done .ig-status-dot,
+  .ig-status-step.current .ig-status-dot{
+    background:#16803c;
+    color:#fff;
+  }
+
+  .ig-status-step.current .ig-status-dot{
+    box-shadow:0 0 0 5px rgba(22,128,60,.12);
+  }
+
+  .ig-status-title{
+    font-weight:800;
+    padding-top:3px;
+  }
+
+  .ig-status-description{
+    color:var(--muted,#666);
+    font-size:14px;
+    margin-top:3px;
+  }
+
+  .ig-cancelled{
+    padding:15px;
+    border-radius:10px;
+    background:#fff0f0;
+    border:1px solid #efcccc;
+    color:#991b1b;
+    font-weight:700;
+    margin:20px 0;
+  }
+
+  .ig-order-items{
+    border-top:1px solid var(--border,#ddd);
+    margin-top:20px;
+    padding-top:18px;
+  }
+
+  .ig-order-item{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:11px 0;
+    border-bottom:1px solid #eee;
+  }
+
+  .ig-order-item:last-child{
+    border-bottom:0;
+  }
+
+  .ig-order-item-name{
+    font-weight:700;
+  }
+
+  .ig-order-item-meta{
+    color:var(--muted,#666);
+    font-size:14px;
+    margin-top:3px;
+  }
+
+  .ig-order-item-price{
+    font-weight:800;
+    white-space:nowrap;
+  }
+
+  .ig-order-total{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    font-size:21px;
+    font-weight:900;
+    border-top:2px solid var(--border,#ddd);
+    margin-top:12px;
+    padding-top:15px;
+  }
+
+  .ig-order-info{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:20px;
+  }
+
+  .ig-order-info-box{
+    background:#f7f7f7;
+    border-radius:10px;
+    padding:12px;
+  }
+
+  .ig-order-info-box small{
+    display:block;
+    color:#666;
+    margin-bottom:4px;
+  }
+
+  .ig-tracking-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+  }
+
+  .ig-tracking-refresh{
+    flex:1;
+    min-width:180px;
+  }
+
+  .ig-tracking-clear{
+    min-width:140px;
+  }
+
+  @media(max-width:600px){
+    #igOrderTrackingSection .ig-tracking-card{
+      padding:17px;
+    }
+
+    .ig-order-info{
+      grid-template-columns:1fr;
+    }
+
+    .ig-order-item{
+      align-items:flex-start;
+    }
+
+    .ig-order-total{
+      font-size:19px;
+    }
+  }
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_ORDER_TRACKING_LOADED){
+    return;
+  }
+
+  window.__IG_ORDER_TRACKING_LOADED=true;
+
+  let currentOrder=null;
+  let refreshTimer=null;
+
+  const STATUS_STEPS=[
+    {
+      key:"pending",
+      icon:"📥",
+      title:"Pedido recibido",
+      description:"Recibimos correctamente tu pedido."
+    },
+    {
+      key:"confirmed",
+      icon:"✅",
+      title:"Pedido confirmado",
+      description:"Tu pedido fue confirmado."
+    },
+    {
+      key:"preparing",
+      icon:"🛠️",
+      title:"Preparando",
+      description:"Estamos preparando tus productos."
+    },
+    {
+      key:"ready",
+      icon:"📦",
+      title:"Pedido listo",
+      description:"Tu pedido está listo para entregar."
+    },
+    {
+      key:"delivered",
+      icon:"🏠",
+      title:"Entregado",
+      description:"El pedido fue entregado."
+    }
+  ];
+
+  function createTrackingSection(){
+
+    if(document.getElementById(
+      "igOrderTrackingSection"
+    )){
+      return;
+    }
+
+    const productsSection=
+      document.getElementById(
+        "productsSection"
+      );
+
+    if(!productsSection){
+      return;
+    }
+
+    const section=
+      document.createElement("section");
+
+    section.id=
+      "igOrderTrackingSection";
+
+    section.className=
+      "section";
+
+    section.innerHTML=`
+
+      <div class="container">
+
+        <div class="ig-tracking-card">
+
+          <h2>
+            📦 Seguimiento de mi pedido
+          </h2>
+
+          <p class="ig-tracking-intro">
+            Consultá el estado de tu compra
+            usando tu número de pedido y el
+            correo electrónico utilizado al comprar.
+          </p>
+
+          <form
+            id="igOrderTrackingForm"
+            class="ig-tracking-form">
+
+            <div>
+              <label for="igTrackingOrderNumber">
+                Número de pedido
+              </label>
+
+              <input
+                id="igTrackingOrderNumber"
+                type="number"
+                min="1"
+                inputmode="numeric"
+                placeholder="Ej.: 1757601234567"
+                required>
+            </div>
+
+            <div>
+              <label for="igTrackingEmail">
+                Correo electrónico
+              </label>
+
+              <input
+                id="igTrackingEmail"
+                type="email"
+                autocomplete="email"
+                placeholder="El correo usado en la compra"
+                required>
+            </div>
+
+            <button
+              id="igTrackingButton"
+              class="button full"
+              type="submit">
+
+              🔎 Consultar pedido
+
+            </button>
+
+          </form>
+
+          <div
+            id="igTrackingResult"
+            class="ig-tracking-result">
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    productsSection
+      .parentNode
+      .insertBefore(
+        section,
+        productsSection.nextSibling
+      );
+
+    document
+      .getElementById(
+        "igOrderTrackingForm"
+      )
+      .addEventListener(
+        "submit",
+        consultOrder
+      );
+  }
+
+  function statusIndex(status){
+
+    return STATUS_STEPS.findIndex(
+      step=>step.key===status
+    );
+  }
+
+  function statusLabel(status){
+
+    const found=
+      STATUS_STEPS.find(
+        step=>step.key===status
+      );
+
+    if(found){
+      return found.title;
+    }
+
+    if(status==="cancelled"){
+      return "Pedido cancelado";
+    }
+
+    return status || "Sin estado";
+  }
+
+  function paymentLabel(method){
+
+    if(method==="mercado_pago"){
+      return "Mercado Pago";
+    }
+
+    if(method==="cash"){
+      return "Pago al contado";
+    }
+
+    return method || "No informado";
+  }
+
+  function paymentStatusLabel(status){
+
+    const map={
+      pending:"Pendiente",
+      paid:"Pagado",
+      rejected:"Rechazado",
+      cancelled:"Cancelado"
+    };
+
+    return map[status] || status || "Sin información";
+  }
+
+  function formatDate(value){
+
+    if(!value){
+      return "Sin fecha";
+    }
+
+    try{
+
+      return new Date(value)
+        .toLocaleString(
+          "es-AR",
+          {
+            dateStyle:"medium",
+            timeStyle:"short"
+          }
+        );
+
+    }catch(error){
+
+      return value;
+    }
+  }
+
+  async function consultOrder(event){
+
+    event.preventDefault();
+
+    const orderNumber=
+      Number(
+        document
+          .getElementById(
+            "igTrackingOrderNumber"
+          )
+          .value
+          .trim()
+      );
+
+    const email=
+      document
+        .getElementById(
+          "igTrackingEmail"
+        )
+        .value
+        .trim();
+
+    const button=
+      document.getElementById(
+        "igTrackingButton"
+      );
+
+    const result=
+      document.getElementById(
+        "igTrackingResult"
+      );
+
+    if(
+      !orderNumber ||
+      !email
+    ){
+
+      result.innerHTML=`
+        <div class="ig-tracking-error">
+          Completá el número de pedido y el correo electrónico.
+        </div>
+      `;
+
+      return;
+    }
+
+    button.disabled=true;
+
+    button.textContent=
+      "Consultando...";
+
+    result.innerHTML="";
+
+    try{
+
+      const {
+        data,
+        error
+      }=
+        await supabaseClient.rpc(
+          "consultar_pedido_international_gateway",
+          {
+            p_order_number:orderNumber,
+            p_customer_email:email
+          }
+        );
+
+      if(error){
+        throw error;
+      }
+
+      if(!data){
+        throw new Error(
+          "No encontramos un pedido con esos datos."
+        );
+      }
+
+      currentOrder=data;
+
+      renderOrder(data);
+
+      localStorage.setItem(
+        "ig_last_order_number",
+        String(orderNumber)
+      );
+
+      startAutoRefresh();
+
+    }catch(error){
+
+      console.error(
+        "International Gateway — seguimiento:",
+        error
+      );
+
+      result.innerHTML=`
+        <div class="ig-tracking-error">
+          ${escapeHtml(
+            error.message ||
+            "No encontramos un pedido con esos datos."
+          )}
+        </div>
+      `;
+
+    }finally{
+
+      button.disabled=false;
+
+      button.textContent=
+        "🔎 Consultar pedido";
+
+    }
+  }
+
+  function renderTimeline(status){
+
+    if(status==="cancelled"){
+
+      return`
+        <div class="ig-cancelled">
+          ❌ Este pedido fue cancelado.
+        </div>
+      `;
+    }
+
+    const current=
+      statusIndex(status);
+
+    return`
+      <div class="ig-status-timeline">
+
+        ${
+          STATUS_STEPS
+            .map((step,index)=>{
+
+              let className="";
+
+              if(index<current){
+                className="done";
+              }
+
+              if(index===current){
+                className="current";
+              }
+
+              return`
+
+                <div
+                  class="ig-status-step ${className}">
+
+                  <div class="ig-status-dot">
+                    ${step.icon}
+                  </div>
+
+                  <div>
+
+                    <div class="ig-status-title">
+                      ${step.title}
+                    </div>
+
+                    <div class="ig-status-description">
+                      ${step.description}
+                    </div>
+
+                  </div>
+
+                </div>
+
+              `;
+
+            })
+            .join("")
+        }
+
+      </div>
+    `;
+  }
+
+  function renderOrder(order){
+
+    const result=
+      document.getElementById(
+        "igTrackingResult"
+      );
+
+    if(!result){
+      return;
+    }
+
+    const items=
+      Array.isArray(order.items)
+        ? order.items
+        : [];
+
+    result.innerHTML=`
+
+      <div class="ig-order-header">
+
+        <div>
+
+          <div class="ig-order-number">
+            Pedido #${escapeHtml(
+              String(order.order_number)
+            )}
+          </div>
+
+          <div class="ig-order-date">
+            Realizado el
+            ${escapeHtml(
+              formatDate(order.created_at)
+            )}
+          </div>
+
+        </div>
+
+        <span class="ig-order-badge">
+          ${escapeHtml(
+            statusLabel(order.order_status)
+          )}
+        </span>
+
+      </div>
+
+      ${renderTimeline(order.order_status)}
+
+      <div class="ig-order-info">
+
+        <div class="ig-order-info-box">
+
+          <small>
+            Estado del pago
+          </small>
+
+          <strong>
+            ${escapeHtml(
+              paymentStatusLabel(
+                order.payment_status
+              )
+            )}
+          </strong>
+
+        </div>
+
+        <div class="ig-order-info-box">
+
+          <small>
+            Método de pago
+          </small>
+
+          <strong>
+            ${escapeHtml(
+              paymentLabel(
+                order.payment_method
+              )
+            )}
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="ig-order-items">
+
+        <h3>
+          Productos
+        </h3>
+
+        ${
+          items.length
+            ? items.map(item=>`
+
+              <div class="ig-order-item">
+
+                <div>
+
+                  <div class="ig-order-item-name">
+                    ${escapeHtml(
+                      item.product_name
+                    )}
+                  </div>
+
+                  <div class="ig-order-item-meta">
+                    ${escapeHtml(
+                      String(item.quantity)
+                    )}
+                    ×
+                    ${money(item.product_price)}
+                  </div>
+
+                </div>
+
+                <div class="ig-order-item-price">
+                  ${money(item.subtotal)}
+                </div>
+
+              </div>
+
+            `).join("")
+            : `
+              <p>
+                No hay productos asociados a este pedido.
+              </p>
+            `
+        }
+
+        <div class="ig-order-total">
+
+          <span>
+            Total
+          </span>
+
+          <strong>
+            ${money(order.total)}
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="ig-tracking-actions">
+
+        <button
+          type="button"
+          class="button ig-tracking-refresh"
+          onclick="window.IGRefreshOrderTracking()">
+
+          🔄 Actualizar estado
+
+        </button>
+
+        <button
+          type="button"
+          class="button secondary ig-tracking-clear"
+          onclick="window.IGClearOrderTracking()">
+
+          Limpiar
+
+        </button>
+
+      </div>
+
+    `;
+  }
+
+  async function refreshOrder(){
+
+    if(!currentOrder){
+      return;
+    }
+
+    const result=
+      document.getElementById(
+        "igTrackingResult"
+      );
+
+    try{
+
+      const {
+        data,
+        error
+      }=
+        await supabaseClient.rpc(
+          "consultar_pedido_international_gateway",
+          {
+            p_order_number:
+              Number(
+                currentOrder.order_number
+              ),
+
+            p_customer_email:
+              document
+                .getElementById(
+                  "igTrackingEmail"
+                )
+                .value
+                .trim()
+          }
+        );
+
+      if(error){
+        throw error;
+      }
+
+      if(data){
+
+        const oldStatus=
+          currentOrder.order_status;
+
+        currentOrder=data;
+
+        renderOrder(data);
+
+        if(
+          oldStatus &&
+          oldStatus!==data.order_status
+        ){
+
+          showToast(
+            "El estado de tu pedido fue actualizado."
+          );
+        }
+
+      }
+
+    }catch(error){
+
+      console.error(
+        "Error actualizando pedido:",
+        error
+      );
+
+      if(result){
+
+        const notice=
+          document.createElement("div");
+
+        notice.className=
+          "ig-tracking-error";
+
+        notice.textContent=
+          "No pudimos actualizar el pedido. Intentá nuevamente.";
+
+        result.prepend(notice);
+      }
+    }
+  }
+
+  function startAutoRefresh(){
+
+    if(refreshTimer){
+      clearInterval(refreshTimer);
+    }
+
+    refreshTimer=
+      setInterval(
+        refreshOrder,
+        15000
+      );
+  }
+
+  function clearTracking(){
+
+    currentOrder=null;
+
+    if(refreshTimer){
+      clearInterval(refreshTimer);
+      refreshTimer=null;
+    }
+
+    const result=
+      document.getElementById(
+        "igTrackingResult"
+      );
+
+    if(result){
+      result.innerHTML="";
+    }
+
+    const orderInput=
+      document.getElementById(
+        "igTrackingOrderNumber"
+      );
+
+    const emailInput=
+      document.getElementById(
+        "igTrackingEmail"
+      );
+
+    if(orderInput){
+      orderInput.value="";
+    }
+
+    if(emailInput){
+      emailInput.value="";
+    }
+
+    localStorage.removeItem(
+      "ig_last_order_number"
+    );
+  }
+
+  window.IGRefreshOrderTracking=
+    refreshOrder;
+
+  window.IGClearOrderTracking=
+    clearTracking;
+
+  function initialize(){
+
+    createTrackingSection();
+
+    const savedNumber=
+      localStorage.getItem(
+        "ig_last_order_number"
+      );
+
+    const input=
+      document.getElementById(
+        "igTrackingOrderNumber"
+      );
+
+    if(
+      savedNumber &&
+      input
+    ){
+
+      input.value=
+        savedNumber;
+    }
+  }
+
+  if(
+    document.readyState==="loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialize,
+      {once:true}
+    );
+
+  }else{
+
+    initialize();
+
+  }
+
+})();
+</script>
 </body>
 </html>
