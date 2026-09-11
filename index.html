@@ -8702,5 +8702,325 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   PARCHE: COMPARTIR PRODUCTO + FOTO
+   No modifica productos, carrito, Supabase ni administración.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const VERSION = "IG-PRODUCT-SHARE-FILE-1.0.0";
+
+  function getProductFromButton(button) {
+    const card = button.closest(".product-card");
+    if (!card) return null;
+
+    let productId =
+      card.dataset.productId ||
+      card.getAttribute("data-product-id") ||
+      "";
+
+    if (productId && Array.isArray(window.products)) {
+      const found = window.products.find(
+        p => String(p.id) === String(productId)
+      );
+      if (found) return found;
+    }
+
+    const nameEl =
+      card.querySelector("h3") ||
+      card.querySelector(".product-name") ||
+      card.querySelector("[class*='product-name']");
+
+    const name = nameEl ? nameEl.textContent.trim() : "";
+
+    if (name && Array.isArray(window.products)) {
+      const found = window.products.find(
+        p => String(p.name || "").trim() === name
+      );
+      if (found) return found;
+    }
+
+    return {
+      id: productId || "",
+      name: name || "Producto",
+      description: "",
+      price: "",
+      images: []
+    };
+  }
+
+  function getProductImage(product, card) {
+    /* Primero intentamos utilizar la imagen almacenada en el producto */
+    if (product && Array.isArray(product.ig_product_images)) {
+      const images = [...product.ig_product_images]
+        .sort((a, b) => {
+          if (a.is_primary !== b.is_primary) {
+            return a.is_primary ? -1 : 1;
+          }
+          return Number(a.sort_order || 0) - Number(b.sort_order || 0);
+        });
+
+      const first = images.find(
+        img => img.public_url || img.url
+      );
+
+      if (first) {
+        return first.public_url || first.url;
+      }
+    }
+
+    /* También buscamos la imagen visible de la tarjeta */
+    if (card) {
+      const img = card.querySelector("img");
+      if (img && img.src) return img.src;
+    }
+
+    return "";
+  }
+
+  function getProductUrl(product) {
+    const url = new URL(window.location.href);
+
+    if (product && product.id) {
+      url.searchParams.set("producto", product.id);
+    }
+
+    return url.toString();
+  }
+
+  async function imageUrlToFile(imageUrl, productName) {
+    if (!imageUrl) return null;
+
+    try {
+      const response = await fetch(imageUrl, {
+        mode: "cors",
+        cache: "no-cache"
+      });
+
+      if (!response.ok) return null;
+
+      const blob = await response.blob();
+
+      if (!blob || !blob.size) return null;
+
+      let extension = "jpg";
+
+      if (blob.type === "image/png") extension = "png";
+      else if (blob.type === "image/webp") extension = "webp";
+      else if (blob.type === "image/jpeg") extension = "jpg";
+
+      const safeName = String(productName || "producto")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .substring(0, 60) || "producto";
+
+      return new File(
+        [blob],
+        safeName + "." + extension,
+        {
+          type: blob.type || "image/jpeg"
+        }
+      );
+
+    } catch (error) {
+      console.warn(
+        "[IG Product Share] No se pudo obtener la imagen:",
+        error
+      );
+      return null;
+    }
+  }
+
+  async function shareProduct(button) {
+    const product = getProductFromButton(button);
+    const card = button.closest(".product-card");
+
+    if (!product) {
+      console.warn("[IG Product Share] No se encontró el producto.");
+      return;
+    }
+
+    const name =
+      product.name ||
+      "Producto International Gateway";
+
+    const description =
+      product.description ||
+      product.characteristics ||
+      "";
+
+    const url = getProductUrl(product);
+
+    const shareText =
+      "🛍️ " + name +
+      "\n\n" +
+      (description ? description + "\n\n" : "") +
+      "Ver producto:\n" +
+      url;
+
+    /* Evita dobles clics */
+    if (button.dataset.sharing === "1") return;
+
+    button.dataset.sharing = "1";
+
+    const originalText = button.textContent;
+
+    try {
+      button.textContent = "📤 Preparando...";
+
+      const imageUrl = getProductImage(product, card);
+      const imageFile = await imageUrlToFile(imageUrl, name);
+
+      /*
+       * PRIMERA OPCIÓN:
+       * Compartir FOTO + TEXTO + ENLACE.
+       */
+      if (
+        imageFile &&
+        navigator.share &&
+        navigator.canShare
+      ) {
+        const shareData = {
+          title: name,
+          text: shareText,
+          files: [imageFile]
+        };
+
+        if (navigator.canShare(shareData)) {
+          button.textContent = "📤 Compartiendo...";
+
+          await navigator.share(shareData);
+
+          return;
+        }
+      }
+
+      /*
+       * SEGUNDA OPCIÓN:
+       * Si el navegador no admite archivos,
+       * mantenemos el compartir tradicional.
+       */
+      if (navigator.share) {
+        button.textContent = "📤 Compartiendo...";
+
+        await navigator.share({
+          title: name,
+          text: shareText,
+          url: url
+        });
+
+        return;
+      }
+
+      /*
+       * TERCERA OPCIÓN:
+       * Navegadores sin Web Share API.
+       */
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+
+        alert(
+          "Enlace del producto copiado al portapapeles."
+        );
+
+        return;
+      }
+
+      window.prompt(
+        "Copia el enlace del producto:",
+        url
+      );
+
+    } catch (error) {
+
+      /*
+       * Cancelar el menú nativo de compartir
+       * NO debe considerarse un error.
+       */
+      if (
+        error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.warn(
+        "[IG Product Share] Error al compartir:",
+        error
+      );
+
+      /*
+       * Último respaldo:
+       * copiar solamente el enlace.
+       */
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(url);
+
+          alert(
+            "No se pudo compartir la foto directamente.\n\n" +
+            "El enlace del producto fue copiado."
+          );
+
+          return;
+        }
+      } catch (_) {}
+
+      window.prompt(
+        "Copia el enlace del producto:",
+        url
+      );
+
+    } finally {
+      button.dataset.sharing = "0";
+      button.textContent = originalText;
+    }
+  }
+
+  /*
+   * Delegación de eventos.
+   * No necesitamos modificar las tarjetas originales.
+   */
+  document.addEventListener(
+    "click",
+    function (event) {
+
+      const button =
+        event.target.closest(
+          ".ig-product-share, .product-share"
+        );
+
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      shareProduct(button);
+    },
+    true
+  );
+
+  /*
+   * También permite que el parche encuentre botones
+   * creados posteriormente por renderProducts().
+   */
+  window.InternationalGatewayProductShareFile = {
+    version: VERSION,
+    share: shareProduct
+  };
+
+  console.log(
+    "[International Gateway] " +
+    VERSION +
+    " activo."
+  );
+
+})();
+</script>
 </body>
 </html>
