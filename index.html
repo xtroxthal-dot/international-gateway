@@ -18053,5 +18053,358 @@ body.ig-splash-lock{
   }
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — BORRADO SEGURO DE PEDIDOS ADMIN
+     Añadir justo antes de </body>
+     ========================================================= -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__IG_ADMIN_DELETE_ORDERS_LOADED) return;
+  window.__IG_ADMIN_DELETE_ORDERS_LOADED = true;
+
+  async function igDeleteOrder(orderId, orderNumber, card) {
+
+    if (!orderId) {
+      showToast?.("No se pudo identificar el pedido.");
+      return;
+    }
+
+    const confirmar = confirm(
+      "⚠️ ¿Seguro que quieres borrar el pedido #" +
+      orderNumber +
+      "?\n\n" +
+      "Se eliminarán el pedido, sus productos asociados " +
+      "y los datos de envío.\n\n" +
+      "Esta acción no se puede deshacer."
+    );
+
+    if (!confirmar) return;
+
+    try {
+
+      showToast?.("Borrando pedido...");
+
+      /*
+       * Primero eliminamos los datos relacionados.
+       */
+
+      const { error: shippingError } =
+        await supabaseClient
+          .from("ig_shipping_quotes")
+          .delete()
+          .eq("order_id", orderId);
+
+      if (shippingError) {
+        throw shippingError;
+      }
+
+      const { error: itemsError } =
+        await supabaseClient
+          .from("ig_order_items")
+          .delete()
+          .eq("order_id", orderId);
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      /*
+       * Finalmente eliminamos el pedido.
+       */
+
+      const { error: orderError } =
+        await supabaseClient
+          .from("ig_orders")
+          .delete()
+          .eq("id", orderId);
+
+      if (orderError) {
+        throw orderError;
+      }
+
+      /*
+       * Quitar inmediatamente la tarjeta de pantalla.
+       */
+
+      if (card) {
+        card.style.transition =
+          "opacity .2s ease, transform .2s ease";
+
+        card.style.opacity = "0";
+        card.style.transform = "translateY(-8px)";
+
+        setTimeout(function () {
+          card.remove();
+        }, 220);
+      }
+
+      showToast?.(
+        "✅ Pedido #" +
+        orderNumber +
+        " eliminado correctamente."
+      );
+
+      /*
+       * Recargar estadísticas/listado si existe
+       * la función original.
+       */
+
+      if (
+        typeof window.loadAdminOrders ===
+        "function"
+      ) {
+        setTimeout(function () {
+          window.loadAdminOrders();
+        }, 300);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "International Gateway — borrar pedido:",
+        error
+      );
+
+      showToast?.(
+        error?.message ||
+        "No se pudo borrar el pedido."
+      );
+    }
+  }
+
+  window.igDeleteOrder =
+    igDeleteOrder;
+
+
+  function igAddDeleteButtons() {
+
+    const container =
+      document.getElementById(
+        "adminOrdersList"
+      );
+
+    if (!container) return;
+
+    const cards =
+      container.querySelectorAll(
+        ".order-card"
+      );
+
+    cards.forEach(function (card) {
+
+      if (
+        card.querySelector(
+          "[data-ig-delete-order='1']"
+        )
+      ) {
+        return;
+      }
+
+      /*
+       * El ID real está guardado en el botón
+       * existente de gestión del pedido o,
+       * si no lo encontramos, se obtiene del
+       * atributo onclick de los controles.
+       */
+
+      let orderId = null;
+      let orderNumber = null;
+
+      const html =
+        card.innerHTML || "";
+
+      /*
+       * Buscar un UUID de pedido dentro
+       * de onclick/data-* existentes.
+       */
+
+      const uuidMatch =
+        html.match(
+          /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
+        );
+
+      if (uuidMatch) {
+        orderId = uuidMatch[0];
+      }
+
+      /*
+       * Obtener número de pedido desde el
+       * encabezado de la tarjeta.
+       */
+
+      const strong =
+        card.querySelector(
+          ".order-head strong"
+        );
+
+      if (strong) {
+
+        const match =
+          strong.textContent.match(
+            /#\s*(\d+)/
+          );
+
+        if (match) {
+          orderNumber = match[1];
+        }
+      }
+
+      /*
+       * Si el UUID no está visible en el HTML,
+       * buscamos botones con onclick que tengan
+       * un identificador.
+       */
+
+      if (!orderId) {
+
+        const buttons =
+          card.querySelectorAll(
+            "button"
+          );
+
+        buttons.forEach(function (button) {
+
+          if (orderId) return;
+
+          const onclick =
+            button.getAttribute(
+              "onclick"
+            ) || "";
+
+          const match =
+            onclick.match(
+              /['"]([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})['"]/i
+            );
+
+          if (match) {
+            orderId = match[1];
+          }
+        });
+      }
+
+      /*
+       * Si no podemos encontrar el ID,
+       * no añadimos un botón que pueda borrar
+       * el pedido equivocado.
+       */
+
+      if (!orderId) {
+        console.warn(
+          "IG: no se pudo identificar el ID del pedido para añadir botón de borrado."
+        );
+        return;
+      }
+
+      const actions =
+        card.querySelector(
+          ".admin-actions"
+        );
+
+      const target =
+        actions ||
+        card;
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type = "button";
+
+      button.className =
+        "button danger";
+
+      button.setAttribute(
+        "data-ig-delete-order",
+        "1"
+      );
+
+      button.innerHTML =
+        "🗑️ Borrar pedido";
+
+      button.addEventListener(
+        "click",
+        function () {
+          igDeleteOrder(
+            orderId,
+            orderNumber || orderId,
+            card
+          );
+        }
+      );
+
+      target.appendChild(button);
+    });
+  }
+
+
+  /*
+   * Esperar a que el administrador haya
+   * terminado de cargar los pedidos.
+   */
+
+  function boot() {
+
+    igAddDeleteButtons();
+
+    setTimeout(
+      igAddDeleteButtons,
+      300
+    );
+
+    setTimeout(
+      igAddDeleteButtons,
+      1000
+    );
+  }
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      boot,
+      { once: true }
+    );
+
+  } else {
+
+    boot();
+
+  }
+
+  /*
+   * Detectar cuando loadAdminOrders()
+   * vuelve a pintar las tarjetas.
+   */
+
+  const observer =
+    new MutationObserver(
+      function () {
+        igAddDeleteButtons();
+      }
+    );
+
+  function startObserver() {
+
+    if (!document.body) return;
+
+    observer.observe(
+      document.body,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+  }
+
+  startObserver();
+
+})();
+</script>
 </body>
 </html>
