@@ -11567,5 +11567,121 @@ body.ig-splash-lock{
 
 })();
 </script>
+      <!-- =========================================================
+     INTERNATIONAL GATEWAY — REPARADOR DE VISITAS
+     No modifica productos, pedidos, carrito ni administración.
+     ========================================================= -->
+<script>
+(function () {
+  "use strict";
+
+  const VISITOR_KEY = "ig_visitor_id_repair";
+
+  function obtenerVisitante() {
+    let id = localStorage.getItem(VISITOR_KEY);
+
+    if (!id) {
+      if (
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
+      ) {
+        id = "ig_" + window.crypto.randomUUID();
+      } else {
+        id =
+          "ig_" +
+          Date.now().toString(36) +
+          "_" +
+          Math.random().toString(36).slice(2) +
+          "_" +
+          Math.random().toString(36).slice(2);
+      }
+
+      localStorage.setItem(VISITOR_KEY, id);
+    }
+
+    return id;
+  }
+
+  function detectarDispositivo() {
+    const ua = navigator.userAgent || "";
+
+    if (/tablet|ipad/i.test(ua)) {
+      return "tablet";
+    }
+
+    if (/mobile|android|iphone|ipod/i.test(ua)) {
+      return "mobile";
+    }
+
+    return "desktop";
+  }
+
+  async function registrar() {
+    try {
+      /*
+       * IMPORTANTE:
+       * Utilizamos exactamente el cliente Supabase
+       * que ya utiliza International Gateway.
+       */
+      if (
+        typeof supabaseClient === "undefined" ||
+        !supabaseClient ||
+        typeof supabaseClient.rpc !== "function"
+      ) {
+        console.warn(
+          "International Gateway: supabaseClient no disponible."
+        );
+        return;
+      }
+
+      const visitorId = obtenerVisitante();
+
+      const resultado = await supabaseClient.rpc(
+        "registrar_visita_international_gateway",
+        {
+          p_visitor_id: visitorId,
+          p_page: window.location.pathname || "/",
+          p_device: detectarDispositivo()
+        }
+      );
+
+      if (resultado.error) {
+        console.error(
+          "International Gateway: error registrando visita:",
+          resultado.error
+        );
+        return;
+      }
+
+      console.log(
+        "International Gateway: visita registrada correctamente.",
+        resultado.data
+      );
+
+    } catch (error) {
+      console.error(
+        "International Gateway: error inesperado en visitas:",
+        error
+      );
+    }
+  }
+
+  /*
+   * Esperamos a que el documento esté listo.
+   * El cliente Supabase ya debe existir porque este bloque
+   * se coloca antes de </body>.
+   */
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      registrar,
+      { once: true }
+    );
+  } else {
+    registrar();
+  }
+
+})();
+</script>  
 </body>
 </html>
