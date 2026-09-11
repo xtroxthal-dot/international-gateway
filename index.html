@@ -14818,5 +14818,415 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — CONFIRMACIÓN AL AGREGAR AL CARRITO
+     Mejora independiente.
+     No modifica la lógica del carrito.
+     ========================================================= -->
+
+<style>
+
+#igCartToast{
+  position:fixed;
+
+  left:50%;
+  bottom:25px;
+
+  transform:translateX(-50%) translateY(25px);
+
+  width:min(430px,calc(100% - 30px));
+
+  background:#111;
+  color:#fff;
+
+  border-radius:14px;
+
+  padding:14px 16px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  box-shadow:0 8px 30px rgba(0,0,0,.28);
+
+  z-index:5000;
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease,
+    visibility .2s ease;
+
+  pointer-events:none;
+}
+
+#igCartToast.ig-show{
+  opacity:1;
+  visibility:visible;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+#igCartToastIcon{
+  width:36px;
+  height:36px;
+
+  flex:none;
+
+  border-radius:50%;
+
+  background:#16803c;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:19px;
+}
+
+#igCartToastText{
+  flex:1;
+  min-width:0;
+}
+
+#igCartToastTitle{
+  font-weight:800;
+  font-size:15px;
+}
+
+#igCartToastSubtitle{
+  color:#ccc;
+  font-size:13px;
+  margin-top:2px;
+}
+
+@media(max-width:600px){
+
+  #igCartToast{
+    bottom:18px;
+    width:calc(100% - 24px);
+    padding:13px 14px;
+  }
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+  #igCartToast{
+    transition:none;
+  }
+
+}
+
+</style>
+
+
+<script>
+
+(function(){
+
+  "use strict";
+
+
+  /*
+   * Evita cargar este bloque dos veces.
+   */
+  if(window.__IG_CART_CONFIRMATION_LOADED){
+
+    return;
+
+  }
+
+  window.__IG_CART_CONFIRMATION_LOADED = true;
+
+
+  let toastTimer = null;
+
+
+  /* =======================================================
+     CREAR AVISO
+     ======================================================= */
+
+  function createToast(){
+
+    if(
+      document.getElementById(
+        "igCartToast"
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const toast =
+      document.createElement(
+        "div"
+      );
+
+
+    toast.id =
+      "igCartToast";
+
+
+    toast.setAttribute(
+      "role",
+      "status"
+    );
+
+
+    toast.setAttribute(
+      "aria-live",
+      "polite"
+    );
+
+
+    toast.innerHTML = `
+
+      <div id="igCartToastIcon">
+        ✓
+      </div>
+
+      <div id="igCartToastText">
+
+        <div id="igCartToastTitle">
+          Producto agregado al carrito
+        </div>
+
+        <div id="igCartToastSubtitle">
+          Tu producto fue añadido correctamente.
+        </div>
+
+      </div>
+
+    `;
+
+
+    document.body.appendChild(
+      toast
+    );
+
+  }
+
+
+  /* =======================================================
+     MOSTRAR AVISO
+     ======================================================= */
+
+  function showToast(){
+
+    createToast();
+
+
+    const toast =
+      document.getElementById(
+        "igCartToast"
+      );
+
+
+    if(!toast){
+
+      return;
+
+    }
+
+
+    clearTimeout(
+      toastTimer
+    );
+
+
+    /*
+     * Reiniciamos la animación.
+     */
+    toast.classList.remove(
+      "ig-show"
+    );
+
+
+    void toast.offsetWidth;
+
+
+    toast.classList.add(
+      "ig-show"
+    );
+
+
+    toastTimer =
+      setTimeout(
+        function(){
+
+          toast.classList.remove(
+            "ig-show"
+          );
+
+        },
+        2600
+      );
+
+  }
+
+
+  /* =======================================================
+     INSTALAR SOBRE addToCart
+     
+     No reemplazamos la función.
+     Guardamos la original y la ejecutamos exactamente
+     como antes.
+     ======================================================= */
+
+  function install(){
+
+    if(
+      typeof window.addToCart !==
+      "function"
+    ){
+
+      /*
+       * addToCart todavía no existe.
+       * Esperamos a que la aplicación termine
+       * de cargar sus funciones.
+       */
+      setTimeout(
+        install,
+        250
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Evitar instalar el hook dos veces.
+     */
+    if(
+      window.addToCart.__IG_CART_WRAPPED
+    ){
+
+      return;
+
+    }
+
+
+    const originalAddToCart =
+      window.addToCart;
+
+
+    function wrappedAddToCart(){
+
+      let result;
+
+
+      try{
+
+        /*
+         * Ejecutamos EXACTAMENTE la función
+         * original con los mismos argumentos.
+         */
+        result =
+          originalAddToCart.apply(
+            this,
+            arguments
+          );
+
+      }catch(error){
+
+        /*
+         * Si el carrito original produce
+         * un error, no mostramos falso éxito.
+         */
+        throw error;
+
+      }
+
+
+      /*
+       * Si addToCart devuelve una Promise,
+       * esperamos a que termine correctamente.
+       */
+      if(
+        result &&
+        typeof result.then ===
+        "function"
+      ){
+
+        return result.then(
+          function(value){
+
+            showToast();
+
+            return value;
+
+          }
+        );
+
+      }
+
+
+      /*
+       * Si es una función normal,
+       * mostramos la confirmación.
+       */
+      showToast();
+
+
+      return result;
+
+    }
+
+
+    wrappedAddToCart.__IG_CART_WRAPPED =
+      true;
+
+
+    wrappedAddToCart.__IG_CART_ORIGINAL =
+      originalAddToCart;
+
+
+    window.addToCart =
+      wrappedAddToCart;
+
+  }
+
+
+  /* =======================================================
+     INICIO
+     ======================================================= */
+
+  function start(){
+
+    createToast();
+
+    install();
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      start,
+      {once:true}
+    );
+
+  }else{
+
+    start();
+
+  }
+
+})();
+
+</script>
 </body>
 </html>
