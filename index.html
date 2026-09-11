@@ -11683,6 +11683,434 @@ body.ig-splash-lock{
 
 })();
 </script>  
-  
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — BUSCADOR DE PRODUCTOS
+     VERSIÓN SEGURA 1.0
+     
+     No modifica:
+     - Supabase
+     - productos
+     - carrito
+     - pedidos
+     - administración
+     - categorías
+     - renderProducts()
+     - MutationObserver existente
+     ========================================================= -->
+
+<style>
+#igProductSearchBox{
+  width:min(700px,92%);
+  margin:0 auto 25px;
+}
+
+#igProductSearchInput{
+  width:100%;
+  min-height:50px;
+  padding:13px 18px;
+  border:1px solid #d5d5d5;
+  border-radius:12px;
+  background:#fff;
+  color:#111;
+  font-size:16px;
+  outline:none;
+  box-shadow:0 3px 12px rgba(0,0,0,.06);
+}
+
+#igProductSearchInput:focus{
+  border-color:#111;
+  box-shadow:0 0 0 3px rgba(0,0,0,.08);
+}
+
+#igProductSearchStatus{
+  text-align:center;
+  margin-top:8px;
+  min-height:20px;
+  color:#666;
+  font-size:13px;
+}
+
+@media(max-width:600px){
+  #igProductSearchBox{
+    width:94%;
+    margin-bottom:20px;
+  }
+
+  #igProductSearchInput{
+    min-height:48px;
+    font-size:16px;
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  /*
+   * Evita que el código pueda instalarse dos veces.
+   */
+  if(window.__IG_PRODUCT_SEARCH_LOADED){
+    return;
+  }
+
+  window.__IG_PRODUCT_SEARCH_LOADED = true;
+
+
+  function iniciarBuscador(){
+
+    const productsContainer =
+      document.getElementById("productsContainer");
+
+    if(!productsContainer){
+      console.warn(
+        "[IG Buscador] productsContainer no encontrado."
+      );
+      return;
+    }
+
+
+    /*
+     * Si ya existe, no lo volvemos a crear.
+     */
+    if(document.getElementById("igProductSearchBox")){
+      return;
+    }
+
+
+    /*
+     * Creamos solamente la interfaz del buscador.
+     * NO tocamos productsContainer.
+     */
+    const searchBox =
+      document.createElement("div");
+
+    searchBox.id =
+      "igProductSearchBox";
+
+    searchBox.innerHTML = `
+      <input
+        id="igProductSearchInput"
+        type="search"
+        placeholder="🔎 Buscar productos..."
+        autocomplete="off"
+        aria-label="Buscar productos">
+
+      <div
+        id="igProductSearchStatus"
+        aria-live="polite">
+      </div>
+    `;
+
+
+    /*
+     * Lo colocamos antes de la lista de productos.
+     */
+    productsContainer.parentNode.insertBefore(
+      searchBox,
+      productsContainer
+    );
+
+
+    const input =
+      document.getElementById(
+        "igProductSearchInput"
+      );
+
+    const status =
+      document.getElementById(
+        "igProductSearchStatus"
+      );
+
+
+    function normalizar(texto){
+
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .trim();
+
+    }
+
+
+    function buscar(){
+
+      try{
+
+        const termino =
+          normalizar(input.value);
+
+
+        /*
+         * Obtenemos solamente las tarjetas
+         * actualmente existentes.
+         *
+         * querySelectorAll devuelve una lista
+         * estática, por lo que no interferimos
+         * con el renderizado de la aplicación.
+         */
+        const cards =
+          productsContainer.querySelectorAll(
+            ".product-card"
+          );
+
+
+        /*
+         * Si todavía no hay productos,
+         * simplemente no hacemos nada.
+         */
+        if(!cards.length){
+
+          status.textContent =
+            termino
+              ? "Buscando..."
+              : "";
+
+          return;
+
+        }
+
+
+        /*
+         * Categoría actualmente seleccionada.
+         *
+         * Si el sistema de categorías está disponible,
+         * respetamos su selección.
+         */
+        let categoriaActual =
+          "all";
+
+        try{
+
+          if(
+            window.InternationalGatewayCategories &&
+            typeof
+              window.InternationalGatewayCategories.current ===
+              "function"
+          ){
+
+            categoriaActual =
+              window
+                .InternationalGatewayCategories
+                .current() || "all";
+
+          }
+
+        }catch(error){
+
+          categoriaActual = "all";
+
+        }
+
+
+        let visibles = 0;
+
+
+        cards.forEach(function(card){
+
+          const categoriaElement =
+            card.querySelector(
+              ".product-category"
+            );
+
+
+          const categoriaProducto =
+            normalizar(
+              categoriaElement
+                ? categoriaElement.textContent
+                : ""
+            );
+
+
+          /*
+           * Primero respetamos la categoría
+           * seleccionada.
+           */
+          const coincideCategoria =
+            categoriaActual === "all" ||
+            categoriaProducto ===
+              normalizar(categoriaActual);
+
+
+          /*
+           * Después comprobamos el texto.
+           *
+           * Busca en:
+           * - nombre
+           * - categoría
+           * - descripción
+           * - características
+           */
+          const textoProducto =
+            normalizar(
+              card.textContent
+            );
+
+
+          const coincideBusqueda =
+            !termino ||
+            textoProducto.includes(termino);
+
+
+          const mostrar =
+            coincideCategoria &&
+            coincideBusqueda;
+
+
+          card.style.display =
+            mostrar ? "" : "none";
+
+
+          if(mostrar){
+            visibles++;
+          }
+
+        });
+
+
+        /*
+         * Mensaje pequeño debajo del buscador.
+         * No modificamos el contenedor de productos.
+         */
+        if(!termino){
+
+          status.textContent = "";
+
+        }else if(visibles === 0){
+
+          status.textContent =
+            "No encontramos productos con esa búsqueda.";
+
+        }else if(visibles === 1){
+
+          status.textContent =
+            "1 producto encontrado.";
+
+        }else{
+
+          status.textContent =
+            visibles +
+            " productos encontrados.";
+
+        }
+
+      }catch(error){
+
+        /*
+         * MUY IMPORTANTE:
+         * Un error del buscador nunca debe
+         * detener la tienda.
+         */
+        console.error(
+          "[IG Buscador] Error:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+     * Evento de escritura.
+     */
+    input.addEventListener(
+      "input",
+      buscar
+    );
+
+
+    /*
+     * Permite borrar rápidamente con
+     * Escape.
+     */
+    input.addEventListener(
+      "keydown",
+      function(event){
+
+        if(event.key === "Escape"){
+
+          input.value = "";
+
+          buscar();
+
+          input.blur();
+
+        }
+
+      }
+    );
+
+
+    /*
+     * Cuando se pulsa una categoría,
+     * actualizamos el buscador sin crear
+     * ningún MutationObserver.
+     */
+    document.addEventListener(
+      "click",
+      function(event){
+
+        const button =
+          event.target.closest(
+            ".ig-public-category-button"
+          );
+
+        if(!button){
+          return;
+        }
+
+        /*
+         * Esperamos a que el sistema de
+         * categorías termine su propio trabajo.
+         */
+        setTimeout(
+          buscar,
+          0
+        );
+
+      }
+    );
+
+
+    /*
+     * Primera comprobación.
+     */
+    buscar();
+
+
+    console.log(
+      "[IG Buscador] Buscador instalado correctamente."
+    );
+
+  }
+
+
+  /*
+   * Como este bloque está al final del body,
+   * normalmente el DOM ya está disponible.
+   *
+   * Esta comprobación también permite que
+   * funcione si el navegador ejecuta el script
+   * antes de terminar de construir el documento.
+   */
+  if(document.readyState === "loading"){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciarBuscador,
+      {once:true}
+    );
+
+  }else{
+
+    iniciarBuscador();
+
+  }
+
+})();
+</script>
 </body>
 </html>
