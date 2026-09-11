@@ -6808,5 +6808,1899 @@ init();
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     MÓDULO AISLADO: PANTALLA DE INICIO + COMPARTIR PRODUCTOS
+     No reemplaza funciones existentes.
+========================================================= -->
+
+<style>
+/* =========================================================
+   PANTALLA DE INICIO
+========================================================= */
+
+#igSplashScreen{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  height:100dvh;
+  min-height:100svh;
+  z-index:99999;
+  background:#111;
+  display:none;
+  overflow:hidden;
+  isolation:isolate;
+}
+
+#igSplashScreen.ig-splash-visible{
+  display:flex;
+}
+
+#igSplashScreen .ig-splash-image{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  z-index:-2;
+}
+
+#igSplashScreen .ig-splash-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,.18) 0%,
+      rgba(0,0,0,.08) 35%,
+      rgba(0,0,0,.62) 100%
+    );
+  z-index:-1;
+}
+
+#igSplashScreen .ig-splash-content{
+  width:100%;
+  min-height:100%;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-items:center;
+  text-align:center;
+  padding:
+    max(30px,env(safe-area-inset-top))
+    24px
+    max(30px,env(safe-area-inset-bottom))
+    24px;
+  color:#fff;
+}
+
+#igSplashScreen .ig-splash-title{
+  max-width:900px;
+  font-size:clamp(30px,7vw,64px);
+  line-height:1.05;
+  font-weight:800;
+  text-shadow:0 3px 18px rgba(0,0,0,.5);
+  margin-bottom:12px;
+}
+
+#igSplashScreen .ig-splash-subtitle{
+  max-width:700px;
+  font-size:clamp(15px,3.5vw,22px);
+  line-height:1.4;
+  text-shadow:0 2px 10px rgba(0,0,0,.5);
+  margin-bottom:25px;
+}
+
+#igSplashScreen .ig-splash-enter{
+  min-width:220px;
+  min-height:52px;
+  padding:13px 24px;
+  border-radius:12px;
+  background:#fff;
+  color:#111;
+  font-weight:800;
+  font-size:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+
+#igSplashScreen .ig-splash-enter:active{
+  transform:scale(.98);
+}
+
+/* Evita scroll detrás de la pantalla */
+body.ig-splash-lock{
+  overflow:hidden !important;
+}
+
+/* =========================================================
+   BOTÓN COMPARTIR PRODUCTO
+========================================================= */
+
+.ig-product-share{
+  width:100%;
+  min-height:44px;
+  margin-top:8px;
+  padding:10px 14px;
+  border-radius:9px;
+  background:#e9e9e9;
+  color:#111;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  cursor:pointer;
+}
+
+.ig-product-share:hover{
+  background:#dcdcdc;
+}
+
+/* =========================================================
+   PANEL INDEPENDIENTE DE PANTALLA DE INICIO
+========================================================= */
+
+#igSplashAdminBox{
+  margin-top:20px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  background:#fff;
+  padding:20px;
+  box-shadow:0 5px 20px rgba(0,0,0,.06);
+}
+
+#igSplashAdminBox h3{
+  margin-bottom:7px;
+}
+
+#igSplashAdminBox .ig-help{
+  color:#666;
+  font-size:13px;
+  margin-bottom:16px;
+}
+
+#igSplashAdminBox .ig-admin-grid{
+  display:grid;
+  gap:14px;
+}
+
+#igSplashAdminBox label{
+  font-weight:bold;
+  font-size:14px;
+}
+
+#igSplashAdminBox input[type="text"],
+#igSplashAdminBox textarea{
+  width:100%;
+  border:1px solid #ccc;
+  border-radius:9px;
+  padding:11px;
+  margin-top:6px;
+}
+
+#igSplashAdminBox textarea{
+  min-height:80px;
+  resize:vertical;
+}
+
+#igSplashAdminBox input[type="file"]{
+  width:100%;
+  margin-top:8px;
+}
+
+#igSplashAdminPreview{
+  width:100%;
+  max-width:420px;
+  aspect-ratio:9/16;
+  max-height:420px;
+  border-radius:12px;
+  overflow:hidden;
+  background:#eee;
+  margin-top:10px;
+  display:none;
+}
+
+#igSplashAdminPreview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.ig-splash-admin-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+
+.ig-splash-admin-status{
+  padding:10px;
+  border-radius:9px;
+  background:#eee;
+  font-size:13px;
+}
+
+.ig-splash-admin-status.ok{
+  background:#e5f6eb;
+  color:#12622f;
+}
+
+.ig-splash-admin-status.error{
+  background:#fde8ec;
+  color:#8c001a;
+}
+
+/* Móvil */
+@media(max-width:600px){
+
+  #igSplashScreen .ig-splash-content{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  #igSplashScreen .ig-splash-enter{
+    width:100%;
+    max-width:330px;
+  }
+
+}
+</style>
+
+
+<!-- =========================================================
+     PANTALLA DE INICIO
+========================================================= -->
+
+<div id="igSplashScreen" aria-hidden="true">
+
+  <img
+    id="igSplashImage"
+    class="ig-splash-image"
+    src=""
+    alt="International Gateway"
+  >
+
+  <div class="ig-splash-overlay"></div>
+
+  <div class="ig-splash-content">
+
+    <div
+      id="igSplashTitle"
+      class="ig-splash-title"
+    ></div>
+
+    <div
+      id="igSplashSubtitle"
+      class="ig-splash-subtitle"
+    ></div>
+
+    <button
+      id="igSplashEnter"
+      class="ig-splash-enter"
+      type="button"
+    >
+      Entrar a la tienda
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+  /* =======================================================
+     CONFIGURACIÓN
+  ======================================================= */
+
+  const IG_SPLASH_BUCKET = "international-gateway";
+
+  const IG_SPLASH_KEYS = {
+    enabled: "splash_enabled",
+    image: "splash_image_url",
+    title: "splash_title",
+    subtitle: "splash_subtitle",
+    button: "splash_button_text"
+  };
+
+  let igSplashSettings = {
+    enabled:false,
+    image:"",
+    title:"",
+    subtitle:"",
+    button:"Entrar a la tienda"
+  };
+
+  let igSplashStarted = false;
+  let igSplashAdminInjected = false;
+
+
+  /* =======================================================
+     UTILIDADES
+  ======================================================= */
+
+  function igGetSupabase(){
+
+    if(
+      typeof window.supabaseClient !== "undefined" &&
+      window.supabaseClient
+    ){
+      return window.supabaseClient;
+    }
+
+    if(
+      typeof supabaseClient !== "undefined" &&
+      supabaseClient
+    ){
+      return supabaseClient;
+    }
+
+    return null;
+  }
+
+
+  function igEscape(value){
+
+    return String(value ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+
+  }
+
+
+  /* =======================================================
+     LEER CONFIGURACIÓN DE SUPABASE
+  ======================================================= */
+
+  async function igLoadSplashSettings(){
+
+    const client = igGetSupabase();
+
+    if(!client){
+      console.warn(
+        "[International Gateway] Supabase aún no disponible."
+      );
+      return false;
+    }
+
+    try{
+
+      const {data,error} = await client
+        .from("ig_site_settings")
+        .select("key,value")
+        .in("key",[
+          IG_SPLASH_KEYS.enabled,
+          IG_SPLASH_KEYS.image,
+          IG_SPLASH_KEYS.title,
+          IG_SPLASH_KEYS.subtitle,
+          IG_SPLASH_KEYS.button
+        ]);
+
+      if(error){
+        console.warn(
+          "[International Gateway] No se pudieron leer ajustes de pantalla de inicio:",
+          error
+        );
+        return false;
+      }
+
+      const values = {};
+
+      (data || []).forEach(row=>{
+        values[row.key] = row.value;
+      });
+
+      igSplashSettings.enabled =
+        values[IG_SPLASH_KEYS.enabled] === true ||
+        values[IG_SPLASH_KEYS.enabled] === "true" ||
+        values[IG_SPLASH_KEYS.enabled] === "1";
+
+      igSplashSettings.image =
+        values[IG_SPLASH_KEYS.image] || "";
+
+      igSplashSettings.title =
+        values[IG_SPLASH_KEYS.title] || "";
+
+      igSplashSettings.subtitle =
+        values[IG_SPLASH_KEYS.subtitle] || "";
+
+      igSplashSettings.button =
+        values[IG_SPLASH_KEYS.button] ||
+        "Entrar a la tienda";
+
+      return true;
+
+    }catch(error){
+
+      console.error(
+        "[International Gateway] Error cargando pantalla de inicio:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+
+  /* =======================================================
+     MOSTRAR PANTALLA DE INICIO
+  ======================================================= */
+
+  function igShowSplash(){
+
+    const screen =
+      document.getElementById("igSplashScreen");
+
+    const image =
+      document.getElementById("igSplashImage");
+
+    const title =
+      document.getElementById("igSplashTitle");
+
+    const subtitle =
+      document.getElementById("igSplashSubtitle");
+
+    const enter =
+      document.getElementById("igSplashEnter");
+
+    if(!screen || !image || !enter){
+      return;
+    }
+
+    if(
+      !igSplashSettings.enabled ||
+      !igSplashSettings.image
+    ){
+      igHideSplash();
+      return;
+    }
+
+    image.src = igSplashSettings.image;
+
+    title.textContent =
+      igSplashSettings.title || "";
+
+    subtitle.textContent =
+      igSplashSettings.subtitle || "";
+
+    enter.textContent =
+      igSplashSettings.button ||
+      "Entrar a la tienda";
+
+    screen.classList.add("ig-splash-visible");
+    screen.setAttribute("aria-hidden","false");
+
+    document.body.classList.add("ig-splash-lock");
+
+    igSplashStarted = true;
+  }
+
+
+  /* =======================================================
+     CERRAR
+  ======================================================= */
+
+  function igHideSplash(){
+
+    const screen =
+      document.getElementById("igSplashScreen");
+
+    if(!screen){
+      return;
+    }
+
+    screen.classList.remove("ig-splash-visible");
+    screen.setAttribute("aria-hidden","true");
+
+    document.body.classList.remove("ig-splash-lock");
+
+  }
+
+
+  /* =======================================================
+     BOTÓN ENTRAR
+  ======================================================= */
+
+  document.addEventListener("click",function(event){
+
+    const button =
+      event.target.closest("#igSplashEnter");
+
+    if(!button){
+      return;
+    }
+
+    igHideSplash();
+
+  });
+
+
+  /* =======================================================
+     INICIAR SIN INTERFERIR CON init()
+  ======================================================= */
+
+  async function igStartSplash(){
+
+    if(igSplashStarted){
+      return;
+    }
+
+    /*
+      Esperamos a que la aplicación original haya creado
+      Supabase y su estructura.
+    */
+
+    let attempts = 0;
+
+    while(!igGetSupabase() && attempts < 50){
+
+      await new Promise(resolve =>
+        setTimeout(resolve,200)
+      );
+
+      attempts++;
+
+    }
+
+    if(!igGetSupabase()){
+      return;
+    }
+
+    await igLoadSplashSettings();
+
+    igShowSplash();
+
+  }
+
+
+  /* =======================================================
+     PANEL ADMINISTRADOR
+  ======================================================= */
+
+  function igFindAdminSettingsSection(){
+
+    const candidates = [
+      "#adminSettings",
+      "#settingsSection",
+      "#admin-settings",
+      '[data-section="settings"]'
+    ];
+
+    for(const selector of candidates){
+
+      const element =
+        document.querySelector(selector);
+
+      if(element){
+        return element;
+      }
+
+    }
+
+    /*
+      Si no encontramos un ID concreto, buscamos
+      la sección que contenga "Configuración".
+    */
+
+    const sections =
+      document.querySelectorAll(
+        ".admin-section"
+      );
+
+    for(const section of sections){
+
+      const text =
+        (section.textContent || "").toLowerCase();
+
+      if(
+        text.includes("configuración") ||
+        text.includes("configuracion")
+      ){
+        return section;
+      }
+
+    }
+
+    return null;
+  }
+
+
+  function igCreateAdminPanel(){
+
+    if(igSplashAdminInjected){
+      return;
+    }
+
+    const section =
+      igFindAdminSettingsSection();
+
+    if(!section){
+      return false;
+    }
+
+    /*
+      Evitamos duplicarlo si se ejecuta más de una vez.
+    */
+
+    if(
+      document.getElementById(
+        "igSplashAdminBox"
+      )
+    ){
+      igSplashAdminInjected = true;
+      return true;
+    }
+
+    const box =
+      document.createElement("div");
+
+    box.id = "igSplashAdminBox";
+
+    box.innerHTML = `
+
+      <h3>📱 Pantalla de inicio</h3>
+
+      <div class="ig-help">
+        Configura la pantalla que aparecerá antes
+        de entrar a la tienda. La fotografía se puede
+        seleccionar directamente desde la galería del celular.
+      </div>
+
+      <div class="ig-admin-grid">
+
+        <label>
+          <input
+            type="checkbox"
+            id="igSplashEnabled"
+          >
+          Activar pantalla de inicio
+        </label>
+
+        <div>
+
+          <label>
+            Fotografía de inicio
+          </label>
+
+          <input
+            type="file"
+            id="igSplashFile"
+            accept="image/*"
+          >
+
+          <div id="igSplashAdminPreview">
+            <img
+              id="igSplashAdminPreviewImg"
+              src=""
+              alt="Vista previa"
+            >
+          </div>
+
+        </div>
+
+        <div>
+
+          <label>
+            Título
+          </label>
+
+          <input
+            type="text"
+            id="igSplashAdminTitle"
+            placeholder="International Gateway"
+          >
+
+        </div>
+
+        <div>
+
+          <label>
+            Subtítulo
+          </label>
+
+          <textarea
+            id="igSplashAdminSubtitle"
+            placeholder="Bienvenido a nuestra tienda"
+          ></textarea>
+
+        </div>
+
+        <div>
+
+          <label>
+            Texto del botón
+          </label>
+
+          <input
+            type="text"
+            id="igSplashAdminButton"
+            placeholder="Entrar a la tienda"
+          >
+
+        </div>
+
+        <div class="ig-splash-admin-actions">
+
+          <button
+            type="button"
+            class="button"
+            id="igSplashSave"
+          >
+            💾 Guardar pantalla de inicio
+          </button>
+
+          <button
+            type="button"
+            class="button secondary"
+            id="igSplashTest"
+          >
+            👁️ Probar pantalla
+          </button>
+
+        </div>
+
+        <div
+          id="igSplashAdminStatus"
+          class="ig-splash-admin-status"
+        >
+          Sin cambios.
+        </div>
+
+      </div>
+
+    `;
+
+    section.appendChild(box);
+
+    igSplashAdminInjected = true;
+
+    igFillAdminValues();
+
+    igSetupAdminEvents();
+
+    return true;
+  }
+
+
+  /* =======================================================
+     CARGAR VALORES EN ADMIN
+  ======================================================= */
+
+  function igFillAdminValues(){
+
+    const enabled =
+      document.getElementById(
+        "igSplashEnabled"
+      );
+
+    const title =
+      document.getElementById(
+        "igSplashAdminTitle"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "igSplashAdminSubtitle"
+      );
+
+    const button =
+      document.getElementById(
+        "igSplashAdminButton"
+      );
+
+    const preview =
+      document.getElementById(
+        "igSplashAdminPreview"
+      );
+
+    const previewImg =
+      document.getElementById(
+        "igSplashAdminPreviewImg"
+      );
+
+    if(enabled){
+      enabled.checked =
+        igSplashSettings.enabled;
+    }
+
+    if(title){
+      title.value =
+        igSplashSettings.title;
+    }
+
+    if(subtitle){
+      subtitle.value =
+        igSplashSettings.subtitle;
+    }
+
+    if(button){
+      button.value =
+        igSplashSettings.button ||
+        "Entrar a la tienda";
+    }
+
+    if(
+      preview &&
+      previewImg &&
+      igSplashSettings.image
+    ){
+
+      previewImg.src =
+        igSplashSettings.image;
+
+      preview.style.display =
+        "block";
+    }
+
+  }
+
+
+  /* =======================================================
+     EVENTOS ADMIN
+  ======================================================= */
+
+  function igSetupAdminEvents(){
+
+    const file =
+      document.getElementById(
+        "igSplashFile"
+      );
+
+    const save =
+      document.getElementById(
+        "igSplashSave"
+      );
+
+    const test =
+      document.getElementById(
+        "igSplashTest"
+      );
+
+    if(file){
+
+      file.addEventListener(
+        "change",
+        function(){
+
+          const selected =
+            file.files &&
+            file.files[0];
+
+          if(!selected){
+            return;
+          }
+
+          if(
+            !selected.type.startsWith("image/")
+          ){
+
+            igSetAdminStatus(
+              "El archivo seleccionado no es una imagen.",
+              true
+            );
+
+            file.value = "";
+
+            return;
+          }
+
+          const url =
+            URL.createObjectURL(selected);
+
+          const preview =
+            document.getElementById(
+              "igSplashAdminPreview"
+            );
+
+          const previewImg =
+            document.getElementById(
+              "igSplashAdminPreviewImg"
+            );
+
+          if(preview && previewImg){
+
+            previewImg.src = url;
+            preview.style.display = "block";
+
+          }
+
+        }
+      );
+
+    }
+
+
+    if(save){
+
+      save.addEventListener(
+        "click",
+        igSaveSplash
+      );
+
+    }
+
+
+    if(test){
+
+      test.addEventListener(
+        "click",
+        function(){
+
+          const enabled =
+            document.getElementById(
+              "igSplashEnabled"
+            );
+
+          const title =
+            document.getElementById(
+              "igSplashAdminTitle"
+            );
+
+          const subtitle =
+            document.getElementById(
+              "igSplashAdminSubtitle"
+            );
+
+          const button =
+            document.getElementById(
+              "igSplashAdminButton"
+            );
+
+          igSplashSettings.enabled =
+            true;
+
+          igSplashSettings.title =
+            title?.value || "";
+
+          igSplashSettings.subtitle =
+            subtitle?.value || "";
+
+          igSplashSettings.button =
+            button?.value ||
+            "Entrar a la tienda";
+
+          if(
+            !igSplashSettings.image
+          ){
+
+            igSetAdminStatus(
+              "Primero selecciona y guarda una fotografía.",
+              true
+            );
+
+            if(enabled){
+              enabled.checked = false;
+            }
+
+            return;
+          }
+
+          igShowSplash();
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     GUARDAR
+  ======================================================= */
+
+  async function igSaveSplash(){
+
+    const client =
+      igGetSupabase();
+
+    if(!client){
+
+      igSetAdminStatus(
+        "Supabase todavía no está disponible.",
+        true
+      );
+
+      return;
+    }
+
+    const enabled =
+      document.getElementById(
+        "igSplashEnabled"
+      );
+
+    const title =
+      document.getElementById(
+        "igSplashAdminTitle"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "igSplashAdminSubtitle"
+      );
+
+    const button =
+      document.getElementById(
+        "igSplashAdminButton"
+      );
+
+    const file =
+      document.getElementById(
+        "igSplashFile"
+      );
+
+    try{
+
+      igSetAdminStatus(
+        "Guardando...",
+        false
+      );
+
+      let imageUrl =
+        igSplashSettings.image;
+
+      /*
+        Si se seleccionó una nueva foto,
+        la subimos al bucket existente.
+      */
+
+      if(
+        file &&
+        file.files &&
+        file.files[0]
+      ){
+
+        const selected =
+          file.files[0];
+
+        if(
+          !selected.type.startsWith("image/")
+        ){
+          throw new Error(
+            "El archivo debe ser una imagen."
+          );
+        }
+
+        const extension =
+          (
+            selected.name
+              .split(".")
+              .pop() ||
+            "jpg"
+          )
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g,"");
+
+        const fileName =
+          "splash_" +
+          Date.now() +
+          "_" +
+          Math.random()
+            .toString(36)
+            .slice(2) +
+          "." +
+          extension;
+
+        const storagePath =
+          "site/" + fileName;
+
+        const upload =
+          await client
+            .storage
+            .from(IG_SPLASH_BUCKET)
+            .upload(
+              storagePath,
+              selected,
+              {
+                cacheControl:"3600",
+                upsert:false,
+                contentType:selected.type
+              }
+            );
+
+        if(upload.error){
+          throw upload.error;
+        }
+
+        const publicResult =
+          client
+            .storage
+            .from(IG_SPLASH_BUCKET)
+            .getPublicUrl(
+              storagePath
+            );
+
+        imageUrl =
+          publicResult.data.publicUrl;
+
+      }
+
+
+      const rows = [
+
+        {
+          key:IG_SPLASH_KEYS.enabled,
+          value:String(
+            !!enabled?.checked
+          )
+        },
+
+        {
+          key:IG_SPLASH_KEYS.image,
+          value:imageUrl || ""
+        },
+
+        {
+          key:IG_SPLASH_KEYS.title,
+          value:title?.value || ""
+        },
+
+        {
+          key:IG_SPLASH_KEYS.subtitle,
+          value:subtitle?.value || ""
+        },
+
+        {
+          key:IG_SPLASH_KEYS.button,
+          value:
+            button?.value ||
+            "Entrar a la tienda"
+        }
+
+      ];
+
+
+      const result =
+        await client
+          .from("ig_site_settings")
+          .upsert(
+            rows,
+            {
+              onConflict:"key"
+            }
+          );
+
+      if(result.error){
+        throw result.error;
+      }
+
+
+      /*
+        Actualizamos memoria local.
+      */
+
+      igSplashSettings = {
+
+        enabled:
+          !!enabled?.checked,
+
+        image:
+          imageUrl || "",
+
+        title:
+          title?.value || "",
+
+        subtitle:
+          subtitle?.value || "",
+
+        button:
+          button?.value ||
+          "Entrar a la tienda"
+
+      };
+
+
+      igSetAdminStatus(
+        "✓ Pantalla de inicio guardada correctamente.",
+        false
+      );
+
+
+      /*
+        Limpiamos input para permitir seleccionar
+        nuevamente la misma fotografía.
+      */
+
+      if(file){
+        file.value = "";
+      }
+
+    }catch(error){
+
+      console.error(
+        "[International Gateway] Error guardando pantalla de inicio:",
+        error
+      );
+
+      igSetAdminStatus(
+        "No se pudo guardar: " +
+        (error?.message || error),
+        true
+      );
+
+    }
+
+  }
+
+
+  function igSetAdminStatus(
+    message,
+    isError
+  ){
+
+    const status =
+      document.getElementById(
+        "igSplashAdminStatus"
+      );
+
+    if(!status){
+      return;
+    }
+
+    status.textContent =
+      message;
+
+    status.classList.toggle(
+      "error",
+      !!isError
+    );
+
+    status.classList.toggle(
+      "ok",
+      !isError &&
+      message.startsWith("✓")
+    );
+
+  }
+
+
+  /* =======================================================
+     COMPARTIR PRODUCTOS
+  ======================================================= */
+
+  async function igShareProduct(product){
+
+    if(!product || !product.id){
+      return;
+    }
+
+    const url =
+      new URL(
+        window.location.href
+      );
+
+    /*
+      Quitamos parámetros anteriores para que
+      el enlace identifique exactamente este producto.
+    */
+
+    url.search = "";
+    url.hash = "";
+
+    url.searchParams.set(
+      "producto",
+      String(product.id)
+    );
+
+    const shareUrl =
+      url.toString();
+
+    const title =
+      product.name ||
+      "Producto de International Gateway";
+
+    const text =
+      (
+        "Mirá este producto de International Gateway: " +
+        title
+      );
+
+    try{
+
+      if(
+        navigator.share &&
+        typeof navigator.share === "function"
+      ){
+
+        await navigator.share({
+
+          title:title,
+
+          text:text,
+
+          url:shareUrl
+
+        });
+
+        return;
+
+      }
+
+      if(
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+      ){
+
+        await navigator.clipboard.writeText(
+          shareUrl
+        );
+
+        if(
+          typeof window.showToast === "function"
+        ){
+          window.showToast(
+            "✓ Enlace del producto copiado"
+          );
+        }else{
+          alert(
+            "✓ Enlace del producto copiado."
+          );
+        }
+
+        return;
+
+      }
+
+      window.prompt(
+        "Copiá el enlace del producto:",
+        shareUrl
+      );
+
+    }catch(error){
+
+      /*
+        Cancelar el menú nativo de compartir
+        no debe generar un error visible.
+      */
+
+      if(
+        error &&
+        error.name === "AbortError"
+      ){
+        return;
+      }
+
+      console.warn(
+        "[International Gateway] Error compartiendo producto:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     BUSCAR PRODUCTO ACTUAL
+  ======================================================= */
+
+  function igFindProductFromCard(card){
+
+    if(!card){
+      return null;
+    }
+
+    /*
+      Si en el futuro el producto ya tiene ID,
+      lo utilizamos directamente.
+    */
+
+    const directId =
+      card.dataset.productId ||
+      card.getAttribute(
+        "data-product-id"
+      );
+
+    if(
+      directId &&
+      Array.isArray(window.products)
+    ){
+
+      const direct =
+        window.products.find(
+          p =>
+            String(p.id) ===
+            String(directId)
+        );
+
+      if(direct){
+        return direct;
+      }
+
+    }
+
+    /*
+      La versión actual de la aplicación
+      muestra el nombre dentro de h3.
+    */
+
+    const nameElement =
+      card.querySelector(
+        "h3"
+      );
+
+    const name =
+      nameElement?.textContent
+        ?.trim();
+
+    if(!name){
+      return null;
+    }
+
+    /*
+      Intentamos primero con la variable
+      global existente.
+    */
+
+    if(
+      Array.isArray(window.products)
+    ){
+
+      const found =
+        window.products.find(
+          p =>
+            String(p.name || "")
+              .trim() === name
+        );
+
+      if(found){
+        return found;
+      }
+
+    }
+
+    /*
+      Compatibilidad si products existe
+      como variable global pero no está
+      expuesta explícitamente.
+    */
+
+    try{
+
+      if(
+        typeof products !== "undefined" &&
+        Array.isArray(products)
+      ){
+
+        return products.find(
+          p =>
+            String(p.name || "")
+              .trim() === name
+        ) || null;
+
+      }
+
+    }catch(e){}
+
+    return null;
+
+  }
+
+
+  /* =======================================================
+     INYECTAR BOTONES SIN MODIFICAR RENDERPRODUCTS
+  ======================================================= */
+
+  function igInjectShareButtons(){
+
+    const cards =
+      document.querySelectorAll(
+        ".product-card"
+      );
+
+    cards.forEach(card=>{
+
+      if(
+        card.querySelector(
+          ".ig-product-share"
+        )
+      ){
+        return;
+      }
+
+      const product =
+        igFindProductFromCard(card);
+
+      if(!product){
+        return;
+      }
+
+      const button =
+        document.createElement("button");
+
+      button.type = "button";
+
+      button.className =
+        "ig-product-share";
+
+      button.innerHTML =
+        "📤 Compartir producto";
+
+      button.addEventListener(
+        "click",
+        function(event){
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          igShareProduct(product);
+
+        }
+      );
+
+      /*
+        Lo ponemos al final de la zona de
+        contenido, sin alterar botones existentes.
+      */
+
+      const content =
+        card.querySelector(
+          ".product-content"
+        );
+
+      if(content){
+        content.appendChild(button);
+      }else{
+        card.appendChild(button);
+      }
+
+    });
+
+  }
+
+
+  /* =======================================================
+     OBSERVADOR DE PRODUCTOS
+  ======================================================= */
+
+  function igObserveProducts(){
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if(!container){
+      return false;
+    }
+
+    igInjectShareButtons();
+
+    /*
+      Si renderProducts() vuelve a dibujar los
+      productos, los botones se vuelven a insertar.
+    */
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          igInjectShareButtons();
+
+        }
+      );
+
+    observer.observe(
+      container,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+    return true;
+
+  }
+
+
+  /* =======================================================
+     ENLACE DIRECTO A PRODUCTO
+  ======================================================= */
+
+  async function igOpenSharedProduct(){
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const productId =
+      params.get("producto");
+
+    if(!productId){
+      return;
+    }
+
+    /*
+      Esperamos a que la aplicación haya
+      cargado sus productos.
+    */
+
+    let attempts = 0;
+
+    while(attempts < 60){
+
+      let list = null;
+
+      try{
+
+        if(
+          typeof products !== "undefined" &&
+          Array.isArray(products)
+        ){
+          list = products;
+        }
+
+      }catch(e){}
+
+      if(
+        !list &&
+        Array.isArray(window.products)
+      ){
+        list = window.products;
+      }
+
+      if(
+        list &&
+        list.length
+      ){
+
+        const product =
+          list.find(
+            p =>
+              String(p.id) ===
+              String(productId)
+          );
+
+        if(product){
+
+          /*
+            Si existe una función de detalle
+            ya creada por la aplicación,
+            la utilizamos.
+
+            Si no existe, mostramos una
+            presentación segura del producto.
+          */
+
+          if(
+            typeof window.viewProduct ===
+            "function"
+          ){
+
+            window.viewProduct(
+              product.id
+            );
+
+            return;
+
+          }
+
+          if(
+            typeof window.showProduct ===
+            "function"
+          ){
+
+            window.showProduct(
+              product.id
+            );
+
+            return;
+
+          }
+
+          /*
+            Fallback: desplazamos hasta la tarjeta.
+          */
+
+          igScrollToProductCard(
+            product
+          );
+
+          return;
+
+        }
+
+      }
+
+      await new Promise(
+        resolve =>
+          setTimeout(resolve,200)
+      );
+
+      attempts++;
+
+    }
+
+  }
+
+
+  function igScrollToProductCard(product){
+
+    const cards =
+      document.querySelectorAll(
+        ".product-card"
+      );
+
+    for(const card of cards){
+
+      const candidate =
+        igFindProductFromCard(card);
+
+      if(
+        candidate &&
+        String(candidate.id) ===
+        String(product.id)
+      ){
+
+        card.scrollIntoView({
+          behavior:"smooth",
+          block:"center"
+        });
+
+        card.style.outline =
+          "3px solid #111";
+
+        setTimeout(
+          ()=>{
+            card.style.outline = "";
+          },
+          2500
+        );
+
+        return;
+      }
+
+    }
+
+  }
+
+
+  /* =======================================================
+     ARRANQUE
+  ======================================================= */
+
+  function igBoot(){
+
+    /*
+      Pantalla de inicio.
+    */
+
+    igStartSplash();
+
+    /*
+      Productos.
+    */
+
+    let productAttempts = 0;
+
+    const productTimer =
+      setInterval(
+        function(){
+
+          if(
+            igObserveProducts()
+          ){
+
+            clearInterval(
+              productTimer
+            );
+
+            return;
+          }
+
+          productAttempts++;
+
+          if(
+            productAttempts > 80
+          ){
+
+            clearInterval(
+              productTimer
+            );
+
+          }
+
+        },
+        250
+      );
+
+
+    /*
+      Panel de administración.
+      Esperamos a que la aplicación original
+      cree su panel.
+    */
+
+    let adminAttempts = 0;
+
+    const adminTimer =
+      setInterval(
+        function(){
+
+          if(
+            igCreateAdminPanel()
+          ){
+
+            clearInterval(
+              adminTimer
+            );
+
+            return;
+          }
+
+          adminAttempts++;
+
+          if(
+            adminAttempts > 80
+          ){
+
+            clearInterval(
+              adminTimer
+            );
+
+          }
+
+        },
+        250
+      );
+
+
+    /*
+      Enlaces compartidos.
+    */
+
+    igOpenSharedProduct();
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      igBoot,
+      {once:true}
+    );
+
+  }else{
+
+    igBoot();
+
+  }
+
+
+  /*
+    Exponemos solamente funciones nuevas.
+    No reemplazamos ninguna función existente.
+  */
+
+  window.InternationalGatewaySplash = {
+
+    show:igShowSplash,
+    hide:igHideSplash,
+    reload:igLoadSplashSettings
+
+  };
+
+  window.InternationalGatewayProductShare = {
+
+    share:igShareProduct
+
+  };
+
+})();
+</script>
 </body>
 </html>
