@@ -12112,5 +12112,215 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — WHATSAPP FLOTANTE
+     VERSIÓN SEGURA 1.0
+
+     No modifica:
+     - Supabase
+     - productos
+     - carrito
+     - pedidos
+     - administración
+     - categorías
+     - buscador
+     - estadísticas
+     ========================================================= -->
+
+<style>
+
+#igFloatingWhatsApp{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+
+  width:58px;
+  height:58px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#25d366;
+  color:#fff;
+
+  border-radius:50%;
+
+  text-decoration:none;
+
+  font-size:29px;
+  line-height:1;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.22);
+
+  z-index:900;
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+#igFloatingWhatsApp:hover{
+  transform:scale(1.08);
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.28);
+}
+
+#igFloatingWhatsApp:active{
+  transform:scale(.94);
+}
+
+#igFloatingWhatsApp:focus-visible{
+  outline:3px solid #111;
+  outline-offset:3px;
+}
+
+#igFloatingWhatsApp span{
+  display:block;
+  transform:translateY(-1px);
+}
+
+
+/* Móvil */
+@media(max-width:600px){
+
+  #igFloatingWhatsApp{
+    right:15px;
+    bottom:15px;
+
+    width:55px;
+    height:55px;
+
+    font-size:27px;
+  }
+
+}
+
+
+/* Respeta usuarios que prefieren menos movimiento */
+@media(prefers-reduced-motion:reduce){
+
+  #igFloatingWhatsApp{
+    transition:none;
+  }
+
+}
+
+</style>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+
+  /*
+   * Evita duplicar el botón si el bloque
+   * se pega accidentalmente más de una vez.
+   */
+  if(window.__IG_FLOATING_WHATSAPP_LOADED){
+    return;
+  }
+
+  window.__IG_FLOATING_WHATSAPP_LOADED = true;
+
+
+  function instalarWhatsApp(){
+
+    /*
+     * Si ya existe, no hacemos nada.
+     */
+    if(document.getElementById("igFloatingWhatsApp")){
+      return;
+    }
+
+
+    /*
+     * Creamos solamente el botón.
+     */
+    const boton =
+      document.createElement("a");
+
+
+    boton.id =
+      "igFloatingWhatsApp";
+
+
+    /*
+     * MISMO número que el WhatsApp
+     * existente de International Gateway.
+     */
+    boton.href =
+      "https://wa.me/5491169633376";
+
+
+    boton.target =
+      "_blank";
+
+
+    boton.rel =
+      "noopener noreferrer";
+
+
+    boton.setAttribute(
+      "aria-label",
+      "Contactar por WhatsApp"
+    );
+
+
+    boton.setAttribute(
+      "title",
+      "Contactar por WhatsApp"
+    );
+
+
+    boton.innerHTML =
+      "<span aria-hidden=\"true\">💬</span>";
+
+
+    /*
+     * Lo agregamos al body.
+     *
+     * No tocamos:
+     * - productsContainer
+     * - carrito
+     * - categorías
+     * - Supabase
+     * - administración
+     */
+    document.body.appendChild(
+      boton
+    );
+
+
+    console.log(
+      "[IG WhatsApp] Botón flotante instalado correctamente."
+    );
+
+  }
+
+
+  /*
+   * Esperamos al DOM si fuera necesario.
+   */
+  if(document.readyState === "loading"){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      instalarWhatsApp,
+      {once:true}
+    );
+
+  }else{
+
+    instalarWhatsApp();
+
+  }
+
+})();
+</script>
 </body>
 </html>
