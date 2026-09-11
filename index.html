@@ -1,21 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="manifest" href="manifest.json">
+
+<link rel="manifest" href="manifest.json">
+
 <meta name="theme-color" content="#111111">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="International Gateway">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111111">
+
 <meta name="description" content="International Gateway - Tienda online">
+
 <title>International Gateway</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0
+}
 
 :root{
   --bg:#f5f5f5;
@@ -40,16 +49,26 @@ body{
   line-height:1.5
 }
 
-button,input,textarea,select{font:inherit}
+button,
+input,
+textarea,
+select{
+  font:inherit
+}
 
 button{
   cursor:pointer;
   border:0
 }
 
-a{text-decoration:none;color:inherit}
+a{
+  text-decoration:none;
+  color:inherit
+}
 
-.hidden{display:none!important}
+.hidden{
+  display:none!important
+}
 
 .container{
   width:min(1150px,92%);
@@ -253,7 +272,9 @@ header{
   font-weight:bold
 }
 
-.button:hover{background:#333}
+.button:hover{
+  background:#333
+}
 
 .button.secondary{
   background:#e9e9e9;
@@ -279,6 +300,72 @@ header{
 .button:disabled{
   opacity:.5;
   cursor:not-allowed
+}
+
+/* INSTALACIÓN PWA */
+
+.install-area{
+  margin-top:20px
+}
+
+.install-button{
+  background:#111;
+  border:2px solid #fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.15)
+}
+
+.install-button:hover{
+  background:#333
+}
+
+/* CONTACTO */
+
+.contact-card{
+  text-align:center
+}
+
+.contact-card h2{
+  margin-bottom:10px
+}
+
+.contact-card p{
+  color:var(--muted);
+  margin-bottom:22px
+}
+
+.contact-buttons{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px
+}
+
+.contact-button{
+  min-height:50px
+}
+
+.contact-button.whatsapp{
+  background:#16803c
+}
+
+.contact-button.whatsapp:hover{
+  background:#126a32
+}
+
+.contact-button.facebook{
+  background:#1877f2
+}
+
+.contact-button.facebook:hover{
+  background:#0f62c9
+}
+
+.contact-button.channel{
+  background:#25d366;
+  color:#111
+}
+
+.contact-button.channel:hover{
+  background:#1fb957
 }
 
 .card{
@@ -748,9 +835,12 @@ footer{
   max-width:90%
 }
 
-.toast.show{display:block}
+.toast.show{
+  display:block
+}
 
 @media(max-width:700px){
+
   .header-inner{
     flex-wrap:wrap;
     padding:10px 0
@@ -763,6 +853,10 @@ footer{
 
   .nav button{
     flex:1
+  }
+
+  .contact-buttons{
+    grid-template-columns:1fr
   }
 
   .form-grid{
@@ -795,617 +889,1482 @@ footer{
     width:100%
   }
 }
+
 </style>
 </head>
 
 <body>
 
 <div id="app"></div>
+
 <div id="toast" class="toast"></div>
 
 <!-- MODAL ADMIN LOGIN -->
+
 <div id="adminLoginModal" class="modal">
+
   <div class="modal-box">
+
     <div class="modal-head">
       <h2>Administrador</h2>
-      <button class="close" onclick="closeAdminLogin()">×</button>
+
+      <button
+        class="close"
+        onclick="closeAdminLogin()">
+        ×
+      </button>
     </div>
 
     <form id="loginForm" class="form">
+
       <div class="field">
         <label>Correo del administrador</label>
-        <input id="loginEmail" type="email" required autocomplete="email">
+
+        <input
+          id="loginEmail"
+          type="email"
+          required
+          autocomplete="email">
       </div>
 
       <div class="field">
         <label>Contraseña</label>
-        <input id="loginPassword" type="password" required autocomplete="current-password">
+
+        <input
+          id="loginPassword"
+          type="password"
+          required
+          autocomplete="current-password">
       </div>
 
-      <button class="button full" type="submit">
+      <button
+        class="button full"
+        type="submit">
         Iniciar sesión
       </button>
 
-      <button class="button secondary full" type="button" onclick="resetAdminPassword()">
+      <button
+        class="button secondary full"
+        type="button"
+        onclick="resetAdminPassword()">
         Recuperar contraseña
       </button>
 
       <div id="loginMessage"></div>
+
     </form>
+
   </div>
+
 </div>
 
 <!-- MODAL PRODUCTO -->
+
 <div id="productModal" class="modal">
+
   <div class="modal-box">
 
     <div class="modal-head">
-      <h2 id="productModalTitle">Nuevo producto</h2>
-      <button class="close" onclick="closeProductModal()">×</button>
+
+      <h2 id="productModalTitle">
+        Nuevo producto
+      </h2>
+
+      <button
+        class="close"
+        onclick="closeProductModal()">
+        ×
+      </button>
+
     </div>
 
     <form id="productForm" class="form">
 
-      <input id="productId" type="hidden">
+      <input
+        id="productId"
+        type="hidden">
 
       <div class="form-grid">
 
         <div class="field">
-          <label>Nombre del producto *</label>
-          <input id="productName" required>
+
+          <label>
+            Nombre del producto *
+          </label>
+
+          <input
+            id="productName"
+            required>
+
         </div>
 
         <div class="field">
-          <label>Precio *</label>
-          <input id="productPrice" type="number" min="0" step="0.01" required>
+
+          <label>
+            Precio *
+          </label>
+
+          <input
+            id="productPrice"
+            type="number"
+            min="0"
+            step="0.01"
+            required>
+
         </div>
 
         <div class="field">
-          <label>Categoría</label>
-          <input id="productCategory">
+
+          <label>
+            Categoría
+          </label>
+
+          <input
+            id="productCategory">
+
         </div>
 
         <div class="field">
-          <label>Disponibilidad</label>
+
+          <label>
+            Disponibilidad
+          </label>
+
           <select id="productAvailable">
-            <option value="true">Disponible</option>
-            <option value="false">Agotado</option>
+
+            <option value="true">
+              Disponible
+            </option>
+
+            <option value="false">
+              Agotado
+            </option>
+
           </select>
+
         </div>
 
         <div class="field full-field">
-          <label>Descripción</label>
-          <textarea id="productDescription"></textarea>
+
+          <label>
+            Descripción
+          </label>
+
+          <textarea
+            id="productDescription"></textarea>
+
         </div>
 
         <div class="field full-field">
-          <label>Características</label>
-          <textarea id="productCharacteristics" placeholder="Ejemplo:
+
+          <label>
+            Características
+          </label>
+
+          <textarea
+            id="productCharacteristics"
+            placeholder="Ejemplo:
 5 velocidades
 600 W
 Vaso de 1,5 L
 Función pulso"></textarea>
+
         </div>
 
         <div class="field full-field">
-          <label>Fotos del producto</label>
-          <input id="productImagesInput" type="file" accept="image/*" multiple>
-          <small>Podés seleccionar varias fotos directamente desde el celular.</small>
 
-          <div id="productImageList" class="image-list"></div>
+          <label>
+            Fotos del producto
+          </label>
+
+          <input
+            id="productImagesInput"
+            type="file"
+            accept="image/*"
+            multiple>
+
+          <small>
+            Podés seleccionar varias fotos directamente desde el celular.
+          </small>
+
+          <div
+            id="productImageList"
+            class="image-list">
+          </div>
+
         </div>
 
       </div>
 
       <div id="productFormMessage"></div>
 
-      <button class="button full" type="submit">
+      <button
+        class="button full"
+        type="submit">
         Guardar producto
       </button>
 
     </form>
+
   </div>
+
 </div>
 
 <script>
+
 /* =========================================================
    INTERNATIONAL GATEWAY
    APLICACIÓN COMPLETA
    ========================================================= */
 
-const SUPABASE_URL = "https://hxtzlrsmjwrpqgjgbzyl.supabase.co";
-const SUPABASE_KEY = "sb_publishable_cv6J952zB8hmDtXSHMbtCQ_xGJZHN1J";
+const SUPABASE_URL =
+  "https://hxtzlrsmjwrpqgjgbzyl.supabase.co";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const SUPABASE_KEY =
+  "sb_publishable_cv6J952zB8hmDtXSHMbtCQ_xGJZHN1J";
 
-const STORAGE_BUCKET = "international-gateway";
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+const STORAGE_BUCKET =
+  "international-gateway";
 
 let products = [];
-let cart = JSON.parse(localStorage.getItem("ig_cart") || "[]");
+
+let cart =
+  JSON.parse(
+    localStorage.getItem("ig_cart") || "[]"
+  );
+
 let adminUser = null;
+
 let adminProducts = [];
+
 let editingProduct = null;
+
+let installPrompt = null;
+
 let settings = {
-  store_name: "International Gateway",
-  logo_url: "",
-  mercadopago_url: ""
+  store_name:"International Gateway",
+  logo_url:"",
+  mercadopago_url:""
 };
 
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
 function money(value){
-  return new Intl.NumberFormat("es-AR",{
-    style:"currency",
-    currency:"ARS",
-    maximumFractionDigits:2
-  }).format(Number(value || 0));
+
+  return new Intl.NumberFormat(
+    "es-AR",
+    {
+      style:"currency",
+      currency:"ARS",
+      maximumFractionDigits:2
+    }
+  ).format(
+    Number(value || 0)
+  );
+
 }
 
+
 function escapeHtml(value){
+
   return String(value ?? "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
 }
+
 
 function showToast(message){
-  const toast=document.getElementById("toast");
+
+  const toast =
+    document.getElementById("toast");
+
   toast.textContent=message;
+
   toast.classList.add("show");
+
   clearTimeout(window.toastTimer);
-  window.toastTimer=setTimeout(()=>{
-    toast.classList.remove("show");
-  },3000);
+
+  window.toastTimer =
+    setTimeout(()=>{
+      toast.classList.remove("show");
+    },3000);
+
 }
 
-function setMessage(id,message,type=""){
-  const el=document.getElementById(id);
+
+function setMessage(
+  id,
+  message,
+  type=""
+){
+
+  const el =
+    document.getElementById(id);
+
   if(!el)return;
-  el.innerHTML=message
-    ? `<div class="notice ${type}">${escapeHtml(message)}</div>`
-    : "";
+
+  el.innerHTML =
+    message
+      ? `<div class="notice ${type}">
+          ${escapeHtml(message)}
+        </div>`
+      : "";
+
 }
+
 
 function saveCart(){
-  localStorage.setItem("ig_cart",JSON.stringify(cart));
+
+  localStorage.setItem(
+    "ig_cart",
+    JSON.stringify(cart)
+  );
+
 }
+
 
 function cartCount(){
-  return cart.reduce((sum,item)=>sum+item.quantity,0);
+
+  return cart.reduce(
+    (sum,item)=>
+      sum+item.quantity,
+    0
+  );
+
 }
+
 
 function cartTotal(){
-  return cart.reduce((sum,item)=>sum+(Number(item.price)*item.quantity),0);
+
+  return cart.reduce(
+    (sum,item)=>
+      sum+
+      (
+        Number(item.price)*
+        item.quantity
+      ),
+    0
+  );
+
 }
 
+
+/* =========================================================
+   PWA — INSTALACIÓN
+   ========================================================= */
+
+function setupInstallPrompt(){
+
+  window.addEventListener(
+    "beforeinstallprompt",
+    event=>{
+
+      event.preventDefault();
+
+      installPrompt=event;
+
+      updateInstallButtons();
+
+    }
+  );
+
+
+  window.addEventListener(
+    "appinstalled",
+    ()=>{
+
+      installPrompt=null;
+
+      updateInstallButtons();
+
+      showToast(
+        "International Gateway fue instalada correctamente."
+      );
+
+    }
+  );
+
+
+  updateInstallButtons();
+
+}
+
+
+function updateInstallButtons(){
+
+  const button =
+    document.getElementById(
+      "installAppButton"
+    );
+
+  if(!button)return;
+
+  if(installPrompt){
+
+    button.hidden=false;
+
+  }else{
+
+    button.hidden=true;
+
+  }
+
+}
+
+
+async function installApp(){
+
+  if(!installPrompt){
+
+    showToast(
+      "La instalación todavía no está disponible en este navegador."
+    );
+
+    return;
+
+  }
+
+  const promptEvent=
+    installPrompt;
+
+  installPrompt=null;
+
+  updateInstallButtons();
+
+  try{
+
+    const result=
+      await promptEvent.prompt();
+
+    if(result?.outcome==="accepted"){
+
+      showToast(
+        "Instalación aceptada."
+      );
+
+    }else{
+
+      showToast(
+        "Instalación cancelada."
+      );
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "Error de instalación:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
+
 async function loadSettings(){
-  const {data,error}=await supabaseClient
-    .from("ig_site_settings")
-    .select("key,value");
+
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("ig_site_settings")
+      .select("key,value");
 
   if(error){
+
     console.error(error);
+
     return;
+
   }
 
   if(data){
+
     data.forEach(row=>{
-      if(row.key==="store_name")settings.store_name=row.value || "International Gateway";
-      if(row.key==="logo_url")settings.logo_url=row.value || "";
-      if(row.key==="mercadopago_url")settings.mercadopago_url=row.value || "";
+
+      if(
+        row.key==="store_name"
+      ){
+
+        settings.store_name =
+          row.value ||
+          "International Gateway";
+
+      }
+
+      if(
+        row.key==="logo_url"
+      ){
+
+        settings.logo_url =
+          row.value || "";
+
+      }
+
+      if(
+        row.key==="mercadopago_url"
+      ){
+
+        settings.mercadopago_url =
+          row.value || "";
+
+      }
+
     });
+
   }
+
 }
+
+
+/* =========================================================
+   PRODUCTOS
+   ========================================================= */
 
 async function loadProducts(){
-  const {data,error}=await supabaseClient
-    .from("ig_products")
-    .select(`
-      id,
-      name,
-      description,
-      characteristics,
-      price,
-      category,
-      available,
-      active,
-      ig_product_images(
+
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("ig_products")
+      .select(`
         id,
-        storage_path,
-        public_url,
-        is_primary,
-        sort_order
-      )
-    `)
-    .eq("active",true)
-    .order("created_at",{ascending:false});
+        name,
+        description,
+        characteristics,
+        price,
+        category,
+        available,
+        active,
+        ig_product_images(
+          id,
+          storage_path,
+          public_url,
+          is_primary,
+          sort_order
+        )
+      `)
+      .eq("active",true)
+      .order(
+        "created_at",
+        {ascending:false}
+      );
 
   if(error){
+
     console.error(error);
+
     products=[];
+
     return;
+
   }
 
-  products=(data || []).map(product=>{
-    product.ig_product_images=(product.ig_product_images || [])
-      .sort((a,b)=>{
-        if(a.is_primary && !b.is_primary)return -1;
-        if(!a.is_primary && b.is_primary)return 1;
-        return a.sort_order-b.sort_order;
+  products =
+    (data || [])
+      .map(product=>{
+
+        product.ig_product_images =
+          (
+            product.ig_product_images ||
+            []
+          ).sort((a,b)=>{
+
+            if(
+              a.is_primary &&
+              !b.is_primary
+            ){
+
+              return -1;
+
+            }
+
+            if(
+              !a.is_primary &&
+              b.is_primary
+            ){
+
+              return 1;
+
+            }
+
+            return (
+              a.sort_order -
+              b.sort_order
+            );
+
+          });
+
+        return product;
+
       });
 
-    return product;
-  });
-
   renderProducts();
+
 }
+
 
 function productImage(product){
-  const image=(product.ig_product_images || [])[0];
+
+  const image =
+    (
+      product.ig_product_images ||
+      []
+    )[0];
 
   if(image?.public_url){
-    return `<img src="${escapeHtml(image.public_url)}" alt="${escapeHtml(product.name)}">`;
+
+    return `
+      <img
+        src="${escapeHtml(image.public_url)}"
+        alt="${escapeHtml(product.name)}">
+    `;
+
   }
 
-  return `<span>Sin imagen</span>`;
+  return `
+    <span>
+      Sin imagen
+    </span>
+  `;
+
 }
 
+
 function renderProducts(){
-  const container=document.getElementById("productsContainer");
+
+  const container =
+    document.getElementById(
+      "productsContainer"
+    );
+
   if(!container)return;
 
   if(!products.length){
+
     container.innerHTML=`
+
       <div class="empty">
-        <h3>No hay productos disponibles todavía</h3>
-        <p>Los productos aparecerán aquí cuando sean agregados desde el administrador.</p>
+
+        <h3>
+          No hay productos disponibles todavía
+        </h3>
+
+        <p>
+          Los productos aparecerán aquí
+          cuando sean agregados desde el administrador.
+        </p>
+
       </div>
+
     `;
+
     return;
+
   }
 
-  container.innerHTML=products.map(product=>`
-    <article class="product-card">
+  container.innerHTML =
+    products.map(product=>`
 
-      <div class="product-image">
-        ${productImage(product)}
-      </div>
+      <article class="product-card">
 
-      <div class="product-content">
+        <div class="product-image">
 
-        ${product.category
-          ? `<div class="product-category">${escapeHtml(product.category)}</div>`
-          : ""}
+          ${productImage(product)}
 
-        <h3>${escapeHtml(product.name)}</h3>
+        </div>
 
-        ${product.description
-          ? `<div class="product-description">${escapeHtml(product.description)}</div>`
-          : ""}
+        <div class="product-content">
 
-        ${product.characteristics
-          ? `<div class="characteristics">${escapeHtml(product.characteristics)}</div>`
-          : ""}
+          ${
+            product.category
+              ? `
+                <div class="product-category">
+                  ${escapeHtml(product.category)}
+                </div>
+              `
+              : ""
+          }
 
-        <div class="price">${money(product.price)}</div>
+          <h3>
+            ${escapeHtml(product.name)}
+          </h3>
 
-        <button
-          class="button full"
-          onclick="addToCart('${product.id}')"
-          ${product.available ? "" : "disabled"}
-        >
-          ${product.available ? "Agregar al carrito" : "Agotado"}
-        </button>
+          ${
+            product.description
+              ? `
+                <div class="product-description">
+                  ${escapeHtml(product.description)}
+                </div>
+              `
+              : ""
+          }
 
-      </div>
+          ${
+            product.characteristics
+              ? `
+                <div class="characteristics">
+                  ${escapeHtml(product.characteristics)}
+                </div>
+              `
+              : ""
+          }
 
-    </article>
-  `).join("");
-}
-
-function addToCart(productId){
-  const product=products.find(p=>p.id===productId);
-
-  if(!product || !product.available){
-    showToast("Este producto no está disponible.");
-    return;
-  }
-
-  const existing=cart.find(item=>item.id===productId);
-
-  if(existing){
-    existing.quantity++;
-  }else{
-    cart.push({
-      id:product.id,
-      name:product.name,
-      price:Number(product.price),
-      image:product.ig_product_images?.[0]?.public_url || "",
-      quantity:1
-    });
-  }
-
-  saveCart();
-  updateCartCount();
-  showToast("Producto agregado al carrito.");
-}
-
-function updateCartCount(){
-  const el=document.getElementById("cartCount");
-  if(el)el.textContent=cartCount();
-}
-
-function changeCartQuantity(id,delta){
-  const item=cart.find(x=>x.id===id);
-  if(!item)return;
-
-  item.quantity+=delta;
-
-  if(item.quantity<=0){
-    cart=cart.filter(x=>x.id!==id);
-  }
-
-  saveCart();
-  renderCart();
-  updateCartCount();
-}
-
-function removeFromCart(id){
-  cart=cart.filter(x=>x.id!==id);
-  saveCart();
-  renderCart();
-  updateCartCount();
-}
-
-function renderCart(){
-  const container=document.getElementById("cartContainer");
-  if(!container)return;
-
-  if(!cart.length){
-    container.innerHTML=`
-      <div class="empty">
-        <h2>Tu carrito está vacío</h2>
-        <p>Agregá productos desde la tienda.</p>
-        <br>
-        <button class="button" onclick="showStore()">
-          Ver productos
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML=`
-    <div class="cart-list">
-      ${cart.map(item=>`
-        <div class="cart-item">
-
-          <div class="cart-image">
-            ${item.image
-              ? `<img src="${escapeHtml(item.image)}" alt="">`
-              : ""}
+          <div class="price">
+            ${money(product.price)}
           </div>
 
-          <div class="cart-info">
-            <h3>${escapeHtml(item.name)}</h3>
-            <div class="cart-price">${money(item.price)} cada uno</div>
-          </div>
+          <button
+            class="button full"
+            onclick="addToCart('${product.id}')"
+            ${product.available ? "" : "disabled"}>
 
-          <div class="qty">
-            <button onclick="changeCartQuantity('${item.id}',-1)">−</button>
-            <span>${item.quantity}</span>
-            <button onclick="changeCartQuantity('${item.id}',1)">+</button>
-          </div>
+            ${
+              product.available
+                ? "Agregar al carrito"
+                : "Agotado"
+            }
 
-          <strong>${money(item.price*item.quantity)}</strong>
-
-          <button class="cart-remove" onclick="removeFromCart('${item.id}')">
-            Eliminar
           </button>
 
         </div>
+
+      </article>
+
+    `).join("");
+
+}
+
+
+function addToCart(productId){
+
+  const product =
+    products.find(
+      p=>p.id===productId
+    );
+
+  if(
+    !product ||
+    !product.available
+  ){
+
+    showToast(
+      "Este producto no está disponible."
+    );
+
+    return;
+
+  }
+
+  const existing =
+    cart.find(
+      item=>item.id===productId
+    );
+
+  if(existing){
+
+    existing.quantity++;
+
+  }else{
+
+    cart.push({
+
+      id:product.id,
+
+      name:product.name,
+
+      price:Number(product.price),
+
+      image:
+        product
+          .ig_product_images?.[0]
+          ?.public_url ||
+        "",
+
+      quantity:1
+
+    });
+
+  }
+
+  saveCart();
+
+  updateCartCount();
+
+  showToast(
+    "Producto agregado al carrito."
+  );
+
+}
+
+
+function updateCartCount(){
+
+  const el =
+    document.getElementById(
+      "cartCount"
+    );
+
+  if(el){
+
+    el.textContent =
+      cartCount();
+
+  }
+
+}
+
+
+/* =========================================================
+   CARRITO
+   ========================================================= */
+
+function changeCartQuantity(
+  id,
+  delta
+){
+
+  const item =
+    cart.find(
+      x=>x.id===id
+    );
+
+  if(!item)return;
+
+  item.quantity += delta;
+
+  if(item.quantity<=0){
+
+    cart =
+      cart.filter(
+        x=>x.id!==id
+      );
+
+  }
+
+  saveCart();
+
+  renderCart();
+
+  updateCartCount();
+
+}
+
+
+function removeFromCart(id){
+
+  cart =
+    cart.filter(
+      x=>x.id!==id
+    );
+
+  saveCart();
+
+  renderCart();
+
+  updateCartCount();
+
+}
+
+
+function renderCart(){
+
+  const container =
+    document.getElementById(
+      "cartContainer"
+    );
+
+  if(!container)return;
+
+  if(!cart.length){
+
+    container.innerHTML=`
+
+      <div class="empty">
+
+        <h2>
+          Tu carrito está vacío
+        </h2>
+
+        <p>
+          Agregá productos desde la tienda.
+        </p>
+
+        <br>
+
+        <button
+          class="button"
+          onclick="showStore()">
+
+          Ver productos
+
+        </button>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML=`
+
+    <div class="cart-list">
+
+      ${cart.map(item=>`
+
+        <div class="cart-item">
+
+          <div class="cart-image">
+
+            ${
+              item.image
+                ? `
+                  <img
+                    src="${escapeHtml(item.image)}"
+                    alt="">
+                `
+                : ""
+            }
+
+          </div>
+
+          <div class="cart-info">
+
+            <h3>
+              ${escapeHtml(item.name)}
+            </h3>
+
+            <div class="cart-price">
+              ${money(item.price)}
+              cada uno
+            </div>
+
+          </div>
+
+          <div class="qty">
+
+            <button
+              onclick="changeCartQuantity('${item.id}',-1)">
+              −
+            </button>
+
+            <span>
+              ${item.quantity}
+            </span>
+
+            <button
+              onclick="changeCartQuantity('${item.id}',1)">
+              +
+            </button>
+
+          </div>
+
+          <strong>
+            ${money(item.price*item.quantity)}
+          </strong>
+
+          <button
+            class="cart-remove"
+            onclick="removeFromCart('${item.id}')">
+
+            Eliminar
+
+          </button>
+
+        </div>
+
       `).join("")}
+
     </div>
 
     <div class="cart-summary">
 
       <div class="total-row">
-        <span>Productos</span>
-        <strong>${cartCount()}</strong>
+
+        <span>
+          Productos
+        </span>
+
+        <strong>
+          ${cartCount()}
+        </strong>
+
       </div>
 
       <div class="total-row total">
-        <span>Total</span>
-        <strong>${money(cartTotal())}</strong>
+
+        <span>
+          Total
+        </span>
+
+        <strong>
+          ${money(cartTotal())}
+        </strong>
+
       </div>
 
       <br>
 
-      <button class="button full" onclick="showCheckout()">
+      <button
+        class="button full"
+        onclick="showCheckout()">
+
         Finalizar compra
+
       </button>
 
     </div>
+
   `;
+
 }
+
 
 function showStore(){
-  document.getElementById("storeView").classList.remove("hidden");
-  document.getElementById("cartView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("confirmationView").classList.add("hidden");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
 
-function showCart(){
-  document.getElementById("storeView").classList.add("hidden");
-  document.getElementById("cartView").classList.remove("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("confirmationView").classList.add("hidden");
-  renderCart();
-  window.scrollTo({top:0,behavior:"smooth"});
-}
+  document
+    .getElementById("storeView")
+    .classList.remove("hidden");
 
-function showCheckout(){
-  if(!cart.length){
-    showToast("El carrito está vacío.");
-    return;
-  }
+  document
+    .getElementById("cartView")
+    .classList.add("hidden");
 
-  document.getElementById("storeView").classList.add("hidden");
-  document.getElementById("cartView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.remove("hidden");
-  document.getElementById("confirmationView").classList.add("hidden");
+  document
+    .getElementById("checkoutView")
+    .classList.add("hidden");
 
-  document.getElementById("checkoutTotal").textContent=money(cartTotal());
+  document
+    .getElementById("confirmationView")
+    .classList.add("hidden");
 
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function selectPayment(method){
-  document.querySelectorAll(".payment-option").forEach(el=>{
-    el.classList.remove("selected");
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
   });
 
-  const selected=document.querySelector(
-    `.payment-option[data-method="${method}"]`
-  );
-
-  if(selected)selected.classList.add("selected");
-
-  document.getElementById("paymentMethod").value=method;
 }
 
+
+function showCart(){
+
+  document
+    .getElementById("storeView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("cartView")
+    .classList.remove("hidden");
+
+  document
+    .getElementById("checkoutView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("confirmationView")
+    .classList.add("hidden");
+
+  renderCart();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+function showCheckout(){
+
+  if(!cart.length){
+
+    showToast(
+      "El carrito está vacío."
+    );
+
+    return;
+
+  }
+
+  document
+    .getElementById("storeView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("cartView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("checkoutView")
+    .classList.remove("hidden");
+
+  document
+    .getElementById("confirmationView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("checkoutTotal")
+    .textContent =
+      money(cartTotal());
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+function selectPayment(method){
+
+  document
+    .querySelectorAll(".payment-option")
+    .forEach(el=>{
+      el.classList.remove(
+        "selected"
+      );
+    });
+
+  const selected =
+    document.querySelector(
+      `.payment-option[data-method="${method}"]`
+    );
+
+  if(selected){
+
+    selected.classList.add(
+      "selected"
+    );
+
+  }
+
+  document
+    .getElementById("paymentMethod")
+    .value=method;
+
+}
+
+
+/* =========================================================
+   PEDIDOS — CREACIÓN CORREGIDA
+   ========================================================= */
+
 async function createOrder(event){
+
   event.preventDefault();
 
   if(!cart.length){
-    showToast("El carrito está vacío.");
+
+    showToast(
+      "El carrito está vacío."
+    );
+
     return;
+
   }
 
-  const name=document.getElementById("customerName").value.trim();
-  const phone=document.getElementById("customerPhone").value.trim();
-  const email=document.getElementById("customerEmail").value.trim();
-  const paymentMethod=document.getElementById("paymentMethod").value;
+  const name =
+    document
+      .getElementById("customerName")
+      .value
+      .trim();
 
-  if(!name || !phone || !email || !paymentMethod){
+  const phone =
+    document
+      .getElementById("customerPhone")
+      .value
+      .trim();
+
+  const email =
+    document
+      .getElementById("customerEmail")
+      .value
+      .trim();
+
+  const paymentMethod =
+    document
+      .getElementById("paymentMethod")
+      .value;
+
+  if(
+    !name ||
+    !phone ||
+    !email ||
+    !paymentMethod
+  ){
+
     setMessage(
       "checkoutMessage",
       "Completá todos los datos y seleccioná un método de pago.",
       "error"
     );
+
     return;
+
   }
 
-  const button=document.getElementById("finishOrderButton");
+  const button =
+    document.getElementById(
+      "finishOrderButton"
+    );
+
   button.disabled=true;
-  button.textContent="Creando pedido...";
+
+  button.textContent=
+    "Creando pedido...";
 
   try{
 
-    /* Comprobamos nuevamente los productos actuales */
-    const ids=cart.map(item=>item.id);
+    const ids =
+      cart.map(
+        item=>item.id
+      );
 
-    const {data:currentProducts,error:productsError}=await supabaseClient
-      .from("ig_products")
-      .select(`
-        id,
-        name,
-        price,
-        available,
-        active,
-        ig_product_images(public_url,is_primary,sort_order)
-      `)
-      .in("id",ids);
+    const {
+      data:currentProducts,
+      error:productsError
+    }=
+      await supabaseClient
+        .from("ig_products")
+        .select(`
+          id,
+          name,
+          price,
+          available,
+          active,
+          ig_product_images(
+            public_url,
+            is_primary,
+            sort_order
+          )
+        `)
+        .in("id",ids);
 
-    if(productsError)throw productsError;
+    if(productsError)
+      throw productsError;
 
-    const normalized=(currentProducts || []).map(p=>{
-      p.ig_product_images=(p.ig_product_images || [])
-        .sort((a,b)=>{
-          if(a.is_primary&&!b.is_primary)return -1;
-          if(!a.is_primary&&b.is_primary)return 1;
-          return a.sort_order-b.sort_order;
+    const normalized =
+      (currentProducts || [])
+        .map(p=>{
+
+          p.ig_product_images =
+            (
+              p.ig_product_images ||
+              []
+            ).sort((a,b)=>{
+
+              if(
+                a.is_primary &&
+                !b.is_primary
+              ){
+
+                return -1;
+
+              }
+
+              if(
+                !a.is_primary &&
+                b.is_primary
+              ){
+
+                return 1;
+
+              }
+
+              return (
+                a.sort_order -
+                b.sort_order
+              );
+
+            });
+
+          return p;
+
         });
-      return p;
-    });
+
 
     let validItems=[];
+
     let total=0;
 
-    for(const item of cart){
 
-      const p=normalized.find(x=>x.id===item.id);
+    for(
+      const item of cart
+    ){
 
-      if(!p || !p.active || !p.available){
+      const p =
+        normalized.find(
+          x=>x.id===item.id
+        );
+
+      if(
+        !p ||
+        !p.active ||
+        !p.available
+      ){
+
         throw new Error(
           `El producto "${item.name}" ya no está disponible.`
         );
+
       }
 
-      const quantity=Math.max(1,Number(item.quantity));
-      const price=Number(p.price);
-      const subtotal=price*quantity;
+      const quantity =
+        Math.max(
+          1,
+          Number(item.quantity)
+        );
+
+      const price =
+        Number(p.price);
+
+      const subtotal =
+        price*quantity;
 
       validItems.push({
+
         product_id:p.id,
+
         product_name:p.name,
+
         product_price:price,
+
         quantity,
+
         subtotal
+
       });
 
-      total+=subtotal;
+      total += subtotal;
+
     }
 
-    const orderNumber=Date.now();
 
-    const {data:order,error:orderError}=await supabaseClient
-      .from("ig_orders")
-      .insert({
-        order_number:orderNumber,
-        customer_name:name,
-        customer_phone:phone,
-        customer_email:email,
-        payment_method:paymentMethod,
-        payment_status:"pending",
-        order_status:"pending",
-        subtotal:total,
-        total:total
-      })
-      .select()
-      .single();
+    /*
+      Generamos el ID del pedido
+      en el navegador.
 
-    if(orderError)throw orderError;
+      Esto permite crear el pedido
+      sin hacer SELECT posterior
+      sobre ig_orders.
+    */
 
-    const items=validItems.map(item=>({
-      order_id:order.id,
-      ...item
-    }));
+    const orderId =
+      crypto.randomUUID();
 
-    const {error:itemsError}=await supabaseClient
-      .from("ig_order_items")
-      .insert(items);
+    const orderNumber =
+      Date.now();
+
+
+    const {
+      error:orderError
+    }=
+      await supabaseClient
+        .from("ig_orders")
+        .insert({
+
+          id:orderId,
+
+          order_number:orderNumber,
+
+          customer_name:name,
+
+          customer_phone:phone,
+
+          customer_email:email,
+
+          payment_method:
+            paymentMethod,
+
+          payment_status:
+            "pending",
+
+          order_status:
+            "pending",
+
+          subtotal:total,
+
+          total:total
+
+        });
+
+
+    if(orderError)
+      throw orderError;
+
+
+    const items =
+      validItems.map(item=>({
+
+        order_id:orderId,
+
+        ...item
+
+      }));
+
+
+    const {
+      error:itemsError
+    }=
+      await supabaseClient
+        .from("ig_order_items")
+        .insert(items);
+
 
     if(itemsError){
-      /* Intentamos eliminar el pedido incompleto */
+
       await supabaseClient
         .from("ig_orders")
         .delete()
-        .eq("id",order.id);
+        .eq(
+          "id",
+          orderId
+        );
 
       throw itemsError;
+
     }
 
+
     cart=[];
+
     saveCart();
+
     updateCartCount();
 
-    showConfirmation(order,paymentMethod);
+
+    showConfirmation(
+      {
+        id:orderId,
+        order_number:orderNumber,
+        total:total
+      },
+      paymentMethod
+    );
+
 
   }catch(error){
 
@@ -1413,531 +2372,1298 @@ async function createOrder(event){
 
     setMessage(
       "checkoutMessage",
-      error.message || "No se pudo crear el pedido.",
+      error.message ||
+        "No se pudo crear el pedido.",
       "error"
     );
 
+
   }finally{
+
     button.disabled=false;
-    button.textContent="Confirmar pedido";
+
+    button.textContent=
+      "Confirmar pedido";
+
   }
+
 }
 
-function showConfirmation(order,paymentMethod){
-  document.getElementById("storeView").classList.add("hidden");
-  document.getElementById("cartView").classList.add("hidden");
-  document.getElementById("checkoutView").classList.add("hidden");
-  document.getElementById("confirmationView").classList.remove("hidden");
 
-  document.getElementById("confirmationNumber").textContent=
-    "#" + order.order_number;
+function showConfirmation(
+  order,
+  paymentMethod
+){
 
-  document.getElementById("confirmationTotal").textContent=
-    money(order.total);
+  document
+    .getElementById("storeView")
+    .classList.add("hidden");
 
-  const paymentBox=document.getElementById("paymentAction");
+  document
+    .getElementById("cartView")
+    .classList.add("hidden");
 
-  if(paymentMethod==="mercado_pago"){
+  document
+    .getElementById("checkoutView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("confirmationView")
+    .classList.remove("hidden");
+
+
+  document
+    .getElementById("confirmationNumber")
+    .textContent =
+      "#" + order.order_number;
+
+
+  document
+    .getElementById("confirmationTotal")
+    .textContent =
+      money(order.total);
+
+
+  const paymentBox =
+    document.getElementById(
+      "paymentAction"
+    );
+
+
+  if(
+    paymentMethod==="mercado_pago"
+  ){
 
     if(settings.mercadopago_url){
 
       paymentBox.innerHTML=`
+
         <div class="notice success">
+
           Tu pedido fue registrado correctamente.
+
         </div>
+
         <br>
-        <button class="button success full"
+
+        <button
+          class="button success full"
           onclick="window.open('${escapeHtml(settings.mercadopago_url)}','_blank')">
+
           Pagar con Mercado Pago
+
         </button>
+
         <br><br>
+
         <small>
-          Después del pago, el administrador podrá confirmar el estado del pedido.
+
+          Después del pago,
+          el administrador podrá
+          confirmar el estado del pedido.
+
         </small>
+
       `;
 
     }else{
 
       paymentBox.innerHTML=`
+
         <div class="notice warning">
-          El pedido fue registrado, pero Mercado Pago todavía no está configurado.
-          El administrador debe agregar el enlace de Mercado Pago desde Configuración.
+
+          El pedido fue registrado,
+          pero Mercado Pago todavía
+          no está configurado.
+
+          El administrador debe agregar
+          el enlace de Mercado Pago
+          desde Configuración.
+
         </div>
+
       `;
+
     }
 
   }else{
 
     paymentBox.innerHTML=`
+
       <div class="notice">
+
         Elegiste pago al contado.
-        El administrador se pondrá en contacto para coordinar el pago.
+
+        El administrador se pondrá
+        en contacto para coordinar
+        el pago.
+
       </div>
+
     `;
+
   }
 
-  window.scrollTo({top:0,behavior:"smooth"});
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
 }
 
+
 /* =========================================================
-   ADMIN
+   ADMINISTRACIÓN
    ========================================================= */
 
 async function openAdmin(){
-  document.getElementById("adminLoginModal").classList.add("open");
 
-  const {data}=await supabaseClient.auth.getSession();
+  document
+    .getElementById("adminLoginModal")
+    .classList.add("open");
+
+
+  const {
+    data
+  }=
+    await supabaseClient
+      .auth
+      .getSession();
+
 
   if(data?.session){
-    const ok=await verifyAdmin(data.session.user);
+
+    const ok =
+      await verifyAdmin(
+        data.session.user
+      );
 
     if(ok){
+
       closeAdminLogin();
+
       openAdminPanel();
+
     }
+
   }
+
 }
+
 
 function closeAdminLogin(){
-  document.getElementById("adminLoginModal").classList.remove("open");
+
+  document
+    .getElementById("adminLoginModal")
+    .classList.remove("open");
+
 }
+
 
 async function verifyAdmin(user){
+
   if(!user)return false;
 
-  const {data,error}=await supabaseClient
-    .from("ig_admins")
-    .select("user_id")
-    .eq("user_id",user.id)
-    .maybeSingle();
+
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("ig_admins")
+      .select("user_id")
+      .eq(
+        "user_id",
+        user.id
+      )
+      .maybeSingle();
+
 
   if(error){
+
     console.error(error);
+
     return false;
+
   }
+
 
   return !!data;
+
 }
 
+
 async function loginAdmin(event){
+
   event.preventDefault();
 
-  const email=document.getElementById("loginEmail").value.trim();
-  const password=document.getElementById("loginPassword").value;
 
-  setMessage("loginMessage","Ingresando...");
+  const email =
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
 
-  const {data,error}=await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+
+  const password =
+    document
+      .getElementById("loginPassword")
+      .value;
+
+
+  setMessage(
+    "loginMessage",
+    "Ingresando..."
+  );
+
+
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .auth
+      .signInWithPassword({
+        email,
+        password
+      });
+
 
   if(error){
-    setMessage("loginMessage",error.message,"error");
+
+    setMessage(
+      "loginMessage",
+      error.message,
+      "error"
+    );
+
     return;
+
   }
 
-  const ok=await verifyAdmin(data.user);
+
+  const ok =
+    await verifyAdmin(
+      data.user
+    );
+
 
   if(!ok){
-    await supabaseClient.auth.signOut();
+
+    await supabaseClient
+      .auth
+      .signOut();
+
     setMessage(
       "loginMessage",
       "El usuario existe, pero no tiene permisos de administrador.",
       "error"
     );
+
     return;
+
   }
 
-  adminUser=data.user;
+
+  adminUser =
+    data.user;
+
   closeAdminLogin();
+
   openAdminPanel();
+
 }
+
 
 async function resetAdminPassword(){
 
-  const email=document.getElementById("loginEmail").value.trim();
+  const email =
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
+
 
   if(!email){
+
     setMessage(
       "loginMessage",
       "Escribí primero el correo del administrador.",
       "warning"
     );
+
     return;
+
   }
 
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{
-    redirectTo:window.location.origin
-  });
+
+  const {
+    error
+  }=
+    await supabaseClient
+      .auth
+      .resetPasswordForEmail(
+        email,
+        {
+          redirectTo:
+            window.location.origin
+        }
+      );
+
 
   if(error){
-    setMessage("loginMessage",error.message,"error");
+
+    setMessage(
+      "loginMessage",
+      error.message,
+      "error"
+    );
+
     return;
+
   }
+
 
   setMessage(
     "loginMessage",
     "Si el correo es válido, recibirás instrucciones para recuperar la contraseña.",
     "success"
   );
+
 }
+
 
 async function logoutAdmin(){
-  await supabaseClient.auth.signOut();
+
+  await supabaseClient
+    .auth
+    .signOut();
+
   adminUser=null;
-  document.getElementById("adminPanel").classList.add("hidden");
-  document.getElementById("publicApp").classList.remove("hidden");
+
+  document
+    .getElementById("adminPanel")
+    .classList.add("hidden");
+
+  document
+    .getElementById("publicApp")
+    .classList.remove("hidden");
+
   showStore();
-  showToast("Sesión cerrada.");
-}
 
-function openAdminPanel(){
-  document.getElementById("publicApp").classList.add("hidden");
-  document.getElementById("adminPanel").classList.remove("hidden");
-
-  showAdminSection("dashboard");
-
-  loadAdminData();
-}
-
-function showAdminSection(section){
-
-  document.querySelectorAll(".admin-section").forEach(el=>{
-    el.classList.remove("active");
-  });
-
-  document.querySelectorAll(".admin-nav button").forEach(el=>{
-    el.classList.remove("active");
-  });
-
-  const target=document.getElementById("admin-"+section);
-
-  if(target)target.classList.add("active");
-
-  const button=document.querySelector(
-    `.admin-nav button[data-section="${section}"]`
+  showToast(
+    "Sesión cerrada."
   );
 
-  if(button)button.classList.add("active");
-
-  if(section==="products")loadAdminProducts();
-  if(section==="orders")loadAdminOrders();
-  if(section==="settings")loadAdminSettings();
-  if(section==="dashboard")loadAdminDashboard();
 }
+
+
+function openAdminPanel(){
+
+  document
+    .getElementById("publicApp")
+    .classList.add("hidden");
+
+  document
+    .getElementById("adminPanel")
+    .classList.remove("hidden");
+
+  showAdminSection(
+    "dashboard"
+  );
+
+  loadAdminData();
+
+}
+
+
+function showAdminSection(
+  section
+){
+
+  document
+    .querySelectorAll(".admin-section")
+    .forEach(el=>{
+      el.classList.remove(
+        "active"
+      );
+    });
+
+
+  document
+    .querySelectorAll(".admin-nav button")
+    .forEach(el=>{
+      el.classList.remove(
+        "active"
+      );
+    });
+
+
+  const target =
+    document.getElementById(
+      "admin-"+section
+    );
+
+
+  if(target){
+
+    target.classList.add(
+      "active"
+    );
+
+  }
+
+
+  const button =
+    document.querySelector(
+      `.admin-nav button[data-section="${section}"]`
+    );
+
+
+  if(button){
+
+    button.classList.add(
+      "active"
+    );
+
+  }
+
+
+  if(
+    section==="products"
+  ){
+
+    loadAdminProducts();
+
+  }
+
+
+  if(
+    section==="orders"
+  ){
+
+    loadAdminOrders();
+
+  }
+
+
+  if(
+    section==="settings"
+  ){
+
+    loadAdminSettings();
+
+  }
+
+
+  if(
+    section==="dashboard"
+  ){
+
+    loadAdminDashboard();
+
+  }
+
+}
+
 
 async function loadAdminData(){
+
   await Promise.all([
+
     loadAdminDashboard(),
+
     loadAdminProducts(),
+
     loadAdminOrders(),
+
     loadAdminSettings()
+
   ]);
+
 }
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
 
 async function loadAdminDashboard(){
 
-  const {data:orders,error}=await supabaseClient
-    .from("ig_orders")
-    .select("total,payment_status,order_status");
+  const {
+    data:orders,
+    error
+  }=
+    await supabaseClient
+      .from("ig_orders")
+      .select(
+        "total,payment_status,order_status"
+      );
+
 
   if(error){
+
     console.error(error);
+
     return;
+
   }
 
-  const all=orders || [];
 
-  const paid=all.filter(o=>o.payment_status==="paid");
+  const all =
+    orders || [];
 
-  const revenue=paid.reduce(
-    (sum,o)=>sum+Number(o.total||0),
-    0
-  );
 
-  document.getElementById("statOrders").textContent=all.length;
-  document.getElementById("statPaid").textContent=paid.length;
-  document.getElementById("statRevenue").textContent=money(revenue);
+  const paid =
+    all.filter(
+      o=>o.payment_status==="paid"
+    );
 
-  const pending=all.filter(
-    o=>o.order_status==="pending"
-  ).length;
 
-  document.getElementById("statPending").textContent=pending;
+  const revenue =
+    paid.reduce(
+      (sum,o)=>
+        sum+
+        Number(
+          o.total || 0
+        ),
+      0
+    );
+
+
+  document
+    .getElementById("statOrders")
+    .textContent =
+      all.length;
+
+
+  document
+    .getElementById("statPaid")
+    .textContent =
+      paid.length;
+
+
+  document
+    .getElementById("statRevenue")
+    .textContent =
+      money(revenue);
+
+
+  const pending =
+    all.filter(
+      o=>o.order_status==="pending"
+    ).length;
+
+
+  document
+    .getElementById("statPending")
+    .textContent =
+      pending;
+
 }
+
+
+/* =========================================================
+   ADMIN PRODUCTOS
+   ========================================================= */
 
 async function loadAdminProducts(){
 
-  const {data,error}=await supabaseClient
-    .from("ig_products")
-    .select(`
-      *,
-      ig_product_images(
-        id,
-        storage_path,
-        public_url,
-        is_primary,
-        sort_order
-      )
-    `)
-    .order("created_at",{ascending:false});
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("ig_products")
+      .select(`
+        *,
+        ig_product_images(
+          id,
+          storage_path,
+          public_url,
+          is_primary,
+          sort_order
+        )
+      `)
+      .order(
+        "created_at",
+        {ascending:false}
+      );
+
 
   if(error){
+
     console.error(error);
+
     return;
+
   }
 
-  adminProducts=data || [];
 
-  const container=document.getElementById("adminProductsList");
+  adminProducts =
+    data || [];
+
+
+  const container =
+    document.getElementById(
+      "adminProductsList"
+    );
+
 
   if(!adminProducts.length){
+
     container.innerHTML=`
+
       <div class="empty">
+
         Todavía no hay productos.
+
       </div>
+
     `;
+
     return;
+
   }
 
-  container.innerHTML=adminProducts.map(product=>{
 
-    const images=(product.ig_product_images||[])
-      .sort((a,b)=>{
-        if(a.is_primary&&!b.is_primary)return -1;
-        if(!a.is_primary&&!b.is_primary)return a.sort_order-b.sort_order;
-        return a.is_primary?-1:1;
-      });
+  container.innerHTML =
+    adminProducts
+      .map(product=>{
 
-    const image=images[0]?.public_url || "";
+        const images =
+          (
+            product.ig_product_images ||
+            []
+          ).sort((a,b)=>{
 
-    return`
-      <div class="admin-product">
+            if(
+              a.is_primary &&
+              !b.is_primary
+            ){
 
-        <div class="admin-product-image">
-          ${image
-            ? `<img src="${escapeHtml(image)}" alt="">`
-            : ""}
-        </div>
+              return -1;
 
-        <div class="admin-product-info">
-          <strong>${escapeHtml(product.name)}</strong>
-          <div>${money(product.price)}</div>
-          <small>
-            ${product.active ? "Activo" : "Oculto"} ·
-            ${product.available ? "Disponible" : "Agotado"}
-          </small>
-        </div>
+            }
 
-        <div class="admin-actions">
+            if(
+              !a.is_primary &&
+              b.is_primary
+            ){
 
-          <button class="button secondary"
-            onclick="editProduct('${product.id}')">
-            Editar
-          </button>
+              return 1;
 
-          <button class="button danger"
-            onclick="deleteProduct('${product.id}')">
-            Eliminar
-          </button>
+            }
 
-          <button class="button warning"
-            onclick="toggleProduct('${product.id}',${!product.active})">
-            ${product.active ? "Ocultar" : "Mostrar"}
-          </button>
+            return (
+              a.sort_order -
+              b.sort_order
+            );
 
-        </div>
+          });
 
-      </div>
-    `;
-  }).join("");
+
+        const image =
+          images[0]?.public_url ||
+          "";
+
+
+        return`
+
+          <div class="admin-product">
+
+            <div class="admin-product-image">
+
+              ${
+                image
+                  ? `
+                    <img
+                      src="${escapeHtml(image)}"
+                      alt="">
+                  `
+                  : ""
+              }
+
+            </div>
+
+            <div class="admin-product-info">
+
+              <strong>
+                ${escapeHtml(product.name)}
+              </strong>
+
+              <div>
+                ${money(product.price)}
+              </div>
+
+              <small>
+
+                ${
+                  product.active
+                    ? "Activo"
+                    : "Oculto"
+                }
+
+                ·
+
+                ${
+                  product.available
+                    ? "Disponible"
+                    : "Agotado"
+                }
+
+              </small>
+
+            </div>
+
+            <div class="admin-actions">
+
+              <button
+                class="button secondary"
+                onclick="editProduct('${product.id}')">
+
+                Editar
+
+              </button>
+
+              <button
+                class="button danger"
+                onclick="deleteProduct('${product.id}')">
+
+                Eliminar
+
+              </button>
+
+              <button
+                class="button warning"
+                onclick="toggleProduct('${product.id}',${!product.active})">
+
+                ${
+                  product.active
+                    ? "Ocultar"
+                    : "Mostrar"
+                }
+
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
 }
+
 
 function openNewProduct(){
+
   editingProduct=null;
 
-  document.getElementById("productModalTitle").textContent=
-    "Nuevo producto";
 
-  document.getElementById("productForm").reset();
+  document
+    .getElementById(
+      "productModalTitle"
+    )
+    .textContent =
+      "Nuevo producto";
 
-  document.getElementById("productId").value="";
-  document.getElementById("productAvailable").value="true";
-  document.getElementById("productImageList").innerHTML="";
-  document.getElementById("productFormMessage").innerHTML="";
 
-  document.getElementById("productModal").classList.add("open");
+  document
+    .getElementById(
+      "productForm"
+    )
+    .reset();
+
+
+  document
+    .getElementById(
+      "productId"
+    )
+    .value="";
+
+
+  document
+    .getElementById(
+      "productAvailable"
+    )
+    .value="true";
+
+
+  document
+    .getElementById(
+      "productImageList"
+    )
+    .innerHTML="";
+
+
+  document
+    .getElementById(
+      "productFormMessage"
+    )
+    .innerHTML="";
+
+
+  document
+    .getElementById(
+      "productModal"
+    )
+    .classList.add(
+      "open"
+    );
+
 }
+
 
 function closeProductModal(){
-  document.getElementById("productModal").classList.remove("open");
+
+  document
+    .getElementById(
+      "productModal"
+    )
+    .classList.remove(
+      "open"
+    );
+
 }
+
 
 function editProduct(id){
 
-  const product=adminProducts.find(p=>p.id===id);
+  const product =
+    adminProducts.find(
+      p=>p.id===id
+    );
+
 
   if(!product)return;
 
-  editingProduct=product;
 
-  document.getElementById("productModalTitle").textContent=
-    "Editar producto";
+  editingProduct=
+    product;
 
-  document.getElementById("productId").value=product.id;
-  document.getElementById("productName").value=product.name || "";
-  document.getElementById("productPrice").value=product.price || 0;
-  document.getElementById("productCategory").value=product.category || "";
-  document.getElementById("productAvailable").value=
-    String(product.available);
 
-  document.getElementById("productDescription").value=
-    product.description || "";
+  document
+    .getElementById(
+      "productModalTitle"
+    )
+    .textContent =
+      "Editar producto";
 
-  document.getElementById("productCharacteristics").value=
-    product.characteristics || "";
 
-  renderProductImages(product);
+  document
+    .getElementById(
+      "productId"
+    )
+    .value =
+      product.id;
 
-  document.getElementById("productFormMessage").innerHTML="";
-  document.getElementById("productModal").classList.add("open");
+
+  document
+    .getElementById(
+      "productName"
+    )
+    .value =
+      product.name || "";
+
+
+  document
+    .getElementById(
+      "productPrice"
+    )
+    .value =
+      product.price || 0;
+
+
+  document
+    .getElementById(
+      "productCategory"
+    )
+    .value =
+      product.category || "";
+
+
+  document
+    .getElementById(
+      "productAvailable"
+    )
+    .value =
+      String(product.available);
+
+
+  document
+    .getElementById(
+      "productDescription"
+    )
+    .value =
+      product.description || "";
+
+
+  document
+    .getElementById(
+      "productCharacteristics"
+    )
+    .value =
+      product.characteristics || "";
+
+
+  renderProductImages(
+    product
+  );
+
+
+  document
+    .getElementById(
+      "productFormMessage"
+    )
+    .innerHTML="";
+
+
+  document
+    .getElementById(
+      "productModal"
+    )
+    .classList.add(
+      "open"
+    );
+
 }
 
-function renderProductImages(product){
 
-  const container=document.getElementById("productImageList");
+function renderProductImages(
+  product
+){
 
-  const images=(product?.ig_product_images||[])
-    .sort((a,b)=>a.sort_order-b.sort_order);
+  const container =
+    document.getElementById(
+      "productImageList"
+    );
+
+
+  const images =
+    (
+      product?.ig_product_images ||
+      []
+    ).sort(
+      (a,b)=>
+        a.sort_order -
+        b.sort_order
+    );
+
 
   if(!images.length){
-    container.innerHTML="<small>No hay fotos cargadas.</small>";
+
+    container.innerHTML=
+      "<small>No hay fotos cargadas.</small>";
+
     return;
+
   }
 
-  container.innerHTML=images.map(image=>`
-    <div class="image-thumb">
 
-      <img src="${escapeHtml(image.public_url)}" alt="">
+  container.innerHTML =
+    images.map(image=>`
 
-      <button
-        type="button"
-        onclick="deleteProductImage('${image.id}','${image.storage_path}')">
-        ×
-      </button>
+      <div class="image-thumb">
 
-    </div>
-  `).join("");
+        <img
+          src="${escapeHtml(image.public_url)}"
+          alt="">
+
+        <button
+          type="button"
+          onclick="deleteProductImage('${image.id}','${image.storage_path}')">
+
+          ×
+
+        </button>
+
+      </div>
+
+    `).join("");
+
 }
 
-async function saveProduct(event){
+
+async function saveProduct(
+  event
+){
+
   event.preventDefault();
 
+
   if(!adminUser){
-    showToast("No hay sesión de administrador.");
+
+    showToast(
+      "No hay sesión de administrador."
+    );
+
     return;
+
   }
 
-  const id=document.getElementById("productId").value;
-  const name=document.getElementById("productName").value.trim();
-  const price=Number(document.getElementById("productPrice").value);
-  const category=document.getElementById("productCategory").value.trim();
-  const available=document.getElementById("productAvailable").value==="true";
-  const description=document.getElementById("productDescription").value.trim();
-  const characteristics=document.getElementById("productCharacteristics").value.trim();
+
+  const id =
+    document
+      .getElementById(
+        "productId"
+      )
+      .value;
+
+
+  const name =
+    document
+      .getElementById(
+        "productName"
+      )
+      .value
+      .trim();
+
+
+  const price =
+    Number(
+      document
+        .getElementById(
+          "productPrice"
+        )
+        .value
+    );
+
+
+  const category =
+    document
+      .getElementById(
+        "productCategory"
+      )
+      .value
+      .trim();
+
+
+  const available =
+    document
+      .getElementById(
+        "productAvailable"
+      )
+      .value==="true";
+
+
+  const description =
+    document
+      .getElementById(
+        "productDescription"
+      )
+      .value
+      .trim();
+
+
+  const characteristics =
+    document
+      .getElementById(
+        "productCharacteristics"
+      )
+      .value
+      .trim();
+
 
   if(!name){
-    setMessage("productFormMessage","El nombre es obligatorio.","error");
+
+    setMessage(
+      "productFormMessage",
+      "El nombre es obligatorio.",
+      "error"
+    );
+
     return;
+
   }
 
-  if(price<0 || Number.isNaN(price)){
-    setMessage("productFormMessage","El precio no es válido.","error");
+
+  if(
+    price<0 ||
+    Number.isNaN(price)
+  ){
+
+    setMessage(
+      "productFormMessage",
+      "El precio no es válido.",
+      "error"
+    );
+
     return;
+
   }
+
 
   const payload={
+
     name,
+
     description,
+
     characteristics,
+
     price,
+
     category,
+
     available,
+
     active:true
+
   };
 
+
   let productId=id;
+
 
   try{
 
     if(id){
 
-      const {error}=await supabaseClient
-        .from("ig_products")
-        .update(payload)
-        .eq("id",id);
+      const {
+        error
+      }=
+        await supabaseClient
+          .from("ig_products")
+          .update(payload)
+          .eq("id",id);
 
-      if(error)throw error;
+      if(error)
+        throw error;
 
     }else{
 
-      const {data,error}=await supabaseClient
-        .from("ig_products")
-        .insert(payload)
-        .select()
-        .single();
+      const {
+        data,
+        error
+      }=
+        await supabaseClient
+          .from("ig_products")
+          .insert(payload)
+          .select()
+          .single();
 
-      if(error)throw error;
+      if(error)
+        throw error;
 
-      productId=data.id;
+      productId=
+        data.id;
+
     }
 
-    /* Subir nuevas fotos */
+
     const files=[
-      ...document.getElementById("productImagesInput").files
+      ...document
+        .getElementById(
+          "productImagesInput"
+        )
+        .files
     ];
 
-    for(let i=0;i<files.length;i++){
 
-      const file=files[i];
+    for(
+      let i=0;
+      i<files.length;
+      i++
+    ){
 
-      if(!file.type.startsWith("image/"))continue;
+      const file =
+        files[i];
 
-      const safeName=file.name
-        .replace(/[^a-zA-Z0-9._-]/g,"-");
 
-      const path=
+      if(
+        !file.type.startsWith(
+          "image/"
+        )
+      ){
+
+        continue;
+
+      }
+
+
+      const safeName =
+        file.name.replace(
+          /[^a-zA-Z0-9._-]/g,
+          "-"
+        );
+
+
+      const path =
         `products/${productId}/${Date.now()}-${i}-${safeName}`;
 
-      const {error:uploadError}=await supabaseClient
-        .storage
-        .from(STORAGE_BUCKET)
-        .upload(path,file,{
-          cacheControl:"3600",
-          upsert:false
-        });
 
-      if(uploadError)throw uploadError;
+      const {
+        error:uploadError
+      }=
+        await supabaseClient
+          .storage
+          .from(
+            STORAGE_BUCKET
+          )
+          .upload(
+            path,
+            file,
+            {
+              cacheControl:"3600",
+              upsert:false
+            }
+          );
 
-      const {data:publicData}=
+
+      if(uploadError)
+        throw uploadError;
+
+
+      const {
+        data:publicData
+      }=
         supabaseClient
           .storage
-          .from(STORAGE_BUCKET)
-          .getPublicUrl(path);
+          .from(
+            STORAGE_BUCKET
+          )
+          .getPublicUrl(
+            path
+          );
 
-      const {error:imageError}=await supabaseClient
-        .from("ig_product_images")
-        .insert({
-          product_id:productId,
-          storage_path:path,
-          public_url:publicData.publicUrl,
-          is_primary:i===0 && !id,
-          sort_order:i
-        });
 
-      if(imageError)throw imageError;
+      const {
+        error:imageError
+      }=
+        await supabaseClient
+          .from(
+            "ig_product_images"
+          )
+          .insert({
+
+            product_id:
+              productId,
+
+            storage_path:
+              path,
+
+            public_url:
+              publicData.publicUrl,
+
+            is_primary:
+              i===0 &&
+              !id,
+
+            sort_order:
+              i
+
+          });
+
+
+      if(imageError)
+        throw imageError;
+
     }
+
 
     showToast(
       id
@@ -1945,584 +3671,1251 @@ async function saveProduct(event){
         : "Producto creado."
     );
 
+
     closeProductModal();
+
+
     await loadAdminProducts();
+
     await loadProducts();
+
 
   }catch(error){
 
     console.error(error);
+
 
     setMessage(
       "productFormMessage",
-      error.message || "No se pudo guardar el producto.",
+      error.message ||
+        "No se pudo guardar el producto.",
       "error"
     );
+
   }
+
 }
+
 
 async function deleteProduct(id){
 
-  const product=adminProducts.find(p=>p.id===id);
+  const product =
+    adminProducts.find(
+      p=>p.id===id
+    );
+
 
   if(!product)return;
 
-  const confirmed=confirm(
-    `¿Eliminar definitivamente "${product.name}"?\n\n`+
-    `Si nunca tuvo ventas, se eliminarán también sus fotos.\n`+
-    `Si tuvo ventas, se conservará el historial del pedido.`
-  );
+
+  const confirmed =
+    confirm(
+      `¿Eliminar definitivamente "${product.name}"?\n\n`+
+      `Si nunca tuvo ventas, se eliminarán también sus fotos.\n`+
+      `Si tuvo ventas, se conservará el historial del pedido.`
+    );
+
 
   if(!confirmed)return;
 
+
   try{
 
-    /* Verificamos si aparece en pedidos históricos */
-    const {data:items,error:itemsError}=await supabaseClient
-      .from("ig_order_items")
-      .select("id")
-      .eq("product_id",id)
-      .limit(1);
+    const {
+      data:items,
+      error:itemsError
+    }=
+      await supabaseClient
+        .from(
+          "ig_order_items"
+        )
+        .select("id")
+        .eq(
+          "product_id",
+          id
+        )
+        .limit(1);
 
-    if(itemsError)throw itemsError;
 
-    const hadOrders=(items||[]).length>0;
+    if(itemsError)
+      throw itemsError;
 
-    const images=product.ig_product_images || [];
 
-    const paths=images
-      .map(image=>image.storage_path)
-      .filter(Boolean);
+    const hadOrders =
+      (items || []).length>0;
+
+
+    const images =
+      product.ig_product_images ||
+      [];
+
+
+    const paths =
+      images
+        .map(
+          image=>image.storage_path
+        )
+        .filter(Boolean);
+
 
     if(paths.length){
-      const {error:storageError}=await supabaseClient
-        .storage
-        .from(STORAGE_BUCKET)
-        .remove(paths);
+
+      const {
+        error:storageError
+      }=
+        await supabaseClient
+          .storage
+          .from(
+            STORAGE_BUCKET
+          )
+          .remove(paths);
+
 
       if(storageError){
-        console.warn("No se pudieron eliminar algunas fotos:",storageError);
+
+        console.warn(
+          "No se pudieron eliminar algunas fotos:",
+          storageError
+        );
+
       }
+
     }
 
-    const {error:deleteError}=await supabaseClient
-      .from("ig_products")
-      .delete()
-      .eq("id",id);
 
-    if(deleteError)throw deleteError;
+    const {
+      error:deleteError
+    }=
+      await supabaseClient
+        .from(
+          "ig_products"
+        )
+        .delete()
+        .eq(
+          "id",
+          id
+        );
+
+
+    if(deleteError)
+      throw deleteError;
+
 
     if(hadOrders){
+
       showToast(
         "Producto eliminado del catálogo. El historial de pedidos se conserva."
       );
+
     }else{
+
       showToast(
         "Producto y sus fotos eliminados completamente."
       );
+
     }
 
+
     await loadAdminProducts();
+
     await loadProducts();
+
 
   }catch(error){
 
     console.error(error);
 
+
     showToast(
-      error.message || "No se pudo eliminar el producto."
+      error.message ||
+        "No se pudo eliminar el producto."
     );
+
   }
+
 }
 
-async function toggleProduct(id,active){
 
-  const {error}=await supabaseClient
-    .from("ig_products")
-    .update({active})
-    .eq("id",id);
+async function toggleProduct(
+  id,
+  active
+){
+
+  const {
+    error
+  }=
+    await supabaseClient
+      .from("ig_products")
+      .update({active})
+      .eq("id",id);
+
 
   if(error){
-    showToast(error.message);
+
+    showToast(
+      error.message
+    );
+
     return;
+
   }
 
-  showToast(active ? "Producto visible." : "Producto ocultado.");
+
+  showToast(
+    active
+      ? "Producto visible."
+      : "Producto ocultado."
+  );
+
 
   await loadAdminProducts();
+
   await loadProducts();
+
 }
 
-async function deleteProductImage(imageId,path){
 
-  if(!confirm("¿Eliminar esta foto?"))return;
+async function deleteProductImage(
+  imageId,
+  path
+){
+
+  if(
+    !confirm(
+      "¿Eliminar esta foto?"
+    )
+  ){
+
+    return;
+
+  }
+
 
   try{
 
-    const {error:storageError}=await supabaseClient
-      .storage
-      .from(STORAGE_BUCKET)
-      .remove([path]);
+    const {
+      error:storageError
+    }=
+      await supabaseClient
+        .storage
+        .from(
+          STORAGE_BUCKET
+        )
+        .remove([path]);
 
-    if(storageError)throw storageError;
 
-    const {error}=await supabaseClient
-      .from("ig_product_images")
-      .delete()
-      .eq("id",imageId);
+    if(storageError)
+      throw storageError;
 
-    if(error)throw error;
 
-    showToast("Foto eliminada.");
+    const {
+      error
+    }=
+      await supabaseClient
+        .from(
+          "ig_product_images"
+        )
+        .delete()
+        .eq(
+          "id",
+          imageId
+        );
+
+
+    if(error)
+      throw error;
+
+
+    showToast(
+      "Foto eliminada."
+    );
+
 
     await loadAdminProducts();
 
-    const productId=document.getElementById("productId").value;
-    const product=adminProducts.find(p=>p.id===productId);
 
-    renderProductImages(product);
+    const productId =
+      document
+        .getElementById(
+          "productId"
+        )
+        .value;
+
+
+    const product =
+      adminProducts.find(
+        p=>p.id===productId
+      );
+
+
+    renderProductImages(
+      product
+    );
+
 
     await loadProducts();
+
 
   }catch(error){
 
     console.error(error);
-    showToast(error.message || "No se pudo eliminar la foto.");
+
+
+    showToast(
+      error.message ||
+        "No se pudo eliminar la foto."
+    );
+
   }
+
 }
 
+
 /* =========================================================
-   PEDIDOS
+   PEDIDOS ADMIN
    ========================================================= */
 
 async function loadAdminOrders(){
 
-  const {data,error}=await supabaseClient
-    .from("ig_orders")
-    .select(`
-      *,
-      ig_order_items(
-        product_id,
-        product_name,
-        product_price,
-        quantity,
-        subtotal
-      )
-    `)
-    .order("created_at",{ascending:false});
+  const {
+    data,
+    error
+  }=
+    await supabaseClient
+      .from("ig_orders")
+      .select(`
+        *,
+        ig_order_items(
+          product_id,
+          product_name,
+          product_price,
+          quantity,
+          subtotal
+        )
+      `)
+      .order(
+        "created_at",
+        {ascending:false}
+      );
+
 
   if(error){
+
     console.error(error);
+
     return;
+
   }
 
-  const orders=data || [];
-  const container=document.getElementById("adminOrdersList");
+
+  const orders =
+    data || [];
+
+
+  const container =
+    document.getElementById(
+      "adminOrdersList"
+    );
+
 
   if(!orders.length){
+
     container.innerHTML=`
+
       <div class="empty">
+
         Todavía no hay pedidos.
+
       </div>
+
     `;
+
     return;
+
   }
 
-  container.innerHTML=orders.map(order=>`
 
-    <div class="order-card">
+  container.innerHTML =
+    orders.map(order=>`
 
-      <div class="order-head">
+      <div class="order-card">
 
-        <div>
-          <strong>Pedido #${order.order_number}</strong>
-          <br>
-          <small>${new Date(order.created_at).toLocaleString("es-AR")}</small>
+        <div class="order-head">
+
+          <div>
+
+            <strong>
+              Pedido #${order.order_number}
+            </strong>
+
+            <br>
+
+            <small>
+              ${
+                new Date(
+                  order.created_at
+                ).toLocaleString(
+                  "es-AR"
+                )
+              }
+            </small>
+
+          </div>
+
+          <div>
+
+            <span
+              class="badge ${
+                order.payment_status==="paid"
+                  ? "paid"
+                  : "pending"
+              }">
+
+              Pago:
+              ${paymentStatusLabel(
+                order.payment_status
+              )}
+
+            </span>
+
+            <span class="badge">
+
+              ${
+                orderStatusLabel(
+                  order.order_status
+                )
+              }
+
+            </span>
+
+          </div>
+
         </div>
 
-        <div>
-          <span class="badge ${order.payment_status==="paid"?"paid":"pending"}">
-            Pago: ${paymentStatusLabel(order.payment_status)}
-          </span>
 
-          <span class="badge">
-            ${orderStatusLabel(order.order_status)}
-          </span>
+        <p>
+
+          <strong>
+            Cliente:
+          </strong>
+
+          ${escapeHtml(
+            order.customer_name
+          )}
+
+        </p>
+
+
+        <p>
+
+          <strong>
+            Teléfono:
+          </strong>
+
+          ${escapeHtml(
+            order.customer_phone
+          )}
+
+        </p>
+
+
+        <p>
+
+          <strong>
+            Email:
+          </strong>
+
+          ${escapeHtml(
+            order.customer_email
+          )}
+
+        </p>
+
+
+        <p>
+
+          <strong>
+            Pago:
+          </strong>
+
+          ${
+            order.payment_method==="mercado_pago"
+              ? "Mercado Pago"
+              : "Contado"
+          }
+
+        </p>
+
+
+        <br>
+
+
+        <strong>
+          Productos
+        </strong>
+
+
+        <ul>
+
+          ${
+            (
+              order.ig_order_items ||
+              []
+            ).map(item=>`
+
+              <li>
+
+                ${escapeHtml(
+                  item.product_name
+                )}
+
+                × ${item.quantity}
+
+                —
+                ${money(
+                  item.subtotal
+                )}
+
+              </li>
+
+            `).join("")
+          }
+
+        </ul>
+
+
+        <br>
+
+
+        <strong>
+
+          Total:
+          ${money(order.total)}
+
+        </strong>
+
+
+        <hr
+          style="
+            margin:15px 0;
+            border:0;
+            border-top:1px solid #ddd
+          ">
+
+
+        <div class="form-grid">
+
+
+          <div class="field">
+
+            <label>
+              Estado del pago
+            </label>
+
+
+            <select
+              onchange="updateOrder('${order.id}',this.value,null)">
+
+              <option
+                value="pending"
+                ${
+                  order.payment_status==="pending"
+                    ? "selected"
+                    : ""
+                }>
+
+                Pendiente
+
+              </option>
+
+
+              <option
+                value="paid"
+                ${
+                  order.payment_status==="paid"
+                    ? "selected"
+                    : ""
+                }>
+
+                Pagado
+
+              </option>
+
+
+              <option
+                value="rejected"
+                ${
+                  order.payment_status==="rejected"
+                    ? "selected"
+                    : ""
+                }>
+
+                Rechazado
+
+              </option>
+
+
+              <option
+                value="cancelled"
+                ${
+                  order.payment_status==="cancelled"
+                    ? "selected"
+                    : ""
+                }>
+
+                Cancelado
+
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Estado del pedido
+            </label>
+
+
+            <select
+              onchange="updateOrder('${order.id}',null,this.value)">
+
+              <option
+                value="pending"
+                ${
+                  order.order_status==="pending"
+                    ? "selected"
+                    : ""
+                }>
+
+                Pendiente
+
+              </option>
+
+
+              <option
+                value="confirmed"
+                ${
+                  order.order_status==="confirmed"
+                    ? "selected"
+                    : ""
+                }>
+
+                Confirmado
+
+              </option>
+
+
+              <option
+                value="preparing"
+                ${
+                  order.order_status==="preparing"
+                    ? "selected"
+                    : ""
+                }>
+
+                Preparando
+
+              </option>
+
+
+              <option
+                value="ready"
+                ${
+                  order.order_status==="ready"
+                    ? "selected"
+                    : ""
+                }>
+
+                Listo
+
+              </option>
+
+
+              <option
+                value="delivered"
+                ${
+                  order.order_status==="delivered"
+                    ? "selected"
+                    : ""
+                }>
+
+                Entregado
+
+              </option>
+
+
+              <option
+                value="cancelled"
+                ${
+                  order.order_status==="cancelled"
+                    ? "selected"
+                    : ""
+                }>
+
+                Cancelado
+
+              </option>
+
+            </select>
+
+          </div>
+
         </div>
 
       </div>
 
-      <p>
-        <strong>Cliente:</strong>
-        ${escapeHtml(order.customer_name)}
-      </p>
+    `).join("");
 
-      <p>
-        <strong>Teléfono:</strong>
-        ${escapeHtml(order.customer_phone)}
-      </p>
-
-      <p>
-        <strong>Email:</strong>
-        ${escapeHtml(order.customer_email)}
-      </p>
-
-      <p>
-        <strong>Pago:</strong>
-        ${order.payment_method==="mercado_pago"
-          ? "Mercado Pago"
-          : "Contado"}
-      </p>
-
-      <br>
-
-      <strong>Productos</strong>
-
-      <ul>
-        ${(order.ig_order_items||[]).map(item=>`
-          <li>
-            ${escapeHtml(item.product_name)}
-            × ${item.quantity}
-            — ${money(item.subtotal)}
-          </li>
-        `).join("")}
-      </ul>
-
-      <br>
-
-      <strong>Total: ${money(order.total)}</strong>
-
-      <hr style="margin:15px 0;border:0;border-top:1px solid #ddd">
-
-      <div class="form-grid">
-
-        <div class="field">
-          <label>Estado del pago</label>
-
-          <select
-            onchange="updateOrder('${order.id}',this.value,null)"
-          >
-            <option value="pending"
-              ${order.payment_status==="pending"?"selected":""}>
-              Pendiente
-            </option>
-
-            <option value="paid"
-              ${order.payment_status==="paid"?"selected":""}>
-              Pagado
-            </option>
-
-            <option value="rejected"
-              ${order.payment_status==="rejected"?"selected":""}>
-              Rechazado
-            </option>
-
-            <option value="cancelled"
-              ${order.payment_status==="cancelled"?"selected":""}>
-              Cancelado
-            </option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Estado del pedido</label>
-
-          <select
-            onchange="updateOrder('${order.id}',null,this.value)"
-          >
-            <option value="pending"
-              ${order.order_status==="pending"?"selected":""}>
-              Pendiente
-            </option>
-
-            <option value="confirmed"
-              ${order.order_status==="confirmed"?"selected":""}>
-              Confirmado
-            </option>
-
-            <option value="preparing"
-              ${order.order_status==="preparing"?"selected":""}>
-              Preparando
-            </option>
-
-            <option value="ready"
-              ${order.order_status==="ready"?"selected":""}>
-              Listo
-            </option>
-
-            <option value="delivered"
-              ${order.order_status==="delivered"?"selected":""}>
-              Entregado
-            </option>
-
-            <option value="cancelled"
-              ${order.order_status==="cancelled"?"selected":""}>
-              Cancelado
-            </option>
-          </select>
-        </div>
-
-      </div>
-
-    </div>
-
-  `).join("");
 }
 
-function paymentStatusLabel(status){
+
+function paymentStatusLabel(
+  status
+){
 
   const map={
+
     pending:"Pendiente",
+
     paid:"Pagado",
+
     rejected:"Rechazado",
+
     cancelled:"Cancelado"
+
   };
 
-  return map[status] || status;
+
+  return (
+    map[status] ||
+    status
+  );
+
 }
 
-function orderStatusLabel(status){
+
+function orderStatusLabel(
+  status
+){
 
   const map={
+
     pending:"Pendiente",
+
     confirmed:"Confirmado",
+
     preparing:"Preparando",
+
     ready:"Listo",
+
     delivered:"Entregado",
+
     cancelled:"Cancelado"
+
   };
 
-  return map[status] || status;
+
+  return (
+    map[status] ||
+    status
+  );
+
 }
 
-async function updateOrder(id,paymentStatus,orderStatus){
+
+async function updateOrder(
+  id,
+  paymentStatus,
+  orderStatus
+){
 
   const payload={
-    updated_at:new Date().toISOString()
+
+    updated_at:
+      new Date().toISOString()
+
   };
 
-  if(paymentStatus)payload.payment_status=paymentStatus;
-  if(orderStatus)payload.order_status=orderStatus;
 
-  const {error}=await supabaseClient
-    .from("ig_orders")
-    .update(payload)
-    .eq("id",id);
+  if(paymentStatus){
 
-  if(error){
-    showToast(error.message);
-    return;
+    payload.payment_status =
+      paymentStatus;
+
   }
 
-  showToast("Pedido actualizado.");
+
+  if(orderStatus){
+
+    payload.order_status =
+      orderStatus;
+
+  }
+
+
+  const {
+    error
+  }=
+    await supabaseClient
+      .from("ig_orders")
+      .update(payload)
+      .eq("id",id);
+
+
+  if(error){
+
+    showToast(
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  showToast(
+    "Pedido actualizado."
+  );
+
 
   await loadAdminOrders();
+
   await loadAdminDashboard();
+
 }
 
+
 /* =========================================================
-   CONFIGURACIÓN / LOGOTIPO / MERCADO PAGO
+   CONFIGURACIÓN / LOGOTIPO
    ========================================================= */
 
 async function loadAdminSettings(){
 
   await loadSettings();
 
-  document.getElementById("settingsStoreName").value=
-    settings.store_name || "International Gateway";
 
-  document.getElementById("settingsMercadoPago").value=
-    settings.mercadopago_url || "";
+  document
+    .getElementById(
+      "settingsStoreName"
+    )
+    .value =
+      settings.store_name ||
+      "International Gateway";
 
-  const logoPreview=document.getElementById("logoPreview");
+
+  document
+    .getElementById(
+      "settingsMercadoPago"
+    )
+    .value =
+      settings.mercadopago_url ||
+      "";
+
+
+  const logoPreview =
+    document.getElementById(
+      "logoPreview"
+    );
+
 
   if(settings.logo_url){
+
     logoPreview.innerHTML=
-      `<img src="${escapeHtml(settings.logo_url)}" alt="Logotipo">`;
+      `
+        <img
+          src="${escapeHtml(settings.logo_url)}"
+          alt="Logotipo">
+      `;
+
   }else{
-    logoPreview.innerHTML="<span>Sin logotipo</span>";
+
+    logoPreview.innerHTML=
+      "<span>Sin logotipo</span>";
+
   }
+
 }
 
-async function saveSettings(event){
+
+async function saveSettings(
+  event
+){
 
   event.preventDefault();
 
-  const storeName=
-    document.getElementById("settingsStoreName").value.trim();
 
-  const mercadoPago=
-    document.getElementById("settingsMercadoPago").value.trim();
+  const storeName =
+    document
+      .getElementById(
+        "settingsStoreName"
+      )
+      .value
+      .trim();
+
+
+  const mercadoPago =
+    document
+      .getElementById(
+        "settingsMercadoPago"
+      )
+      .value
+      .trim();
+
 
   try{
 
     const values=[
+
       {
         key:"store_name",
-        value:storeName || "International Gateway"
+        value:
+          storeName ||
+          "International Gateway"
       },
+
       {
         key:"mercadopago_url",
         value:mercadoPago
       }
+
     ];
 
-    const {error}=await supabaseClient
-      .from("ig_site_settings")
-      .upsert(values,{onConflict:"key"});
 
-    if(error)throw error;
+    const {
+      error
+    }=
+      await supabaseClient
+        .from(
+          "ig_site_settings"
+        )
+        .upsert(
+          values,
+          {
+            onConflict:"key"
+          }
+        );
 
-    settings.store_name=storeName || "International Gateway";
-    settings.mercadopago_url=mercadoPago;
 
-    document.getElementById("settingsMessage").innerHTML=
-      `<div class="notice success">Configuración guardada.</div>`;
+    if(error)
+      throw error;
+
+
+    settings.store_name =
+      storeName ||
+      "International Gateway";
+
+
+    settings.mercadopago_url =
+      mercadoPago;
+
+
+    document
+      .getElementById(
+        "settingsMessage"
+      )
+      .innerHTML=
+        `
+          <div class="notice success">
+            Configuración guardada.
+          </div>
+        `;
+
 
     updateBrand();
+
 
   }catch(error){
 
     console.error(error);
+
 
     setMessage(
       "settingsMessage",
-      error.message || "No se pudo guardar.",
+      error.message ||
+        "No se pudo guardar.",
       "error"
     );
+
   }
+
 }
+
 
 async function uploadLogo(){
 
-  const input=document.getElementById("logoInput");
-  const file=input.files[0];
+  const input =
+    document.getElementById(
+      "logoInput"
+    );
+
+
+  const file =
+    input.files[0];
+
 
   if(!file){
-    showToast("Seleccioná una foto.");
+
+    showToast(
+      "Seleccioná una foto."
+    );
+
     return;
+
   }
 
-  if(!file.type.startsWith("image/")){
-    showToast("El archivo debe ser una imagen.");
+
+  if(
+    !file.type.startsWith(
+      "image/"
+    )
+  ){
+
+    showToast(
+      "El archivo debe ser una imagen."
+    );
+
     return;
+
   }
+
 
   try{
 
-    const path=
+    const path =
       `site/logo-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"-")}`;
 
-    const {error:uploadError}=await supabaseClient
-      .storage
-      .from(STORAGE_BUCKET)
-      .upload(path,file,{
-        cacheControl:"3600",
-        upsert:false
-      });
 
-    if(uploadError)throw uploadError;
+    const {
+      error:uploadError
+    }=
+      await supabaseClient
+        .storage
+        .from(
+          STORAGE_BUCKET
+        )
+        .upload(
+          path,
+          file,
+          {
+            cacheControl:"3600",
+            upsert:false
+          }
+        );
 
-    const {data:publicData}=
+
+    if(uploadError)
+      throw uploadError;
+
+
+    const {
+      data:publicData
+    }=
       supabaseClient
         .storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(path);
+        .from(
+          STORAGE_BUCKET
+        )
+        .getPublicUrl(
+          path
+        );
 
-    const oldLogo=settings.logo_url;
 
-    const {error:dbError}=await supabaseClient
-      .from("ig_site_settings")
-      .upsert({
-        key:"logo_url",
-        value:publicData.publicUrl
-      },{onConflict:"key"});
+    const oldLogo =
+      settings.logo_url;
 
-    if(dbError)throw dbError;
 
-    settings.logo_url=publicData.publicUrl;
+    const {
+      error:dbError
+    }=
+      await supabaseClient
+        .from(
+          "ig_site_settings"
+        )
+        .upsert(
+          {
+            key:"logo_url",
+            value:
+              publicData.publicUrl
+          },
+          {
+            onConflict:"key"
+          }
+        );
+
+
+    if(dbError)
+      throw dbError;
+
+
+    settings.logo_url =
+      publicData.publicUrl;
+
 
     if(oldLogo){
-      const oldPath=extractStoragePath(oldLogo);
+
+      const oldPath =
+        extractStoragePath(
+          oldLogo
+        );
+
 
       if(oldPath){
+
         await supabaseClient
           .storage
-          .from(STORAGE_BUCKET)
-          .remove([oldPath]);
+          .from(
+            STORAGE_BUCKET
+          )
+          .remove(
+            [oldPath]
+          );
+
       }
+
     }
 
-    document.getElementById("logoPreview").innerHTML=
-      `<img src="${escapeHtml(settings.logo_url)}" alt="Logotipo">`;
+
+    document
+      .getElementById(
+        "logoPreview"
+      )
+      .innerHTML=
+        `
+          <img
+            src="${escapeHtml(settings.logo_url)}"
+            alt="Logotipo">
+        `;
+
 
     updateBrand();
 
-    showToast("Logotipo actualizado.");
+
+    showToast(
+      "Logotipo actualizado."
+    );
+
 
   }catch(error){
 
     console.error(error);
 
+
     showToast(
-      error.message || "No se pudo subir el logotipo."
+      error.message ||
+        "No se pudo subir el logotipo."
     );
+
   }
+
 }
 
-function extractStoragePath(url){
+
+function extractStoragePath(
+  url
+){
 
   if(!url)return null;
 
-  const marker=`/storage/v1/object/public/${STORAGE_BUCKET}/`;
 
-  const index=url.indexOf(marker);
+  const marker =
+    `/storage/v1/object/public/${STORAGE_BUCKET}/`;
 
-  if(index===-1)return null;
+
+  const index =
+    url.indexOf(marker);
+
+
+  if(index===-1)
+    return null;
+
 
   return decodeURIComponent(
-    url.substring(index+marker.length)
+    url.substring(
+      index+
+      marker.length
+    )
   );
+
 }
+
 
 function updateBrand(){
 
-  const brandName=document.getElementById("brandName");
+  const brandName =
+    document.getElementById(
+      "brandName"
+    );
+
 
   if(brandName){
-    brandName.textContent=settings.store_name;
+
+    brandName.textContent =
+      settings.store_name;
+
   }
 
-  const logo=document.getElementById("brandLogo");
+
+  const logo =
+    document.getElementById(
+      "brandLogo"
+    );
+
 
   if(logo){
 
     if(settings.logo_url){
-      logo.src=settings.logo_url;
-      logo.classList.remove("hidden");
+
+      logo.src =
+        settings.logo_url;
+
+      logo.classList.remove(
+        "hidden"
+      );
+
     }else{
-      logo.classList.add("hidden");
+
+      logo.classList.add(
+        "hidden"
+      );
+
     }
+
   }
 
-  const heroTitle=document.getElementById("heroTitle");
+
+  const heroTitle =
+    document.getElementById(
+      "heroTitle"
+    );
+
 
   if(heroTitle){
-    heroTitle.textContent=`Bienvenido a ${settings.store_name}`;
+
+    heroTitle.textContent =
+      `Bienvenido a ${settings.store_name}`;
+
   }
+
 }
 
+
 /* =========================================================
-   INICIALIZACIÓN
+   RENDER PRINCIPAL
    ========================================================= */
 
 function renderApp(){
 
-  document.getElementById("app").innerHTML=`
+  document.getElementById(
+    "app"
+  ).innerHTML=`
 
     <div id="publicApp">
 
       <header>
+
         <div class="container header-inner">
 
           <div class="brand">
@@ -2530,89 +4923,162 @@ function renderApp(){
             <img
               id="brandLogo"
               class="logo hidden"
-              alt="International Gateway"
-            >
+              alt="International Gateway">
 
             <div>
-              <div id="brandName" class="brand-name">
+
+              <div
+                id="brandName"
+                class="brand-name">
+
                 International Gateway
+
               </div>
 
               <div class="brand-sub">
+
                 Tu puerta de entrada al mundo
+
               </div>
+
             </div>
 
           </div>
 
+
           <nav class="nav">
 
-            <button onclick="showStore()">
+            <button
+              onclick="showStore()">
+
               Inicio
+
             </button>
 
-            <button onclick="showStore();document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">
+
+            <button
+              onclick="showStore();document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">
+
               Productos
+
             </button>
 
-            <button onclick="showCart()" class="cart-button">
+
+            <button
+              onclick="showCart()"
+              class="cart-button">
+
               🛒 Carrito
-              <span id="cartCount" class="cart-count">0</span>
+
+              <span
+                id="cartCount"
+                class="cart-count">
+
+                0
+
+              </span>
+
             </button>
 
-            <button onclick="openAdmin()">
+
+            <button
+              onclick="openAdmin()">
+
               Administrador
+
             </button>
 
           </nav>
 
         </div>
+
       </header>
 
+
       <div id="storeView">
+
 
         <section class="hero">
 
           <div class="container">
 
             <h1 id="heroTitle">
+
               Bienvenido a International Gateway
+
             </h1>
 
+
             <p>
-              Descubrí nuestros productos y realizá tu compra
+
+              Descubrí nuestros productos
+              y realizá tu compra
               de forma sencilla y rápida.
+
             </p>
 
+
             <br>
+
 
             <button
               class="button"
               onclick="document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">
+
               Ver productos
+
             </button>
 
-          </div>
 
-        </section>
+            <div
+              class="install-area">
 
-        <section id="productsSection" class="section">
+              <button
+                id="installAppButton"
+                class="button install-button"
+                hidden
+                onclick="installApp()">
 
-          <div class="container">
+                📲 Instalar aplicación
 
-            <h2 class="section-title">
-              Productos
-            </h2>
+              </button>
 
-            <div id="productsContainer" class="products">
-              <div class="loading">
-                Cargando productos...
-              </div>
             </div>
 
           </div>
 
         </section>
+
+
+        <section
+          id="productsSection"
+          class="section">
+
+          <div class="container">
+
+            <h2 class="section-title">
+
+              Productos
+
+            </h2>
+
+
+            <div
+              id="productsContainer"
+              class="products">
+
+              <div class="loading">
+
+                Cargando productos...
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
 
         <section class="section">
 
@@ -2620,14 +5086,21 @@ function renderApp(){
 
             <div class="card">
 
-              <h2>Sobre International Gateway</h2>
+              <h2>
+                Sobre International Gateway
+              </h2>
 
               <br>
 
               <p>
-                International Gateway es una plataforma de compras
-                sencilla, pensada para ofrecer productos de manera
-                clara y facilitar todo el proceso desde el celular.
+
+                International Gateway
+                es una plataforma de compras
+                sencilla, pensada para ofrecer
+                productos de manera clara
+                y facilitar todo el proceso
+                desde el celular.
+
               </p>
 
             </div>
@@ -2636,16 +5109,89 @@ function renderApp(){
 
         </section>
 
+
+        <!-- CONTACTO -->
+
+        <section
+          id="contactSection"
+          class="section">
+
+          <div class="container">
+
+            <div class="card contact-card">
+
+              <h2>
+                Contacto
+              </h2>
+
+              <p>
+                ¿Necesitás información,
+                querés consultar un producto
+                o realizar una consulta?
+                Estamos disponibles.
+              </p>
+
+
+              <div class="contact-buttons">
+
+
+                <a
+                  class="button contact-button whatsapp"
+                  href="https://wa.me/5491169633376"
+                  target="_blank"
+                  rel="noopener noreferrer">
+
+                  💬 WhatsApp
+
+                </a>
+
+
+                <a
+                  class="button contact-button facebook"
+                  href="https://www.facebook.com/share/19QPTDYuTX/"
+                  target="_blank"
+                  rel="noopener noreferrer">
+
+                  📘 Facebook
+
+                </a>
+
+
+                <a
+                  class="button contact-button channel"
+                  href="https://whatsapp.com/channel/0029VbBX35l5Ejy7rBbTcx0x"
+                  target="_blank"
+                  rel="noopener noreferrer">
+
+                  📢 Canal de WhatsApp
+
+                </a>
+
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
       </div>
 
-      <div id="cartView" class="hidden">
+
+      <div
+        id="cartView"
+        class="hidden">
 
         <section class="section">
 
           <div class="container">
 
             <h2 class="section-title">
+
               🛒 Tu carrito
+
             </h2>
 
             <div id="cartContainer"></div>
@@ -2656,107 +5202,191 @@ function renderApp(){
 
       </div>
 
-      <div id="checkoutView" class="hidden">
+
+      <div
+        id="checkoutView"
+        class="hidden">
 
         <section class="section">
 
           <div class="container">
 
             <h2 class="section-title">
+
               Finalizar compra
+
             </h2>
+
 
             <div class="card">
 
-              <form id="checkoutForm" class="form">
+              <form
+                id="checkoutForm"
+                class="form">
+
 
                 <div class="form-grid">
 
-                  <div class="field">
-                    <label>Nombre *</label>
-                    <input id="customerName" required>
-                  </div>
 
                   <div class="field">
-                    <label>Teléfono *</label>
-                    <input id="customerPhone" required type="tel">
+
+                    <label>
+                      Nombre *
+                    </label>
+
+                    <input
+                      id="customerName"
+                      required>
+
                   </div>
+
+
+                  <div class="field">
+
+                    <label>
+                      Teléfono *
+                    </label>
+
+                    <input
+                      id="customerPhone"
+                      required
+                      type="tel">
+
+                  </div>
+
 
                   <div class="field full-field">
-                    <label>Correo electrónico *</label>
-                    <input id="customerEmail" required type="email">
+
+                    <label>
+                      Correo electrónico *
+                    </label>
+
+                    <input
+                      id="customerEmail"
+                      required
+                      type="email">
+
                   </div>
+
 
                 </div>
 
-                <h3>Método de pago</h3>
+
+                <h3>
+                  Método de pago
+                </h3>
+
 
                 <input
                   id="paymentMethod"
                   type="hidden"
-                  value=""
-                >
+                  value="">
+
 
                 <div class="payment-options">
+
 
                   <div
                     class="payment-option"
                     data-method="mercado_pago"
                     onclick="selectPayment('mercado_pago')">
 
+
                     <input
                       type="radio"
                       name="payment"
                       value="mercado_pago">
 
+
                     <div>
-                      <strong>Mercado Pago</strong>
+
+                      <strong>
+                        Mercado Pago
+                      </strong>
+
                       <br>
-                      <small>Pago online</small>
+
+                      <small>
+                        Pago online
+                      </small>
+
                     </div>
 
+
                   </div>
+
 
                   <div
                     class="payment-option"
                     data-method="cash"
                     onclick="selectPayment('cash')">
 
+
                     <input
                       type="radio"
                       name="payment"
                       value="cash">
 
+
                     <div>
-                      <strong>Pago al contado</strong>
+
+                      <strong>
+                        Pago al contado
+                      </strong>
+
                       <br>
-                      <small>Coordinar con el administrador</small>
+
+                      <small>
+                        Coordinar con el administrador
+                      </small>
+
                     </div>
+
 
                   </div>
 
+
                 </div>
+
 
                 <div class="notice">
+
                   Total del pedido:
-                  <strong id="checkoutTotal">$0</strong>
+
+                  <strong
+                    id="checkoutTotal">
+
+                    $0
+
+                  </strong>
+
                 </div>
 
-                <div id="checkoutMessage"></div>
+
+                <div
+                  id="checkoutMessage">
+                </div>
+
 
                 <button
                   id="finishOrderButton"
                   class="button full"
                   type="submit">
+
                   Confirmar pedido
+
                 </button>
+
 
                 <button
                   class="button secondary full"
                   type="button"
                   onclick="showCart()">
+
                   Volver al carrito
+
                 </button>
+
 
               </form>
 
@@ -2768,7 +5398,10 @@ function renderApp(){
 
       </div>
 
-      <div id="confirmationView" class="hidden">
+
+      <div
+        id="confirmationView"
+        class="hidden">
 
         <section class="section">
 
@@ -2776,29 +5409,54 @@ function renderApp(){
 
             <div class="card">
 
-              <h2>✅ Pedido registrado</h2>
+              <h2>
+                ✅ Pedido registrado
+              </h2>
 
               <br>
 
+
               <p>
+
                 Tu número de pedido es:
-                <strong id="confirmationNumber"></strong>
+
+                <strong
+                  id="confirmationNumber">
+                </strong>
+
               </p>
+
 
               <p>
+
                 Total:
-                <strong id="confirmationTotal"></strong>
+
+                <strong
+                  id="confirmationTotal">
+                </strong>
+
               </p>
 
-              <br>
-
-              <div id="paymentAction"></div>
 
               <br>
 
-              <button class="button full" onclick="showStore()">
+
+              <div
+                id="paymentAction">
+              </div>
+
+
+              <br>
+
+
+              <button
+                class="button full"
+                onclick="showStore()">
+
                 Volver a la tienda
+
               </button>
+
 
             </div>
 
@@ -2808,225 +5466,432 @@ function renderApp(){
 
       </div>
 
+
       <footer>
+
         <p>
           © 2026 International Gateway
         </p>
+
       </footer>
+
 
     </div>
 
-    <div id="adminPanel" class="admin-shell hidden">
+
+    <!-- =================================================
+         ADMIN PANEL
+         ================================================= -->
+
+    <div
+      id="adminPanel"
+      class="admin-shell hidden">
+
 
       <div class="admin-top">
 
         <div class="admin-top-inner">
 
           <strong>
-            International Gateway — Administrador
+
+            International Gateway —
+            Administrador
+
           </strong>
+
 
           <button
             class="button secondary"
             onclick="logoutAdmin()">
+
             Cerrar sesión
+
           </button>
 
         </div>
 
       </div>
 
+
       <main class="admin-main">
 
+
         <nav class="admin-nav">
+
 
           <button
             data-section="dashboard"
             onclick="showAdminSection('dashboard')">
+
             📊 Inicio
+
           </button>
+
 
           <button
             data-section="products"
             onclick="showAdminSection('products')">
+
             🛍️ Productos
+
           </button>
+
 
           <button
             data-section="orders"
             onclick="showAdminSection('orders')">
+
             📦 Pedidos
+
           </button>
+
 
           <button
             data-section="settings"
             onclick="showAdminSection('settings')">
+
             ⚙️ Configuración
+
           </button>
+
 
         </nav>
 
+
         <!-- DASHBOARD -->
 
-        <section id="admin-dashboard" class="admin-section">
+        <section
+          id="admin-dashboard"
+          class="admin-section">
 
-          <h2>Resumen</h2>
+
+          <h2>
+            Resumen
+          </h2>
+
 
           <br>
+
 
           <div class="admin-grid">
 
-            <div class="stat">
-              <small>Pedidos</small>
-              <strong id="statOrders">0</strong>
-            </div>
 
             <div class="stat">
-              <small>Pagados</small>
-              <strong id="statPaid">0</strong>
+
+              <small>
+                Pedidos
+              </small>
+
+              <strong
+                id="statOrders">
+                0
+              </strong>
+
             </div>
 
-            <div class="stat">
-              <small>Pendientes</small>
-              <strong id="statPending">0</strong>
-            </div>
 
             <div class="stat">
-              <small>Ingresos cobrados</small>
-              <strong id="statRevenue">$0</strong>
+
+              <small>
+                Pagados
+              </small>
+
+              <strong
+                id="statPaid">
+                0
+              </strong>
+
             </div>
+
+
+            <div class="stat">
+
+              <small>
+                Pendientes
+              </small>
+
+              <strong
+                id="statPending">
+                0
+              </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+              <small>
+                Ingresos cobrados
+              </small>
+
+              <strong
+                id="statRevenue">
+                $0
+              </strong>
+
+            </div>
+
 
           </div>
 
+
         </section>
+
 
         <!-- PRODUCTOS -->
 
-        <section id="admin-products" class="admin-section">
+        <section
+          id="admin-products"
+          class="admin-section">
 
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
 
-            <h2>Productos</h2>
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              gap:10px;
+              align-items:center;
+              flex-wrap:wrap
+            ">
 
-            <button class="button" onclick="openNewProduct()">
+
+            <h2>
+              Productos
+            </h2>
+
+
+            <button
+              class="button"
+              onclick="openNewProduct()">
+
               ➕ Agregar producto
+
             </button>
+
 
           </div>
 
+
           <br>
 
-          <div id="adminProductsList" class="admin-products"></div>
+
+          <div
+            id="adminProductsList"
+            class="admin-products">
+          </div>
+
 
         </section>
+
 
         <!-- PEDIDOS -->
 
-        <section id="admin-orders" class="admin-section">
+        <section
+          id="admin-orders"
+          class="admin-section">
 
-          <h2>Pedidos</h2>
+
+          <h2>
+            Pedidos
+          </h2>
+
 
           <br>
 
-          <div id="adminOrdersList" class="orders"></div>
+
+          <div
+            id="adminOrdersList"
+            class="orders">
+          </div>
+
 
         </section>
 
+
         <!-- CONFIGURACIÓN -->
 
-        <section id="admin-settings" class="admin-section">
+        <section
+          id="admin-settings"
+          class="admin-section">
 
-          <h2>Configuración</h2>
+
+          <h2>
+            Configuración
+          </h2>
+
 
           <br>
 
+
           <div class="card">
 
-            <form id="settingsForm" class="form">
+
+            <form
+              id="settingsForm"
+              class="form">
+
 
               <div class="field">
-                <label>Nombre de la tienda</label>
-                <input id="settingsStoreName" value="International Gateway">
+
+                <label>
+                  Nombre de la tienda
+                </label>
+
+                <input
+                  id="settingsStoreName"
+                  value="International Gateway">
+
               </div>
 
+
               <div class="field">
-                <label>Enlace de Mercado Pago</label>
+
+                <label>
+                  Enlace de Mercado Pago
+                </label>
+
                 <input
                   id="settingsMercadoPago"
                   type="url"
                   placeholder="https://mpago.la/...">
+
                 <small>
-                  Este enlace será utilizado cuando el cliente seleccione Mercado Pago.
+
+                  Este enlace será utilizado
+                  cuando el cliente seleccione
+                  Mercado Pago.
+
                 </small>
+
               </div>
 
-              <button class="button" type="submit">
+
+              <button
+                class="button"
+                type="submit">
+
                 Guardar configuración
+
               </button>
 
-              <div id="settingsMessage"></div>
+
+              <div
+                id="settingsMessage">
+              </div>
+
 
             </form>
 
+
           </div>
+
 
           <br>
 
+
           <div class="card">
 
-            <h3>Logotipo</h3>
+
+            <h3>
+              Logotipo
+            </h3>
+
 
             <br>
+
 
             <input
               id="logoInput"
               type="file"
               accept="image/*">
 
+
             <br><br>
+
 
             <button
               class="button"
               type="button"
               onclick="uploadLogo()">
+
               📷 Subir / cambiar logotipo
+
             </button>
 
-            <div id="logoPreview" class="preview">
-              <span>Sin logotipo</span>
+
+            <div
+              id="logoPreview"
+              class="preview">
+
+              <span>
+                Sin logotipo
+              </span>
+
             </div>
+
 
           </div>
 
+
         </section>
+
 
       </main>
 
+
     </div>
+
   `;
+
 
   document
     .getElementById("loginForm")
-    .addEventListener("submit",loginAdmin);
+    .addEventListener(
+      "submit",
+      loginAdmin
+    );
+
 
   document
     .getElementById("productForm")
-    .addEventListener("submit",saveProduct);
+    .addEventListener(
+      "submit",
+      saveProduct
+    );
+
 
   document
     .getElementById("checkoutForm")
-    .addEventListener("submit",createOrder);
+    .addEventListener(
+      "submit",
+      createOrder
+    );
+
 
   document
     .getElementById("settingsForm")
-    .addEventListener("submit",saveSettings);
+    .addEventListener(
+      "submit",
+      saveSettings
+    );
+
 
   updateCartCount();
+
+  updateInstallButtons();
+
 }
+
+
+/* =========================================================
+   INICIALIZACIÓN
+   ========================================================= */
 
 async function init(){
 
   renderApp();
+
+  setupInstallPrompt();
 
   await loadSettings();
 
@@ -3034,33 +5899,69 @@ async function init(){
 
   await loadProducts();
 
-  const {data}=await supabaseClient.auth.getSession();
+
+  const {
+    data
+  }=
+    await supabaseClient
+      .auth
+      .getSession();
+
 
   if(data?.session){
 
-    const ok=await verifyAdmin(data.session.user);
+    const ok =
+      await verifyAdmin(
+        data.session.user
+      );
+
 
     if(ok){
-      adminUser=data.session.user;
+
+      adminUser =
+        data.session.user;
+
     }
+
   }
 
-  supabaseClient.auth.onAuthStateChange(async(event,session)=>{
 
-    if(event==="SIGNED_OUT"){
-      adminUser=null;
-    }
+  supabaseClient
+    .auth
+    .onAuthStateChange(
+      async(event,session)=>{
 
-    if(session){
+        if(
+          event==="SIGNED_OUT"
+        ){
 
-      const ok=await verifyAdmin(session.user);
+          adminUser=null;
 
-      if(ok){
-        adminUser=session.user;
+        }
+
+
+        if(session){
+
+          const ok =
+            await verifyAdmin(
+              session.user
+            );
+
+
+          if(ok){
+
+            adminUser =
+              session.user;
+
+          }
+
+        }
+
       }
-    }
-  });
+    );
+
 }
+
 
 init();
 
