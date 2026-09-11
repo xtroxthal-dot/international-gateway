@@ -10913,6 +10913,659 @@ body.ig-splash-lock{
 
 })();
 </script>
+<!-- ============================================================
+     INTERNATIONAL GATEWAY
+     VISOR DE ENTRADAS / CONTADOR DE VISITAS
+     
+     MÓDULO AISLADO
+     - No modifica productos
+     - No modifica carrito
+     - No modifica pedidos
+     - No modifica categorías
+     - No registra visitas por sí mismo
+     - Solo consulta las estadísticas existentes
+============================================================ -->
 
+<style>
+#igVisitsViewer{
+  margin-top:25px;
+}
+
+#igVisitsViewer .ig-visits-box{
+  background:#fff;
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+#igVisitsViewer .ig-visits-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+#igVisitsViewer .ig-visits-title{
+  font-size:23px;
+  font-weight:800;
+}
+
+#igVisitsViewer .ig-visits-subtitle{
+  color:#777;
+  font-size:13px;
+  margin-top:3px;
+}
+
+#igVisitsViewer .ig-visits-refresh{
+  background:#111;
+  color:#fff;
+  border:0;
+  border-radius:9px;
+  padding:10px 14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#igVisitsViewer .ig-visits-refresh:hover{
+  background:#333;
+}
+
+#igVisitsViewer .ig-visits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
+}
+
+#igVisitsViewer .ig-visit-card{
+  background:#f7f7f7;
+  border:1px solid #e5e5e5;
+  border-radius:12px;
+  padding:18px;
+}
+
+#igVisitsViewer .ig-visit-icon{
+  font-size:25px;
+  margin-bottom:8px;
+}
+
+#igVisitsViewer .ig-visit-label{
+  color:#666;
+  font-size:13px;
+}
+
+#igVisitsViewer .ig-visit-number{
+  display:block;
+  font-size:30px;
+  font-weight:800;
+  margin-top:4px;
+  color:#111;
+}
+
+#igVisitsViewer .ig-visits-status{
+  margin-top:15px;
+  font-size:13px;
+  color:#777;
+}
+
+#igVisitsViewer .ig-visits-error{
+  margin-top:15px;
+  padding:12px;
+  border-radius:9px;
+  background:#fde8ec;
+  color:#8c001a;
+  display:none;
+}
+
+@media(max-width:600px){
+  #igVisitsViewer .ig-visits-box{
+    padding:17px;
+  }
+
+  #igVisitsViewer .ig-visits-title{
+    font-size:20px;
+  }
+
+  #igVisitsViewer .ig-visits-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  #igVisitsViewer .ig-visit-card{
+    padding:15px;
+  }
+
+  #igVisitsViewer .ig-visit-number{
+    font-size:25px;
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  const VERSION = "IG-VISITS-VIEWER-1.0.0";
+
+  let initialized = false;
+  let loading = false;
+
+  function getSupabase(){
+
+    try{
+
+      if(
+        typeof supabaseClient !== "undefined" &&
+        supabaseClient
+      ){
+        return supabaseClient;
+      }
+
+    }catch(e){}
+
+    try{
+
+      if(
+        window.supabaseClient
+      ){
+        return window.supabaseClient;
+      }
+
+    }catch(e){}
+
+    return null;
+  }
+
+
+  function findAdminDashboard(){
+
+    return (
+      document.getElementById("adminDashboard") ||
+      document.querySelector("#adminPanel .admin-section.active") ||
+      document.querySelector("#adminPanel .admin-main") ||
+      document.querySelector("#adminPanel")
+    );
+
+  }
+
+
+  function createViewer(){
+
+    if(document.getElementById("igVisitsViewer")){
+      return document.getElementById("igVisitsViewer");
+    }
+
+    const target = findAdminDashboard();
+
+    if(!target){
+      return null;
+    }
+
+    const viewer = document.createElement("div");
+
+    viewer.id = "igVisitsViewer";
+
+    viewer.innerHTML = `
+      <div class="ig-visits-box">
+
+        <div class="ig-visits-header">
+
+          <div>
+            <div class="ig-visits-title">
+              👁️ Visitas de International Gateway
+            </div>
+
+            <div class="ig-visits-subtitle">
+              Estadísticas de entradas a la tienda
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="ig-visits-refresh"
+            id="igVisitsRefreshButton">
+            ↻ Actualizar
+          </button>
+
+        </div>
+
+        <div class="ig-visits-grid">
+
+          <div class="ig-visit-card">
+            <div class="ig-visit-icon">👁️</div>
+            <div class="ig-visit-label">
+              Visitas totales
+            </div>
+            <strong
+              class="ig-visit-number"
+              id="igVisitsTotal">
+              —
+            </strong>
+          </div>
+
+          <div class="ig-visit-card">
+            <div class="ig-visit-icon">📅</div>
+            <div class="ig-visit-label">
+              Visitas de hoy
+            </div>
+            <strong
+              class="ig-visit-number"
+              id="igVisitsToday">
+              —
+            </strong>
+          </div>
+
+          <div class="ig-visit-card">
+            <div class="ig-visit-icon">📈</div>
+            <div class="ig-visit-label">
+              Últimos 7 días
+            </div>
+            <strong
+              class="ig-visit-number"
+              id="igVisitsWeek">
+              —
+            </strong>
+          </div>
+
+          <div class="ig-visit-card">
+            <div class="ig-visit-icon">🗓️</div>
+            <div class="ig-visit-label">
+              Este mes
+            </div>
+            <strong
+              class="ig-visit-number"
+              id="igVisitsMonth">
+              —
+            </strong>
+          </div>
+
+          <div class="ig-visit-card">
+            <div class="ig-visit-icon">👤</div>
+            <div class="ig-visit-label">
+              Visitantes únicos
+            </div>
+            <strong
+              class="ig-visit-number"
+              id="igVisitsUnique">
+              —
+            </strong>
+          </div>
+
+        </div>
+
+        <div
+          class="ig-visits-status"
+          id="igVisitsStatus">
+          Preparando estadísticas...
+        </div>
+
+        <div
+          class="ig-visits-error"
+          id="igVisitsError">
+        </div>
+
+      </div>
+    `;
+
+    /*
+      Lo colocamos al final del panel/dashboard existente.
+      No reemplaza ningún elemento existente.
+    */
+
+    target.appendChild(viewer);
+
+    const refresh =
+      document.getElementById(
+        "igVisitsRefreshButton"
+      );
+
+    if(refresh){
+
+      refresh.addEventListener(
+        "click",
+        loadStatistics
+      );
+
+    }
+
+    return viewer;
+  }
+
+
+  function setValue(id,value){
+
+    const element =
+      document.getElementById(id);
+
+    if(element){
+      element.textContent =
+        Number(value || 0).toLocaleString("es-AR");
+    }
+
+  }
+
+
+  function showError(message){
+
+    const error =
+      document.getElementById(
+        "igVisitsError"
+      );
+
+    if(!error) return;
+
+    error.textContent =
+      message || "No se pudieron cargar las estadísticas.";
+
+    error.style.display = "block";
+
+  }
+
+
+  function hideError(){
+
+    const error =
+      document.getElementById(
+        "igVisitsError"
+      );
+
+    if(error){
+      error.style.display = "none";
+      error.textContent = "";
+    }
+
+  }
+
+
+  async function loadStatistics(){
+
+    if(loading){
+      return;
+    }
+
+    loading = true;
+
+    const status =
+      document.getElementById(
+        "igVisitsStatus"
+      );
+
+    const refresh =
+      document.getElementById(
+        "igVisitsRefreshButton"
+      );
+
+    hideError();
+
+    if(status){
+      status.textContent =
+        "Cargando estadísticas...";
+    }
+
+    if(refresh){
+      refresh.disabled = true;
+      refresh.textContent = "Cargando...";
+    }
+
+    try{
+
+      const client = getSupabase();
+
+      if(!client){
+
+        throw new Error(
+          "No se encontró la conexión con Supabase."
+        );
+
+      }
+
+      /*
+        Primero comprobamos que exista una sesión.
+        El RPC de estadísticas requiere usuario autenticado.
+      */
+
+      const sessionResult =
+        await client.auth.getSession();
+
+      const session =
+        sessionResult?.data?.session;
+
+      if(!session){
+
+        throw new Error(
+          "Inicia sesión como administrador para ver las estadísticas."
+        );
+
+      }
+
+
+      /*
+        CONSULTA ÚNICAMENTE.
+        No registra ni incrementa visitas.
+      */
+
+      const result =
+        await client.rpc(
+          "obtener_estadisticas_visitas_international_gateway"
+        );
+
+      if(result.error){
+
+        throw result.error;
+
+      }
+
+      const data =
+        result.data || {};
+
+
+      setValue(
+        "igVisitsTotal",
+        data.total
+      );
+
+      setValue(
+        "igVisitsToday",
+        data.today
+      );
+
+      setValue(
+        "igVisitsWeek",
+        data.last_7_days
+      );
+
+      setValue(
+        "igVisitsMonth",
+        data.this_month
+      );
+
+      setValue(
+        "igVisitsUnique",
+        data.unique_visitors
+      );
+
+
+      if(status){
+
+        const now =
+          new Date();
+
+        status.textContent =
+          "Última actualización: " +
+          now.toLocaleString(
+            "es-AR",
+            {
+              dateStyle:"short",
+              timeStyle:"short"
+            }
+          );
+
+      }
+
+    }catch(error){
+
+      console.error(
+        "[International Gateway] Error cargando visitas:",
+        error
+      );
+
+      showError(
+        error?.message ||
+        "No se pudieron cargar las estadísticas."
+      );
+
+      if(status){
+        status.textContent =
+          "No se pudieron actualizar las estadísticas.";
+      }
+
+    }finally{
+
+      loading = false;
+
+      if(refresh){
+
+        refresh.disabled = false;
+        refresh.textContent =
+          "↻ Actualizar";
+
+      }
+
+    }
+
+  }
+
+
+  function isAdminPanelVisible(){
+
+    const panel =
+      document.getElementById(
+        "adminPanel"
+      );
+
+    if(!panel){
+      return false;
+    }
+
+    const style =
+      window.getComputedStyle(panel);
+
+    return (
+      style.display !== "none" &&
+      !panel.classList.contains("hidden")
+    );
+
+  }
+
+
+  function boot(){
+
+    if(initialized){
+      return;
+    }
+
+    /*
+      El panel de administración puede crearse
+      después de cargar la página.
+    */
+
+    if(!isAdminPanelVisible()){
+
+      setTimeout(
+        boot,
+        800
+      );
+
+      return;
+
+    }
+
+    const viewer =
+      createViewer();
+
+    if(!viewer){
+
+      setTimeout(
+        boot,
+        800
+      );
+
+      return;
+
+    }
+
+    initialized = true;
+
+    loadStatistics();
+
+  }
+
+
+  /*
+    No usamos MutationObserver.
+    Solo comprobamos periódicamente hasta encontrar
+    el panel de administración y luego terminamos.
+  */
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      boot,
+      {once:true}
+    );
+
+  }else{
+
+    boot();
+
+  }
+
+
+  /*
+    API opcional para actualizar manualmente
+    desde la propia aplicación.
+  */
+
+  window.InternationalGatewayVisits = {
+
+    version: VERSION,
+
+    refresh: loadStatistics,
+
+    show: function(){
+
+      const viewer =
+        document.getElementById(
+          "igVisitsViewer"
+        );
+
+      if(viewer){
+        viewer.style.display = "";
+      }
+
+    },
+
+    hide: function(){
+
+      const viewer =
+        document.getElementById(
+          "igVisitsViewer"
+        );
+
+      if(viewer){
+        viewer.style.display = "none";
+      }
+
+    }
+
+  };
+
+})();
+</script>
 </body>
 </html>
