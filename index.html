@@ -11458,5 +11458,605 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     INTERNATIONAL GATEWAY
+     REPARACIÓN ESTADÍSTICAS DE VISITAS
+     No requiere eliminar el código anterior
+  ========================================================= */
+
+  function iniciarEstadisticasIG() {
+
+    /* ---------------------------------------------------------
+       1. Conectar con el cliente Supabase REAL de la aplicación
+    --------------------------------------------------------- */
+
+    try {
+      if (
+        typeof supabaseClient !== "undefined" &&
+        supabaseClient
+      ) {
+        window.supabaseClient = supabaseClient;
+      }
+    } catch (e) {
+      console.error(
+        "International Gateway: error conectando Supabase",
+        e
+      );
+    }
+
+
+    /* ---------------------------------------------------------
+       2. Esperar a que aparezca Administración
+    --------------------------------------------------------- */
+
+    function buscarAdministracion() {
+
+      const adminPanel =
+        document.getElementById("adminPanel");
+
+      if (!adminPanel) {
+        return;
+      }
+
+
+      /* Si Administración está oculta, no hacemos nada */
+
+      const estilo =
+        window.getComputedStyle(adminPanel);
+
+      if (
+        adminPanel.classList.contains("hidden") ||
+        estilo.display === "none" ||
+        estilo.visibility === "hidden"
+      ) {
+        return;
+      }
+
+
+      /* -------------------------------------------------------
+         3. Crear el panel solamente una vez
+      ------------------------------------------------------- */
+
+      let panel =
+        document.getElementById(
+          "ig-visitas-estadisticas"
+        );
+
+      if (!panel) {
+
+        panel =
+          document.createElement("div");
+
+        panel.id =
+          "ig-visitas-estadisticas";
+
+        panel.innerHTML = `
+
+          <div style="
+            background:#ffffff;
+            border-radius:16px;
+            padding:22px;
+            margin:0 0 24px 0;
+            border:1px solid #e5e5e5;
+            box-shadow:0 8px 25px rgba(0,0,0,.08);
+          ">
+
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              flex-wrap:wrap;
+              margin-bottom:20px;
+            ">
+
+              <div>
+
+                <div style="
+                  font-size:22px;
+                  font-weight:800;
+                  color:#111;
+                ">
+                  📊 Estadísticas de visitas
+                </div>
+
+                <div style="
+                  margin-top:5px;
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Estadísticas privadas de International Gateway
+                </div>
+
+              </div>
+
+
+              <button
+                id="ig-btn-actualizar-visitas"
+                type="button"
+                style="
+                  border:0;
+                  border-radius:10px;
+                  padding:11px 16px;
+                  background:#111;
+                  color:white;
+                  font-weight:700;
+                  cursor:pointer;
+                "
+              >
+                Actualizar
+              </button>
+
+            </div>
+
+
+            <div style="
+              display:grid;
+              grid-template-columns:
+                repeat(auto-fit,minmax(160px,1fr));
+              gap:14px;
+            ">
+
+
+              <div style="
+                background:#f6f6f6;
+                border-radius:12px;
+                padding:18px;
+              ">
+                <div style="
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Visitas totales
+                </div>
+
+                <div
+                  id="ig-total-visitas"
+                  style="
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:5px;
+                    color:#111;
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+
+              <div style="
+                background:#f6f6f6;
+                border-radius:12px;
+                padding:18px;
+              ">
+                <div style="
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Hoy
+                </div>
+
+                <div
+                  id="ig-hoy-visitas"
+                  style="
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:5px;
+                    color:#111;
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+
+              <div style="
+                background:#f6f6f6;
+                border-radius:12px;
+                padding:18px;
+              ">
+                <div style="
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Últimos 7 días
+                </div>
+
+                <div
+                  id="ig-7dias-visitas"
+                  style="
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:5px;
+                    color:#111;
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+
+              <div style="
+                background:#f6f6f6;
+                border-radius:12px;
+                padding:18px;
+              ">
+                <div style="
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Este mes
+                </div>
+
+                <div
+                  id="ig-mes-visitas"
+                  style="
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:5px;
+                    color:#111;
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+
+              <div style="
+                background:#f6f6f6;
+                border-radius:12px;
+                padding:18px;
+              ">
+                <div style="
+                  font-size:13px;
+                  color:#777;
+                ">
+                  Visitantes únicos
+                </div>
+
+                <div
+                  id="ig-unicos-visitas"
+                  style="
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:5px;
+                    color:#111;
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+            </div>
+
+
+            <div
+              id="ig-error-visitas"
+              style="
+                display:none;
+                margin-top:15px;
+                padding:12px;
+                border-radius:10px;
+                background:#fff0f0;
+                color:#a00000;
+                font-size:14px;
+              "
+            ></div>
+
+          </div>
+        `;
+
+
+        /*
+         * Intentamos colocarlo dentro del panel
+         * principal de Administración.
+         */
+
+        const main =
+          adminPanel.querySelector(
+            ".admin-main"
+          );
+
+
+        if (main) {
+
+          main.insertBefore(
+            panel,
+            main.firstElementChild
+          );
+
+        } else {
+
+          /*
+           * Si no existe .admin-main,
+           * lo colocamos directamente dentro
+           * de adminPanel.
+           */
+
+          adminPanel.insertBefore(
+            panel,
+            adminPanel.firstElementChild
+          );
+
+        }
+
+
+        document
+          .getElementById(
+            "ig-btn-actualizar-visitas"
+          )
+          .addEventListener(
+            "click",
+            cargarEstadisticas
+          );
+
+      }
+
+
+      /* -------------------------------------------------------
+         4. Cargar estadísticas
+      ------------------------------------------------------- */
+
+      cargarEstadisticas();
+    }
+
+
+    async function cargarEstadisticas() {
+
+      const cliente =
+        window.supabaseClient;
+
+
+      if (!cliente) {
+
+        mostrarError(
+          "No se encontró la conexión con Supabase."
+        );
+
+        return;
+      }
+
+
+      const panel =
+        document.getElementById(
+          "ig-visitas-estadisticas"
+        );
+
+
+      if (!panel) {
+        return;
+      }
+
+
+      try {
+
+        const resultadoSesion =
+          await cliente.auth.getSession();
+
+
+        if (
+          !resultadoSesion ||
+          !resultadoSesion.data ||
+          !resultadoSesion.data.session
+        ) {
+
+          panel.style.display =
+            "none";
+
+          return;
+        }
+
+
+        /*
+         * Consultar estadísticas.
+         * Esta llamada NO registra una visita.
+         */
+
+        const resultado =
+          await cliente.rpc(
+            "obtener_estadisticas_visitas_international_gateway"
+          );
+
+
+        if (resultado.error) {
+
+          console.error(
+            "International Gateway - estadísticas:",
+            resultado.error
+          );
+
+          mostrarError(
+            "No se pudieron cargar las estadísticas."
+          );
+
+          return;
+        }
+
+
+        const datos =
+          Array.isArray(resultado.data)
+            ? resultado.data[0]
+            : resultado.data;
+
+
+        if (!datos) {
+
+          mostrarError(
+            "Supabase no devolvió estadísticas."
+          );
+
+          return;
+        }
+
+
+        ponerValor(
+          "ig-total-visitas",
+          datos.total
+        );
+
+        ponerValor(
+          "ig-hoy-visitas",
+          datos.today
+        );
+
+        ponerValor(
+          "ig-7dias-visitas",
+          datos.last_7_days
+        );
+
+        ponerValor(
+          "ig-mes-visitas",
+          datos.this_month
+        );
+
+        ponerValor(
+          "ig-unicos-visitas",
+          datos.unique_visitors
+        );
+
+
+        panel.style.display =
+          "block";
+
+
+        ocultarError();
+
+
+      } catch (error) {
+
+        console.error(
+          "International Gateway - error estadísticas:",
+          error
+        );
+
+        mostrarError(
+          "Error al conectar con las estadísticas."
+        );
+
+      }
+    }
+
+
+    function ponerValor(id, valor) {
+
+      const elemento =
+        document.getElementById(id);
+
+      if (!elemento) {
+        return;
+      }
+
+      elemento.textContent =
+        Number(valor || 0)
+          .toLocaleString("es-AR");
+    }
+
+
+    function mostrarError(mensaje) {
+
+      const error =
+        document.getElementById(
+          "ig-error-visitas"
+        );
+
+      if (!error) {
+        return;
+      }
+
+      error.textContent =
+        mensaje;
+
+      error.style.display =
+        "block";
+    }
+
+
+    function ocultarError() {
+
+      const error =
+        document.getElementById(
+          "ig-error-visitas"
+        );
+
+      if (error) {
+
+        error.style.display =
+          "none";
+      }
+    }
+
+
+    /* ---------------------------------------------------------
+       5. Vigilar Administración
+    --------------------------------------------------------- */
+
+    const observer =
+      new MutationObserver(
+        function () {
+
+          buscarAdministracion();
+
+        }
+      );
+
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true,
+        attributes:true,
+        attributeFilter:[
+          "class",
+          "style"
+        ]
+      }
+    );
+
+
+    /*
+     * También hacemos comprobaciones periódicas.
+     * Esto permite detectar cuando el administrador
+     * abre Administración después de cargar la app.
+     */
+
+    setInterval(
+      buscarAdministracion,
+      1500
+    );
+
+
+    buscarAdministracion();
+
+  }
+
+
+  /* -----------------------------------------------------------
+     Arranque
+  ----------------------------------------------------------- */
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciarEstadisticasIG,
+      { once:true }
+    );
+
+  } else {
+
+    iniciarEstadisticasIG();
+
+  }
+
+})();
+</script>
 </body>
 </html>
