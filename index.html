@@ -18406,5 +18406,690 @@ body.ig-splash-lock{
 
 })();
 </script>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     REPARACIÓN DEFINITIVA — CHECKOUT + CONFIRMACIÓN
+     ========================================================= -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__IG_FINAL_CHECKOUT_REPAIR) return;
+  window.__IG_FINAL_CHECKOUT_REPAIR = true;
+
+  let installed = false;
+
+  function getDeliveryMethod() {
+    const selected = document.querySelector(
+      'input[name="igDeliveryMethod"]:checked'
+    );
+
+    return selected ? selected.value : "pickup";
+  }
+
+  function message(text, type) {
+    try {
+      if (typeof setMessage === "function") {
+        setMessage(
+          "checkoutMessage",
+          text,
+          type || "error"
+        );
+        return;
+      }
+    } catch (e) {}
+
+    try {
+      if (typeof showToast === "function") {
+        showToast(text);
+      }
+    } catch (e) {}
+
+    console.error(text);
+  }
+
+  function readValue(id) {
+    const el = document.getElementById(id);
+    return el ? String(el.value || "").trim() : "";
+  }
+
+  function readShipping() {
+    return {
+      full_name: readValue("igShipName"),
+      phone: readValue("igShipPhone"),
+      address: readValue("igShipAddress"),
+      address_number: readValue("igShipNumber"),
+      floor_department: readValue("igShipFloor"),
+      locality: readValue("igShipLocality"),
+      province: readValue("igShipProvince"),
+      postal_code: readValue("igShipPostal"),
+      country: readValue("igShipCountry"),
+      delivery_notes: readValue("igShipNotes")
+    };
+  }
+
+  function disableNativeSubmit() {
+    const form = document.getElementById("checkoutForm");
+    if (form) {
+      form.noValidate = true;
+    }
+  }
+
+  async function createFinalOrder() {
+
+    if (
+      typeof supabaseClient === "undefined" ||
+      !supabaseClient
+    ) {
+      message(
+        "No se pudo conectar con la tienda.",
+        "error"
+      );
+      return;
+    }
+
+    if (!Array.isArray(cart) || !cart.length) {
+      message(
+        "El carrito está vacío.",
+        "error"
+      );
+      return;
+    }
+
+    const name = readValue("customerName");
+    const phone = readValue("customerPhone");
+    const email = readValue("customerEmail");
+
+    const paymentMethod =
+      document.getElementById("paymentMethod")?.value || "";
+
+    const deliveryMethod =
+      getDeliveryMethod();
+
+    if (!name || !phone || !email) {
+      message(
+        "Completá nombre, teléfono y correo electrónico.",
+        "error"
+      );
+      return;
+    }
+
+    if (!paymentMethod) {
+      message(
+        "Seleccioná un método de pago.",
+        "error"
+      );
+      return;
+    }
+
+    const shipping =
+      readShipping();
+
+    /*
+     * SOLO si eligió envío se validan
+     * los datos de domicilio.
+     */
+    if (deliveryMethod === "shipping") {
+
+      const required = [
+        shipping.full_name,
+        shipping.phone,
+        shipping.address,
+        shipping.address_number,
+        shipping.locality,
+        shipping.province,
+        shipping.postal_code,
+        shipping.country
+      ];
+
+      if (required.some(value => !value)) {
+
+        message(
+          "Completá todos los datos necesarios para presupuestar el envío.",
+          "error"
+        );
+
+        return;
+      }
+    }
+
+    const button =
+      document.getElementById(
+        "finishOrderButton"
+      );
+
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        "Registrando pedido...";
+    }
+
+    let orderId = null;
+    let orderNumber = null;
+
+    try {
+
+      /*
+       * =====================================================
+       * 1. VERIFICAR PRODUCTOS
+       * =====================================================
+       */
+
+      const productIds =
+        cart.map(item => item.id);
+
+      const {
+        data: currentProducts,
+        error: productsError
+      } =
+        await supabaseClient
+          .from("ig_products")
+          .select(`
+            id,
+            name,
+            price,
+            available,
+            active
+          `)
+          .in("id", productIds);
+
+      if (productsError) {
+        throw productsError;
+      }
+
+      const validItems = [];
+      let subtotal = 0;
+
+      for (const item of cart) {
+
+        const product =
+          (currentProducts || [])
+            .find(
+              p => p.id === item.id
+            );
+
+        if (
+          !product ||
+          product.active === false ||
+          product.available === false
+        ) {
+          throw new Error(
+            'El producto "' +
+            (item.name || "") +
+            '" ya no está disponible.'
+          );
+        }
+
+        const quantity =
+          Math.max(
+            1,
+            Number(item.quantity || 1)
+          );
+
+        const price =
+          Number(product.price || 0);
+
+        const itemSubtotal =
+          price * quantity;
+
+        validItems.push({
+          product_id: product.id,
+          product_name: product.name,
+          product_price: price,
+          quantity: quantity,
+          subtotal: itemSubtotal
+        });
+
+        subtotal += itemSubtotal;
+      }
+
+      /*
+       * =====================================================
+       * 2. CREAR PEDIDO
+       * =====================================================
+       */
+
+      orderId =
+        crypto.randomUUID();
+
+      orderNumber =
+        Date.now();
+
+      const {
+        error: orderError
+      } =
+        await supabaseClient
+          .from("ig_orders")
+          .insert({
+            id: orderId,
+            order_number: orderNumber,
+            customer_name: name,
+            customer_phone: phone,
+            customer_email: email,
+            payment_method: paymentMethod,
+            payment_status: "pending",
+            order_status: "pending",
+            subtotal: subtotal,
+            total: subtotal
+          });
+
+      if (orderError) {
+        throw orderError;
+      }
+
+      /*
+       * =====================================================
+       * 3. GUARDAR PRODUCTOS DEL PEDIDO
+       * =====================================================
+       */
+
+      const {
+        error: itemsError
+      } =
+        await supabaseClient
+          .from("ig_order_items")
+          .insert(
+            validItems.map(item => ({
+              order_id: orderId,
+              ...item
+            }))
+          );
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      /*
+       * =====================================================
+       * 4. SI ES ENVÍO → CREAR COTIZACIÓN
+       *
+       * IMPORTANTE:
+       * Usamos el RPC seguro.
+       * NO usamos .insert().select() sobre
+       * ig_shipping_quotes.
+       * =====================================================
+       */
+
+      let shippingResult = null;
+
+      if (deliveryMethod === "shipping") {
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient.rpc(
+            "crear_cotizacion_envio_international_gateway",
+            {
+              p_order_number:
+                Number(orderNumber),
+
+              p_customer_email:
+                String(email),
+
+              p_full_name:
+                String(shipping.full_name),
+
+              p_phone:
+                String(shipping.phone),
+
+              p_address:
+                String(shipping.address),
+
+              p_address_number:
+                String(shipping.address_number),
+
+              p_floor_department:
+                String(
+                  shipping.floor_department || ""
+                ),
+
+              p_locality:
+                String(shipping.locality),
+
+              p_province:
+                String(shipping.province),
+
+              p_postal_code:
+                String(shipping.postal_code),
+
+              p_delivery_notes:
+                String(
+                  shipping.delivery_notes || ""
+                )
+            }
+          );
+
+        if (error) {
+          throw error;
+        }
+
+        if (
+          !data ||
+          data.success !== true
+        ) {
+          throw new Error(
+            "No se pudo registrar la solicitud de envío."
+          );
+        }
+
+        shippingResult = data;
+
+        localStorage.setItem(
+          "ig_shipping_order",
+          JSON.stringify({
+            order_number: orderNumber,
+            phone: shipping.phone,
+            access_token:
+              data.access_token || null
+          })
+        );
+
+      } else {
+
+        /*
+         * RETIRO EN EL LOCAL
+         *
+         * No se crea ninguna cotización.
+         */
+
+        localStorage.setItem(
+          "ig_shipping_order",
+          JSON.stringify({
+            order_number: orderNumber,
+            phone: phone,
+            access_token: null,
+            delivery_method: "pickup"
+          })
+        );
+      }
+
+      /*
+       * =====================================================
+       * 5. LIMPIAR CARRITO
+       * =====================================================
+       */
+
+      cart = [];
+
+      if (typeof saveCart === "function") {
+        saveCart();
+      }
+
+      if (typeof updateCartCount === "function") {
+        updateCartCount();
+      }
+
+      localStorage.setItem(
+        "ig_last_order_delivery_method",
+        deliveryMethod
+      );
+
+      /*
+       * =====================================================
+       * 6. MOSTRAR CONFIRMACIÓN REAL
+       * =====================================================
+       *
+       * Reutilizamos la función original de la aplicación.
+       * Así no rompemos Mercado Pago ni pago al contado.
+       */
+
+      if (
+        typeof showConfirmation ===
+        "function"
+      ) {
+
+        showConfirmation(
+          {
+            id: orderId,
+            order_number: orderNumber,
+            total: subtotal
+          },
+          paymentMethod
+        );
+
+      } else {
+
+        /*
+         * Respaldo por si la función original
+         * no estuviera disponible.
+         */
+
+        document
+          .getElementById("storeView")
+          ?.classList.add("hidden");
+
+        document
+          .getElementById("cartView")
+          ?.classList.add("hidden");
+
+        document
+          .getElementById("checkoutView")
+          ?.classList.add("hidden");
+
+        document
+          .getElementById("confirmationView")
+          ?.classList.remove("hidden");
+
+        const number =
+          document.getElementById(
+            "confirmationNumber"
+          );
+
+        if (number) {
+          number.textContent =
+            "#" + orderNumber;
+        }
+
+        const total =
+          document.getElementById(
+            "confirmationTotal"
+          );
+
+        if (total) {
+
+          if (typeof money === "function") {
+            total.textContent =
+              money(subtotal);
+          } else {
+            total.textContent =
+              new Intl.NumberFormat(
+                "es-AR",
+                {
+                  style: "currency",
+                  currency: "ARS"
+                }
+              ).format(subtotal);
+          }
+        }
+
+        const paymentBox =
+          document.getElementById(
+            "paymentAction"
+          );
+
+        if (paymentBox) {
+
+          paymentBox.innerHTML =
+            deliveryMethod === "pickup"
+              ? `
+                <div class="notice success">
+                  <strong>
+                    ✅ Pedido confirmado
+                  </strong>
+                  <br><br>
+                  Tu pedido fue registrado correctamente.
+                  <br><br>
+                  🛍️ Elegiste retirar el pedido
+                  en el local.
+                </div>
+              `
+              : `
+                <div class="notice success">
+                  <strong>
+                    ✅ Pedido registrado
+                  </strong>
+                  <br><br>
+                  Tu solicitud de envío quedó pendiente
+                  de cotización.
+                </div>
+              `;
+        }
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    } catch (error) {
+
+      console.error(
+        "IG — error definitivo de checkout:",
+        error
+      );
+
+      /*
+       * Intentar limpiar lo creado si falló
+       * una etapa posterior.
+       */
+
+      if (orderId) {
+
+        try {
+          await supabaseClient
+            .from("ig_shipping_quotes")
+            .delete()
+            .eq("order_id", orderId);
+        } catch (e) {}
+
+        try {
+          await supabaseClient
+            .from("ig_order_items")
+            .delete()
+            .eq("order_id", orderId);
+        } catch (e) {}
+
+        try {
+          await supabaseClient
+            .from("ig_orders")
+            .delete()
+            .eq("id", orderId);
+        } catch (e) {}
+      }
+
+      message(
+        error?.message ||
+        "No se pudo registrar el pedido.",
+        "error"
+      );
+
+    } finally {
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          "Confirmar pedido";
+      }
+    }
+  }
+
+
+  function install() {
+
+    const form =
+      document.getElementById(
+        "checkoutForm"
+      );
+
+    const button =
+      document.getElementById(
+        "finishOrderButton"
+      );
+
+    if (!form || !button) {
+      return false;
+    }
+
+    /*
+     * Quitamos la validación HTML nativa.
+     * Nosotros validamos exactamente lo que
+     * corresponde a retiro o envío.
+     */
+
+    form.noValidate = true;
+
+    if (
+      button.dataset.igFinalCheckout
+    ) {
+      return true;
+    }
+
+    /*
+     * Muy importante:
+     * convertimos el botón en botón normal.
+     * Así no se dispara el submit antiguo.
+     */
+
+    button.type = "button";
+
+    button.addEventListener(
+      "click",
+      function (event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        createFinalOrder();
+
+      },
+      false
+    );
+
+    button.dataset.igFinalCheckout =
+      "1";
+
+    installed = true;
+
+    return true;
+  }
+
+
+  function boot() {
+
+    if (install()) {
+      return;
+    }
+
+    setTimeout(install, 300);
+    setTimeout(install, 700);
+    setTimeout(install, 1500);
+    setTimeout(install, 2500);
+  }
+
+  boot();
+
+  const observer =
+    new MutationObserver(function () {
+
+      if (!installed) {
+        install();
+      }
+
+    });
+
+  if (document.body) {
+
+    observer.observe(
+      document.body,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+  }
+
+})();
+</script>
 </body>
 </html>
