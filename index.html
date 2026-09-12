@@ -20935,5 +20935,713 @@ body.ig-splash-lock{
     }
   }
 </style>
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — CENTRO DE NOTIFICACIONES
+     V1 — Independiente y seguro
+     Añadir justo antes de </body>
+     No modifica checkout, carrito, productos ni pedidos.
+     ========================================================= --><script>
+(function () {
+  "use strict";
+
+  if (window.__IG_CUSTOMER_NOTIFICATIONS_V1) return;
+  window.__IG_CUSTOMER_NOTIFICATIONS_V1 = true;
+
+  /* ---------------------------------------------------------
+     ESTILOS
+     --------------------------------------------------------- */
+  const style = document.createElement("style");
+  style.id = "igCustomerNotificationsStyles";
+
+  style.textContent = `
+    #igCustomerNotificationButton{
+      position:fixed;
+      left:10px;
+      bottom:145px;
+      z-index:99991;
+      width:48px;
+      height:48px;
+      border:0;
+      border-radius:50%;
+      background:#111;
+      color:#fff;
+      box-shadow:0 6px 22px rgba(0,0,0,.25);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:21px;
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+
+    #igCustomerNotificationButton:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 26px rgba(0,0,0,.32);
+    }
+
+    #igCustomerNotificationBadge{
+      position:absolute;
+      top:-5px;
+      right:-5px;
+      min-width:20px;
+      height:20px;
+      padding:0 5px;
+      border-radius:999px;
+      background:#e53935;
+      color:#fff;
+      font-size:11px;
+      font-weight:800;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      border:2px solid #fff;
+      box-sizing:border-box;
+    }
+
+    #igCustomerNotificationOverlay{
+      position:fixed;
+      inset:0;
+      z-index:999999;
+      background:rgba(0,0,0,.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      box-sizing:border-box;
+    }
+
+    #igCustomerNotificationPanel{
+      width:min(620px,100%);
+      max-height:88vh;
+      overflow:auto;
+      background:#fff;
+      color:#111;
+      border-radius:18px;
+      box-shadow:0 20px 70px rgba(0,0,0,.4);
+      padding:20px;
+      box-sizing:border-box;
+    }
+
+    #igCustomerNotificationHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    #igCustomerNotificationHeader h3{
+      margin:0;
+      font-size:21px;
+    }
+
+    #igCustomerNotificationClose{
+      width:38px;
+      height:38px;
+      border:0;
+      border-radius:50%;
+      background:#f1f1f1;
+      cursor:pointer;
+      font-size:20px;
+    }
+
+    .igCustomerNotificationItem{
+      border:1px solid #e5e5e5;
+      border-radius:14px;
+      padding:15px;
+      margin-bottom:11px;
+      background:#fafafa;
+      cursor:pointer;
+      transition:background .2s ease, transform .15s ease;
+    }
+
+    .igCustomerNotificationItem:hover{
+      background:#f2f2f2;
+      transform:translateY(-1px);
+    }
+
+    .igCustomerNotificationItem.unread{
+      background:#fff;
+      border-color:#d0d0d0;
+      box-shadow:0 3px 12px rgba(0,0,0,.06);
+    }
+
+    .igCustomerNotificationItem.read{
+      opacity:.72;
+    }
+
+    .igCustomerNotificationTitle{
+      font-weight:800;
+      font-size:16px;
+      margin-bottom:6px;
+    }
+
+    .igCustomerNotificationMessage{
+      line-height:1.45;
+      font-size:14px;
+      white-space:pre-line;
+    }
+
+    .igCustomerNotificationMeta{
+      margin-top:9px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:12px;
+      color:#777;
+    }
+
+    .igCustomerNotificationUnread{
+      display:inline-block;
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#e53935;
+      margin-right:6px;
+    }
+
+    #igCustomerNotificationEmpty{
+      text-align:center;
+      padding:35px 15px;
+      color:#777;
+    }
+
+    #igCustomerNotificationRefresh{
+      width:100%;
+      margin-top:8px;
+      padding:11px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      background:#f7f7f7;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    @media(max-width:600px){
+      #igCustomerNotificationButton{
+        left:10px;
+        bottom:145px;
+        width:46px;
+        height:46px;
+      }
+
+      #igCustomerNotificationOverlay{
+        padding:10px;
+      }
+
+      #igCustomerNotificationPanel{
+        max-height:92vh;
+        border-radius:16px;
+        padding:16px;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  /* ---------------------------------------------------------
+     BOTÓN
+     --------------------------------------------------------- */
+  function createButton() {
+    if (document.getElementById("igCustomerNotificationButton")) {
+      return;
+    }
+
+    const button = document.createElement("button");
+    button.id = "igCustomerNotificationButton";
+    button.type = "button";
+    button.setAttribute("aria-label", "Notificaciones");
+    button.title = "Notificaciones";
+    button.innerHTML = `
+      <span aria-hidden="true">🔔</span>
+      <span id="igCustomerNotificationBadge"></span>
+    `;
+
+    button.addEventListener("click", openNotifications);
+
+    document.body.appendChild(button);
+  }
+
+  /* ---------------------------------------------------------
+     MODAL
+     --------------------------------------------------------- */
+  function createModal() {
+    if (document.getElementById("igCustomerNotificationOverlay")) {
+      return;
+    }
+
+    const overlay = document.createElement("div");
+    overlay.id = "igCustomerNotificationOverlay";
+
+    overlay.innerHTML = `
+      <div id="igCustomerNotificationPanel"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="igCustomerNotificationHeading">
+
+        <div id="igCustomerNotificationHeader">
+          <h3 id="igCustomerNotificationHeading">
+            🔔 Notificaciones
+          </h3>
+
+          <button
+            id="igCustomerNotificationClose"
+            type="button"
+            aria-label="Cerrar">
+            ×
+          </button>
+        </div>
+
+        <div id="igCustomerNotificationList">
+          <div id="igCustomerNotificationEmpty">
+            Cargando notificaciones...
+          </div>
+        </div>
+
+        <button
+          id="igCustomerNotificationRefresh"
+          type="button">
+          Actualizar
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document
+      .getElementById("igCustomerNotificationClose")
+      .addEventListener("click", closeNotifications);
+
+    document
+      .getElementById("igCustomerNotificationRefresh")
+      .addEventListener("click", loadNotifications);
+
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) {
+        closeNotifications();
+      }
+    });
+  }
+
+  function openNotifications() {
+    createModal();
+
+    const overlay =
+      document.getElementById("igCustomerNotificationOverlay");
+
+    if (!overlay) return;
+
+    overlay.style.display = "flex";
+    loadNotifications();
+  }
+
+  function closeNotifications() {
+    const overlay =
+      document.getElementById("igCustomerNotificationOverlay");
+
+    if (overlay) {
+      overlay.style.display = "none";
+    }
+  }
+
+  /* ---------------------------------------------------------
+     SESIÓN
+     --------------------------------------------------------- */
+  async function getCurrentUser() {
+    try {
+      if (
+        typeof supabaseClient === "undefined" ||
+        !supabaseClient ||
+        !supabaseClient.auth
+      ) {
+        return null;
+      }
+
+      const result =
+        await supabaseClient.auth.getUser();
+
+      return result && result.data
+        ? result.data.user || null
+        : null;
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: no se pudo obtener el usuario.",
+        error
+      );
+
+      return null;
+    }
+  }
+
+  /* ---------------------------------------------------------
+     CARGAR NOTIFICACIONES
+     --------------------------------------------------------- */
+  async function loadNotifications() {
+    const list =
+      document.getElementById(
+        "igCustomerNotificationList"
+      );
+
+    if (!list) return;
+
+    const user = await getCurrentUser();
+
+    if (!user) {
+      list.innerHTML = `
+        <div id="igCustomerNotificationEmpty">
+          <strong>Inicia sesión para ver tus notificaciones.</strong>
+          <br><br>
+          Tus avisos de pedidos aparecerán aquí.
+        </div>
+      `;
+
+      updateBadge(0);
+      return;
+    }
+
+    list.innerHTML = `
+      <div id="igCustomerNotificationEmpty">
+        Cargando notificaciones...
+      </div>
+    `;
+
+    try {
+      const result =
+        await supabaseClient.rpc(
+          "ig_get_my_customer_notifications"
+        );
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const notifications =
+        Array.isArray(result.data)
+          ? result.data
+          : [];
+
+      renderNotifications(notifications);
+
+    } catch (error) {
+      console.error(
+        "International Gateway: error cargando notificaciones:",
+        error
+      );
+
+      list.innerHTML = `
+        <div id="igCustomerNotificationEmpty">
+          No se pudieron cargar las notificaciones.
+          <br><br>
+          <button
+            type="button"
+            onclick="window.__IGReloadCustomerNotifications && window.__IGReloadCustomerNotifications()">
+            Reintentar
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  /* ---------------------------------------------------------
+     RENDER
+     --------------------------------------------------------- */
+  function renderNotifications(notifications) {
+    const list =
+      document.getElementById(
+        "igCustomerNotificationList"
+      );
+
+    if (!list) return;
+
+    if (!notifications.length) {
+      list.innerHTML = `
+        <div id="igCustomerNotificationEmpty">
+          <div style="font-size:34px;margin-bottom:10px;">
+            🔔
+          </div>
+          <strong>No tienes notificaciones nuevas.</strong>
+          <br>
+          Aquí aparecerán las actualizaciones de tus pedidos.
+        </div>
+      `;
+
+      updateBadge(0);
+      return;
+    }
+
+    let unread = 0;
+
+    list.innerHTML = notifications
+      .map(function (notification) {
+        const isUnread =
+          !notification.read_at;
+
+        if (isUnread) {
+          unread++;
+        }
+
+        const safeTitle =
+          escapeHtml(notification.title || "Actualización");
+
+        const safeMessage =
+          escapeHtml(notification.message || "");
+
+        const orderNumber =
+          notification.order_number
+            ? "#" + notification.order_number
+            : "";
+
+        const date =
+          formatDate(notification.created_at);
+
+        return `
+          <div
+            class="igCustomerNotificationItem ${isUnread ? "unread" : "read"}"
+            data-notification-id="${escapeHtml(String(notification.id))}"
+            role="button"
+            tabindex="0">
+
+            <div class="igCustomerNotificationTitle">
+              ${
+                isUnread
+                  ? '<span class="igCustomerNotificationUnread"></span>'
+                  : ""
+              }
+              ${safeTitle}
+            </div>
+
+            <div class="igCustomerNotificationMessage">
+              ${safeMessage}
+            </div>
+
+            <div class="igCustomerNotificationMeta">
+              <span>${orderNumber}</span>
+              <span>${date}</span>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    list
+      .querySelectorAll(
+        ".igCustomerNotificationItem"
+      )
+      .forEach(function (item) {
+
+        async function mark() {
+          const id =
+            item.getAttribute(
+              "data-notification-id"
+            );
+
+          if (!id) return;
+
+          await markAsRead(id);
+
+          item.classList.remove("unread");
+          item.classList.add("read");
+
+          const dot =
+            item.querySelector(
+              ".igCustomerNotificationUnread"
+            );
+
+          if (dot) {
+            dot.remove();
+          }
+
+          updateBadge(
+            Math.max(0, unread - 1)
+          );
+        }
+
+        item.addEventListener("click", mark);
+
+        item.addEventListener("keydown", function (event) {
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            event.preventDefault();
+            mark();
+          }
+        });
+      });
+
+    updateBadge(unread);
+  }
+
+  /* ---------------------------------------------------------
+     MARCAR COMO LEÍDA
+     --------------------------------------------------------- */
+  async function markAsRead(notificationId) {
+    try {
+      const result =
+        await supabaseClient.rpc(
+          "ig_mark_customer_notification_read",
+          {
+            p_notification_id: notificationId
+          }
+        );
+
+      if (result.error) {
+        console.warn(
+          "International Gateway: no se pudo marcar como leída.",
+          result.error
+        );
+      }
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: error marcando notificación.",
+        error
+      );
+    }
+  }
+
+  /* ---------------------------------------------------------
+     BADGE
+     --------------------------------------------------------- */
+  function updateBadge(count) {
+    const badge =
+      document.getElementById(
+        "igCustomerNotificationBadge"
+      );
+
+    if (!badge) return;
+
+    const number = Number(count) || 0;
+
+    if (number <= 0) {
+      badge.style.display = "none";
+      badge.textContent = "";
+      return;
+    }
+
+    badge.textContent =
+      number > 99 ? "99+" : String(number);
+
+    badge.style.display = "flex";
+  }
+
+  /* ---------------------------------------------------------
+     ACTUALIZAR BADGE SIN ABRIR MODAL
+     --------------------------------------------------------- */
+  async function refreshBadge() {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      updateBadge(0);
+      return;
+    }
+
+    try {
+      const result =
+        await supabaseClient.rpc(
+          "ig_get_my_customer_notifications"
+        );
+
+      if (result.error) {
+        return;
+      }
+
+      const notifications =
+        Array.isArray(result.data)
+          ? result.data
+          : [];
+
+      const unread =
+        notifications.filter(
+          function (item) {
+            return !item.read_at;
+          }
+        ).length;
+
+      updateBadge(unread);
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: no se pudo actualizar el contador.",
+        error
+      );
+    }
+  }
+
+  /* ---------------------------------------------------------
+     UTILIDADES
+     --------------------------------------------------------- */
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatDate(value) {
+    if (!value) return "";
+
+    try {
+      const date = new Date(value);
+
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+
+      return date.toLocaleString(
+        "es-AR",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      );
+
+    } catch (error) {
+      return "";
+    }
+  }
+
+  /* ---------------------------------------------------------
+     FUNCIÓN PÚBLICA DE RECARGA
+     --------------------------------------------------------- */
+  window.__IGReloadCustomerNotifications =
+    loadNotifications;
+
+  /* ---------------------------------------------------------
+     INICIO
+     --------------------------------------------------------- */
+  function init() {
+    createButton();
+    createModal();
+    refreshBadge();
+
+    /*
+     * Actualiza el contador periódicamente.
+     * No modifica pedidos ni checkout.
+     */
+    setInterval(
+      refreshBadge,
+      15000
+    );
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      { once: true }
+    );
+  } else {
+    init();
+  }
+
+})();
+</script><!-- FIN CENTRO DE NOTIFICACIONES -->
 </body>
 </html>
