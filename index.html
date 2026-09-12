@@ -21927,5 +21927,849 @@ body.ig-splash-lock{
   }
 })();
 </script> 
+    <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     GALERÍA DE FOTOS DE PRODUCTOS
+     ========================================================= -->
+
+<style id="igProductGalleryStyles">
+
+  .ig-gallery-trigger{
+    position:relative;
+    width:100%;
+    height:100%;
+    cursor:zoom-in;
+  }
+
+  .ig-gallery-trigger img{
+    pointer-events:none;
+  }
+
+  .ig-gallery-overlay{
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    background:rgba(0,0,0,.92);
+  }
+
+  .ig-gallery-overlay.ig-open{
+    display:flex;
+  }
+
+  .ig-gallery-box{
+    position:relative;
+    width:min(1000px,100%);
+    max-height:95vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+
+  .ig-gallery-main{
+    position:relative;
+    width:100%;
+    height:min(72vh,700px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .ig-gallery-main img{
+    max-width:100%;
+    max-height:100%;
+    width:auto;
+    height:auto;
+    object-fit:contain;
+    border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+    user-select:none;
+  }
+
+  .ig-gallery-close{
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    z-index:5;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:#fff;
+    color:#111;
+    font-size:25px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 3px 15px rgba(0,0,0,.4);
+  }
+
+  .ig-gallery-nav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:rgba(255,255,255,.92);
+    color:#111;
+    font-size:28px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 3px 15px rgba(0,0,0,.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .ig-gallery-prev{
+    left:10px;
+  }
+
+  .ig-gallery-next{
+    right:10px;
+  }
+
+  .ig-gallery-counter{
+    color:#fff;
+    font-size:14px;
+    font-weight:bold;
+    background:rgba(0,0,0,.55);
+    padding:5px 10px;
+    border-radius:999px;
+  }
+
+  .ig-gallery-thumbs{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    overflow-x:auto;
+    padding:5px 2px 10px;
+    scrollbar-width:thin;
+  }
+
+  .ig-gallery-thumb{
+    width:68px;
+    height:68px;
+    flex:none;
+    border:2px solid transparent;
+    border-radius:8px;
+    overflow:hidden;
+    padding:0;
+    background:#222;
+    cursor:pointer;
+    opacity:.7;
+  }
+
+  .ig-gallery-thumb.ig-active{
+    border-color:#fff;
+    opacity:1;
+  }
+
+  .ig-gallery-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+
+  .ig-gallery-loading{
+    color:#fff;
+    font-size:16px;
+    text-align:center;
+  }
+
+  .ig-gallery-error{
+    background:#fff;
+    color:#111;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    max-width:400px;
+  }
+
+  body.ig-gallery-lock{
+    overflow:hidden;
+  }
+
+  @media(max-width:600px){
+
+    .ig-gallery-overlay{
+      padding:8px;
+    }
+
+    .ig-gallery-main{
+      height:65vh;
+    }
+
+    .ig-gallery-close{
+      top:4px;
+      right:4px;
+      width:40px;
+      height:40px;
+      font-size:22px;
+    }
+
+    .ig-gallery-nav{
+      width:42px;
+      height:42px;
+      font-size:24px;
+    }
+
+    .ig-gallery-prev{
+      left:4px;
+    }
+
+    .ig-gallery-next{
+      right:4px;
+    }
+
+    .ig-gallery-thumb{
+      width:58px;
+      height:58px;
+    }
+  }
+
+</style>
+
+<script id="igProductGalleryScript">
+(function(){
+
+  "use strict";
+
+  if(window.__IG_PRODUCT_GALLERY_V1){
+    return;
+  }
+
+  window.__IG_PRODUCT_GALLERY_V1 = true;
+
+  let images = [];
+  let currentIndex = 0;
+  let currentProductId = null;
+
+  function escapeHtml(value){
+    return String(value ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function getProductId(card){
+
+    if(!card){
+      return null;
+    }
+
+    /*
+      Tu aplicación ya utiliza addToCart('ID')
+      dentro de las tarjetas.
+      Aprovechamos ese ID sin modificar la función.
+    */
+
+    const elements = card.querySelectorAll("[onclick]");
+
+    for(const element of elements){
+
+      const onclick = element.getAttribute("onclick") || "";
+
+      const match = onclick.match(
+        /addToCart\s*\(\s*['"]([^'"]+)['"]\s*\)/
+      );
+
+      if(match && match[1]){
+        return match[1];
+      }
+    }
+
+    return null;
+  }
+
+  function getProductName(card){
+
+    const title = card
+      ? card.querySelector("h3")
+      : null;
+
+    return title
+      ? title.textContent.trim()
+      : "Producto";
+  }
+
+  function createGallery(){
+
+    if(document.getElementById("igProductGalleryOverlay")){
+      return;
+    }
+
+    const overlay = document.createElement("div");
+
+    overlay.id = "igProductGalleryOverlay";
+    overlay.className = "ig-gallery-overlay";
+
+    overlay.innerHTML = `
+      <div class="ig-gallery-box" role="dialog" aria-modal="true">
+
+        <div class="ig-gallery-main">
+
+          <button
+            type="button"
+            class="ig-gallery-close"
+            id="igGalleryClose"
+            aria-label="Cerrar galería"
+          >×</button>
+
+          <button
+            type="button"
+            class="ig-gallery-nav ig-gallery-prev"
+            id="igGalleryPrev"
+            aria-label="Foto anterior"
+          >‹</button>
+
+          <img
+            id="igGalleryMainImage"
+            src=""
+            alt="Foto del producto"
+          >
+
+          <button
+            type="button"
+            class="ig-gallery-nav ig-gallery-next"
+            id="igGalleryNext"
+            aria-label="Foto siguiente"
+          >›</button>
+
+        </div>
+
+        <div
+          id="igGalleryCounter"
+          class="ig-gallery-counter"
+        ></div>
+
+        <div
+          id="igGalleryThumbs"
+          class="ig-gallery-thumbs"
+        ></div>
+
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document
+      .getElementById("igGalleryClose")
+      .addEventListener("click",closeGallery);
+
+    document
+      .getElementById("igGalleryPrev")
+      .addEventListener("click",function(){
+        showImage(currentIndex - 1);
+      });
+
+    document
+      .getElementById("igGalleryNext")
+      .addEventListener("click",function(){
+        showImage(currentIndex + 1);
+      });
+
+    overlay.addEventListener("click",function(event){
+
+      if(event.target === overlay){
+        closeGallery();
+      }
+
+    });
+
+    document.addEventListener("keydown",function(event){
+
+      const isOpen =
+        overlay.classList.contains("ig-open");
+
+      if(!isOpen){
+        return;
+      }
+
+      if(event.key === "Escape"){
+        closeGallery();
+      }
+
+      if(event.key === "ArrowLeft"){
+        showImage(currentIndex - 1);
+      }
+
+      if(event.key === "ArrowRight"){
+        showImage(currentIndex + 1);
+      }
+
+    });
+
+  }
+
+  function renderThumbs(){
+
+    const container =
+      document.getElementById("igGalleryThumbs");
+
+    if(!container){
+      return;
+    }
+
+    container.innerHTML = "";
+
+    images.forEach(function(url,index){
+
+      const button =
+        document.createElement("button");
+
+      button.type = "button";
+      button.className = "ig-gallery-thumb";
+
+      if(index === currentIndex){
+        button.classList.add("ig-active");
+      }
+
+      button.setAttribute(
+        "aria-label",
+        "Ver foto " + (index + 1)
+      );
+
+      const img =
+        document.createElement("img");
+
+      img.src = url;
+      img.alt = "Foto " + (index + 1);
+      img.loading = "lazy";
+
+      button.appendChild(img);
+
+      button.addEventListener("click",function(){
+        showImage(index);
+      });
+
+      container.appendChild(button);
+
+    });
+
+  }
+
+  function showImage(index){
+
+    if(!images.length){
+      return;
+    }
+
+    if(index < 0){
+      index = images.length - 1;
+    }
+
+    if(index >= images.length){
+      index = 0;
+    }
+
+    currentIndex = index;
+
+    const main =
+      document.getElementById("igGalleryMainImage");
+
+    const counter =
+      document.getElementById("igGalleryCounter");
+
+    if(main){
+
+      main.src = images[currentIndex];
+
+      main.alt =
+        getProductName(
+          document.querySelector(
+            '.product-card[data-ig-gallery-product="' +
+            currentProductId +
+            '"]'
+          )
+        ) +
+        " - foto " +
+        (currentIndex + 1);
+
+    }
+
+    if(counter){
+
+      counter.textContent =
+        (currentIndex + 1) +
+        " / " +
+        images.length;
+
+    }
+
+    renderThumbs();
+
+  }
+
+  function showLoading(){
+
+    const main =
+      document.getElementById("igGalleryMainImage");
+
+    const thumbs =
+      document.getElementById("igGalleryThumbs");
+
+    const counter =
+      document.getElementById("igGalleryCounter");
+
+    if(main){
+      main.removeAttribute("src");
+      main.alt = "Cargando fotos...";
+    }
+
+    if(thumbs){
+      thumbs.innerHTML =
+        '<div class="ig-gallery-loading">Cargando fotos…</div>';
+    }
+
+    if(counter){
+      counter.textContent = "";
+    }
+
+  }
+
+  function showError(){
+
+    const thumbs =
+      document.getElementById("igGalleryThumbs");
+
+    const counter =
+      document.getElementById("igGalleryCounter");
+
+    const main =
+      document.getElementById("igGalleryMainImage");
+
+    if(main){
+      main.removeAttribute("src");
+    }
+
+    if(counter){
+      counter.textContent = "";
+    }
+
+    if(thumbs){
+
+      thumbs.innerHTML = `
+        <div class="ig-gallery-error">
+          No se pudieron cargar las fotos de este producto.
+        </div>
+      `;
+
+    }
+
+  }
+
+  async function loadProductImages(productId){
+
+    if(
+      typeof supabaseClient === "undefined" ||
+      !supabaseClient ||
+      typeof supabaseClient
+        .from !== "function"
+    ){
+      showError();
+      return;
+    }
+
+    try{
+
+      const result =
+        await supabaseClient
+          .from("ig_product_images")
+          .select("url,primary,sort_order")
+          .eq("product_id",productId)
+          .order("sort_order",{ascending:true});
+
+      if(result.error){
+        console.error(
+          "International Gateway: error cargando galería:",
+          result.error
+        );
+        showError();
+        return;
+      }
+
+      const rows =
+        Array.isArray(result.data)
+          ? result.data
+          : [];
+
+      images =
+        rows
+          .map(function(row){
+            return row && row.url
+              ? String(row.url).trim()
+              : "";
+          })
+          .filter(Boolean);
+
+      /*
+        Si por alguna razón sort_order está repetido,
+        eliminamos URLs duplicadas sin eliminar fotos
+        diferentes.
+      */
+
+      images =
+        [...new Set(images)];
+
+      if(!images.length){
+        showError();
+        return;
+      }
+
+      currentIndex = 0;
+
+      showImage(0);
+
+    }catch(error){
+
+      console.error(
+        "International Gateway: error inesperado en galería:",
+        error
+      );
+
+      showError();
+
+    }
+
+  }
+
+  async function openGallery(card){
+
+    const productId =
+      getProductId(card);
+
+    if(!productId){
+      console.warn(
+        "International Gateway: no se encontró el ID del producto."
+      );
+      return;
+    }
+
+    createGallery();
+
+    currentProductId =
+      productId;
+
+    const overlay =
+      document.getElementById(
+        "igProductGalleryOverlay"
+      );
+
+    if(!overlay){
+      return;
+    }
+
+    overlay.classList.add("ig-open");
+
+    document.body.classList.add(
+      "ig-gallery-lock"
+    );
+
+    images = [];
+    currentIndex = 0;
+
+    showLoading();
+
+    await loadProductImages(productId);
+
+  }
+
+  function closeGallery(){
+
+    const overlay =
+      document.getElementById(
+        "igProductGalleryOverlay"
+      );
+
+    if(overlay){
+      overlay.classList.remove("ig-open");
+    }
+
+    document.body.classList.remove(
+      "ig-gallery-lock"
+    );
+
+    images = [];
+    currentIndex = 0;
+    currentProductId = null;
+
+  }
+
+  function activateCard(card){
+
+    if(!card){
+      return;
+    }
+
+    if(card.dataset.igGalleryReady === "1"){
+      return;
+    }
+
+    const imageContainer =
+      card.querySelector(".product-image");
+
+    if(!imageContainer){
+      return;
+    }
+
+    const image =
+      imageContainer.querySelector("img");
+
+    if(!image){
+      return;
+    }
+
+    const productId =
+      getProductId(card);
+
+    if(!productId){
+      return;
+    }
+
+    card.dataset.igGalleryReady = "1";
+
+    card.dataset.igGalleryProduct =
+      productId;
+
+    imageContainer.classList.add(
+      "ig-gallery-trigger"
+    );
+
+    imageContainer.setAttribute(
+      "role",
+      "button"
+    );
+
+    imageContainer.setAttribute(
+      "tabindex",
+      "0"
+    );
+
+    imageContainer.setAttribute(
+      "aria-label",
+      "Ver fotos de " +
+      getProductName(card)
+    );
+
+    imageContainer.addEventListener(
+      "click",
+      function(event){
+
+        /*
+          Solamente interceptamos el toque
+          sobre la zona de la imagen.
+        */
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        openGallery(card);
+
+      }
+    );
+
+    imageContainer.addEventListener(
+      "keydown",
+      function(event){
+
+        if(
+          event.key === "Enter" ||
+          event.key === " "
+        ){
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          openGallery(card);
+
+        }
+
+      }
+    );
+
+  }
+
+  function scanProducts(){
+
+    const cards =
+      document.querySelectorAll(
+        ".product-card"
+      );
+
+    cards.forEach(activateCard);
+
+  }
+
+  function start(){
+
+    createGallery();
+
+    scanProducts();
+
+    /*
+      Tu aplicación puede volver a dibujar
+      las tarjetas cuando cambia categoría,
+      búsqueda o productos.
+      Este observador solamente detecta
+      nuevas tarjetas y no modifica las existentes.
+    */
+
+    const observer =
+      new MutationObserver(function(){
+
+        scanProducts();
+
+      });
+
+    const productsContainer =
+      document.querySelector(".products");
+
+    if(productsContainer){
+
+      observer.observe(
+        productsContainer,
+        {
+          childList:true,
+          subtree:true
+        }
+      );
+
+    }else{
+
+      observer.observe(
+        document.body,
+        {
+          childList:true,
+          subtree:true
+        }
+      );
+
+    }
+
+  }
+
+  if(document.readyState === "loading"){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      start,
+      {once:true}
+    );
+
+  }else{
+
+    start();
+
+  }
+
+})();
+</script>
 </body>
 </html>
