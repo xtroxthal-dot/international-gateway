@@ -19091,5 +19091,1827 @@ body.ig-splash-lock{
 
 })();
 </script>
+     <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     MI CUENTA — MÓDULO INDEPENDIENTE Y SEGURO
+     
+     NO modifica:
+     - checkout existente
+     - carrito
+     - productos
+     - favoritos
+     - administración
+     - seguimiento existente
+     - cotización existente
+     
+     Se comunica únicamente con:
+     - Supabase Auth
+     - ig_customer_profiles
+     - ig_get_my_customer_orders()
+     - ig_link_order_by_number_current_customer()
+     ========================================================= -->
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.__IG_CUSTOMER_ACCOUNT_V1) return;
+  window.__IG_CUSTOMER_ACCOUNT_V1 = true;
+
+  /* ---------------------------------------------------------
+     CONFIGURACIÓN
+     --------------------------------------------------------- */
+
+  const WHATSAPP_NUMBER = "5491169633376";
+
+  let currentUser = null;
+  let profile = null;
+  let accountOpen = false;
+  let refreshTimer = null;
+  let authSubscription = null;
+
+  /* ---------------------------------------------------------
+     UTILIDADES
+     --------------------------------------------------------- */
+
+  function esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function money(value) {
+    const number = Number(value || 0);
+
+    try {
+      return number.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 2
+      });
+    } catch (e) {
+      return "$ " + number.toFixed(2);
+    }
+  }
+
+  function notify(message, type) {
+    type = type || "info";
+
+    if (typeof window.showToast === "function") {
+      try {
+        window.showToast(message, type);
+        return;
+      } catch (e) {}
+    }
+
+    const old = document.getElementById("igAccountToast");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "igAccountToast";
+    toast.textContent = message;
+
+    toast.style.cssText = [
+      "position:fixed",
+      "left:50%",
+      "bottom:25px",
+      "transform:translateX(-50%)",
+      "z-index:999999",
+      "background:#111",
+      "color:#fff",
+      "padding:13px 18px",
+      "border-radius:12px",
+      "box-shadow:0 8px 30px rgba(0,0,0,.25)",
+      "font-size:14px",
+      "max-width:90%",
+      "text-align:center"
+    ].join(";");
+
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+      if (toast.parentNode) toast.remove();
+    }, 3500);
+  }
+
+  function supabaseReady() {
+    return (
+      typeof supabaseClient !== "undefined" &&
+      supabaseClient &&
+      supabaseClient.auth
+    );
+  }
+
+  function getAuthEmail() {
+    return currentUser && currentUser.email
+      ? currentUser.email
+      : "";
+  }
+
+  function statusLabel(status) {
+    const map = {
+      pending: "Pedido recibido",
+      confirmed: "Confirmado",
+      preparing: "Preparando",
+      ready: "Listo para retirar",
+      delivered: "Entregado",
+      cancelled: "Cancelado"
+    };
+
+    return map[status] || status || "Pendiente";
+  }
+
+  function shippingStatusLabel(status) {
+    const map = {
+      pending: "Esperando cotización",
+      quoted: "Cotización disponible",
+      accepted: "Cotización aceptada",
+      cancelled: "Cotización cancelada"
+    };
+
+    return map[status] || status || "Pendiente";
+  }
+
+  /* ---------------------------------------------------------
+     ESTILOS AISLADOS
+     --------------------------------------------------------- */
+
+  function injectStyles() {
+    if (document.getElementById("igCustomerAccountStyles")) return;
+
+    const style = document.createElement("style");
+    style.id = "igCustomerAccountStyles";
+
+    style.textContent = `
+      #igCustomerAccountButton{
+        position:fixed;
+        top:82px;
+        right:14px;
+        z-index:99990;
+        border:0;
+        border-radius:999px;
+        padding:10px 15px;
+        background:#111;
+        color:#fff;
+        font-weight:700;
+        box-shadow:0 5px 20px rgba(0,0,0,.20);
+        cursor:pointer;
+        font-size:14px;
+      }
+
+      #igCustomerAccountButton:hover{
+        opacity:.92;
+      }
+
+      #igCustomerAccountBadge{
+        display:none;
+        min-width:8px;
+        height:8px;
+        margin-left:5px;
+        border-radius:50%;
+        background:#ff3b30;
+        vertical-align:middle;
+      }
+
+      #igCustomerAccountOverlay{
+        position:fixed;
+        inset:0;
+        z-index:99998;
+        background:rgba(0,0,0,.58);
+        display:none;
+        overflow-y:auto;
+        padding:25px 12px;
+      }
+
+      #igCustomerAccountOverlay.ig-open{
+        display:block;
+      }
+
+      #igCustomerAccountPanel{
+        width:min(720px,100%);
+        margin:35px auto;
+        background:var(--card,#fff);
+        color:var(--text,#171717);
+        border-radius:18px;
+        box-shadow:0 20px 60px rgba(0,0,0,.35);
+        overflow:hidden;
+      }
+
+      #igCustomerAccountHeader{
+        padding:18px 20px;
+        background:var(--dark,#111);
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+      }
+
+      #igCustomerAccountHeader h2{
+        margin:0;
+        font-size:20px;
+      }
+
+      #igCustomerAccountClose{
+        width:38px;
+        height:38px;
+        border-radius:50%;
+        background:rgba(255,255,255,.12);
+        color:#fff;
+        font-size:22px;
+      }
+
+      #igCustomerAccountBody{
+        padding:20px;
+      }
+
+      .ig-account-section{
+        border:1px solid var(--border,#ddd);
+        border-radius:15px;
+        padding:16px;
+        margin-bottom:15px;
+      }
+
+      .ig-account-section h3{
+        margin:0 0 12px;
+        font-size:17px;
+      }
+
+      .ig-account-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:11px;
+      }
+
+      .ig-account-field{
+        display:flex;
+        flex-direction:column;
+        gap:5px;
+      }
+
+      .ig-account-field.full{
+        grid-column:1/-1;
+      }
+
+      .ig-account-field label{
+        font-size:13px;
+        font-weight:700;
+      }
+
+      .ig-account-field input{
+        width:100%;
+        border:1px solid var(--border,#ddd);
+        border-radius:10px;
+        padding:11px 12px;
+        background:var(--card,#fff);
+        color:var(--text,#171717);
+        outline:none;
+      }
+
+      .ig-account-field input:focus{
+        border-color:#777;
+      }
+
+      .ig-account-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:9px;
+        margin-top:13px;
+      }
+
+      .ig-account-btn{
+        border:0;
+        border-radius:10px;
+        padding:11px 15px;
+        background:#111;
+        color:#fff;
+        font-weight:700;
+        cursor:pointer;
+      }
+
+      .ig-account-btn.secondary{
+        background:#eee;
+        color:#111;
+      }
+
+      .ig-account-btn.whatsapp{
+        background:#16803c;
+        color:#fff;
+      }
+
+      .ig-account-btn.danger{
+        background:#b00020;
+        color:#fff;
+      }
+
+      .ig-account-order{
+        border:1px solid var(--border,#ddd);
+        border-radius:15px;
+        padding:16px;
+        margin-top:12px;
+      }
+
+      .ig-account-order-head{
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:10px;
+      }
+
+      .ig-account-order-number{
+        font-weight:800;
+        font-size:17px;
+      }
+
+      .ig-account-status{
+        display:inline-block;
+        padding:5px 9px;
+        border-radius:999px;
+        background:#eee;
+        font-size:12px;
+        font-weight:700;
+      }
+
+      .ig-account-item{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        padding:7px 0;
+        border-bottom:1px solid rgba(128,128,128,.18);
+        font-size:14px;
+      }
+
+      .ig-account-item:last-child{
+        border-bottom:0;
+      }
+
+      .ig-account-total{
+        margin-top:12px;
+        padding-top:12px;
+        border-top:1px solid var(--border,#ddd);
+        font-weight:800;
+        font-size:17px;
+      }
+
+      .ig-account-shipping{
+        margin-top:13px;
+        padding:13px;
+        border-radius:12px;
+        background:rgba(22,128,60,.08);
+        border:1px solid rgba(22,128,60,.20);
+      }
+
+      .ig-account-shipping.pending{
+        background:rgba(178,106,0,.08);
+        border-color:rgba(178,106,0,.20);
+      }
+
+      .ig-account-note{
+        margin-top:9px;
+        padding:10px;
+        border-radius:9px;
+        background:rgba(0,0,0,.05);
+        font-size:13px;
+      }
+
+      .ig-account-empty{
+        text-align:center;
+        padding:25px 10px;
+        color:var(--muted,#666);
+      }
+
+      .ig-account-error{
+        padding:11px;
+        border-radius:10px;
+        background:rgba(176,0,32,.08);
+        color:#b00020;
+        font-size:14px;
+        margin-bottom:12px;
+      }
+
+      .ig-account-success{
+        padding:11px;
+        border-radius:10px;
+        background:rgba(22,128,60,.08);
+        color:#16803c;
+        font-size:14px;
+        margin-bottom:12px;
+      }
+
+      .ig-account-muted{
+        color:var(--muted,#666);
+        font-size:13px;
+      }
+
+      @media(max-width:600px){
+        #igCustomerAccountButton{
+          top:76px;
+          right:10px;
+          padding:9px 12px;
+          font-size:13px;
+        }
+
+        #igCustomerAccountOverlay{
+          padding:10px 7px;
+        }
+
+        #igCustomerAccountPanel{
+          margin:15px auto;
+          border-radius:15px;
+        }
+
+        #igCustomerAccountBody{
+          padding:14px;
+        }
+
+        .ig-account-grid{
+          grid-template-columns:1fr;
+        }
+
+        .ig-account-field.full{
+          grid-column:auto;
+        }
+
+        .ig-account-actions{
+          flex-direction:column;
+        }
+
+        .ig-account-btn{
+          width:100%;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  /* ---------------------------------------------------------
+     INTERFAZ
+     --------------------------------------------------------- */
+
+  function createInterface() {
+    if (document.getElementById("igCustomerAccountOverlay")) return;
+
+    const button = document.createElement("button");
+    button.id = "igCustomerAccountButton";
+    button.type = "button";
+    button.innerHTML =
+      "👤 Mi cuenta <span id=\"igCustomerAccountBadge\"></span>";
+
+    button.addEventListener("click", function () {
+      openAccount();
+    });
+
+    document.body.appendChild(button);
+
+    const overlay = document.createElement("div");
+    overlay.id = "igCustomerAccountOverlay";
+
+    overlay.innerHTML = `
+      <div id="igCustomerAccountPanel">
+
+        <div id="igCustomerAccountHeader">
+          <h2>👤 Mi cuenta</h2>
+          <button
+            id="igCustomerAccountClose"
+            type="button"
+            aria-label="Cerrar">
+            ×
+          </button>
+        </div>
+
+        <div id="igCustomerAccountBody">
+          <div id="igCustomerAccountContent"></div>
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document
+      .getElementById("igCustomerAccountClose")
+      .addEventListener("click", closeAccount);
+
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) {
+        closeAccount();
+      }
+    });
+  }
+
+  function openAccount() {
+    const overlay =
+      document.getElementById("igCustomerAccountOverlay");
+
+    if (!overlay) return;
+
+    accountOpen = true;
+    overlay.classList.add("ig-open");
+
+    renderAccount();
+
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeAccount() {
+    const overlay =
+      document.getElementById("igCustomerAccountOverlay");
+
+    if (!overlay) return;
+
+    accountOpen = false;
+    overlay.classList.remove("ig-open");
+
+    document.body.style.overflow = "";
+  }
+
+  /* ---------------------------------------------------------
+     RENDER LOGIN / REGISTRO
+     --------------------------------------------------------- */
+
+  function renderAccount() {
+    const container =
+      document.getElementById("igCustomerAccountContent");
+
+    if (!container) return;
+
+    if (!currentUser) {
+      renderLogin(container);
+      return;
+    }
+
+    renderLoggedAccount(container);
+  }
+
+  function renderLogin(container) {
+    container.innerHTML = `
+      <div class="ig-account-section">
+
+        <h3>Entrar en mi cuenta</h3>
+
+        <div id="igAccountAuthMessage"></div>
+
+        <div class="ig-account-grid">
+
+          <div class="ig-account-field full">
+            <label for="igAccountEmail">
+              Correo electrónico
+            </label>
+            <input
+              id="igAccountEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@email.com">
+          </div>
+
+          <div class="ig-account-field full">
+            <label for="igAccountPassword">
+              Contraseña
+            </label>
+            <input
+              id="igAccountPassword"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Tu contraseña">
+          </div>
+
+        </div>
+
+        <div class="ig-account-actions">
+
+          <button
+            class="ig-account-btn"
+            type="button"
+            id="igAccountLogin">
+            🔐 Iniciar sesión
+          </button>
+
+          <button
+            class="ig-account-btn secondary"
+            type="button"
+            id="igAccountShowRegister">
+            ✨ Crear cuenta
+          </button>
+
+          <button
+            class="ig-account-btn secondary"
+            type="button"
+            id="igAccountForgot">
+            ¿Olvidaste tu contraseña?
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    document
+      .getElementById("igAccountLogin")
+      .addEventListener("click", login);
+
+    document
+      .getElementById("igAccountShowRegister")
+      .addEventListener("click", renderRegister);
+
+    document
+      .getElementById("igAccountForgot")
+      .addEventListener("click", sendPasswordRecovery);
+  }
+
+  function renderRegister() {
+    const container =
+      document.getElementById("igCustomerAccountContent");
+
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="ig-account-section">
+
+        <h3>✨ Crear mi cuenta</h3>
+
+        <p class="ig-account-muted">
+          Guarda tus datos, consulta tus compras y recibe
+          las actualizaciones de tus pedidos desde tu cuenta.
+        </p>
+
+        <div id="igAccountAuthMessage"></div>
+
+        <div class="ig-account-grid">
+
+          <div class="ig-account-field full">
+            <label for="igRegisterName">
+              Nombre completo
+            </label>
+            <input
+              id="igRegisterName"
+              type="text"
+              autocomplete="name"
+              placeholder="Nombre y apellido">
+          </div>
+
+          <div class="ig-account-field">
+            <label for="igRegisterPhone">
+              Teléfono
+            </label>
+            <input
+              id="igRegisterPhone"
+              type="tel"
+              autocomplete="tel"
+              placeholder="Teléfono">
+          </div>
+
+          <div class="ig-account-field">
+            <label for="igRegisterEmail">
+              Correo electrónico
+            </label>
+            <input
+              id="igRegisterEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@email.com">
+          </div>
+
+          <div class="ig-account-field full">
+            <label for="igRegisterPassword">
+              Contraseña
+            </label>
+            <input
+              id="igRegisterPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Mínimo 6 caracteres">
+          </div>
+
+        </div>
+
+        <div class="ig-account-actions">
+
+          <button
+            class="ig-account-btn"
+            type="button"
+            id="igAccountRegister">
+            Crear cuenta
+          </button>
+
+          <button
+            class="ig-account-btn secondary"
+            type="button"
+            id="igAccountBackLogin">
+            Volver a iniciar sesión
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    document
+      .getElementById("igAccountRegister")
+      .addEventListener("click", register);
+
+    document
+      .getElementById("igAccountBackLogin")
+      .addEventListener("click", function () {
+        renderLogin(
+          document.getElementById("igCustomerAccountContent")
+        );
+      });
+  }
+
+  /* ---------------------------------------------------------
+     AUTENTICACIÓN
+     --------------------------------------------------------- */
+
+  async function register() {
+    if (!supabaseReady()) {
+      showAuthMessage(
+        "Supabase todavía no está disponible.",
+        true
+      );
+      return;
+    }
+
+    const name =
+      document.getElementById("igRegisterName").value.trim();
+
+    const phone =
+      document.getElementById("igRegisterPhone").value.trim();
+
+    const email =
+      document.getElementById("igRegisterEmail").value.trim()
+        .toLowerCase();
+
+    const password =
+      document.getElementById("igRegisterPassword").value;
+
+    if (!name || !email || !password) {
+      showAuthMessage(
+        "Completá nombre, correo y contraseña.",
+        true
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      showAuthMessage(
+        "La contraseña debe tener al menos 6 caracteres.",
+        true
+      );
+      return;
+    }
+
+    showAuthMessage("Creando tu cuenta…", false);
+
+    try {
+      const result =
+        await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              full_name: name,
+              phone: phone
+            }
+          }
+        });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result.data && result.data.user) {
+        currentUser = result.data.user;
+      }
+
+      if (
+        result.data &&
+        result.data.session
+      ) {
+        showAuthMessage(
+          "Cuenta creada correctamente.",
+          false
+        );
+
+        await loadProfile();
+        renderAccount();
+        await linkVisibleConfirmationOrder();
+        await loadOrders();
+      } else {
+        showAuthMessage(
+          "Cuenta creada. Revisá tu correo para confirmar la cuenta y después iniciá sesión.",
+          false
+        );
+      }
+
+    } catch (error) {
+      showAuthMessage(
+        error && error.message
+          ? error.message
+          : "No se pudo crear la cuenta.",
+        true
+      );
+    }
+  }
+
+  async function login() {
+    if (!supabaseReady()) {
+      showAuthMessage(
+        "Supabase todavía no está disponible.",
+        true
+      );
+      return;
+    }
+
+    const email =
+      document.getElementById("igAccountEmail").value.trim()
+        .toLowerCase();
+
+    const password =
+      document.getElementById("igAccountPassword").value;
+
+    if (!email || !password) {
+      showAuthMessage(
+        "Completá correo y contraseña.",
+        true
+      );
+      return;
+    }
+
+    showAuthMessage("Iniciando sesión…", false);
+
+    try {
+      const result =
+        await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      currentUser =
+        result.data && result.data.user
+          ? result.data.user
+          : null;
+
+      await loadProfile();
+      await linkVisibleConfirmationOrder();
+
+      renderAccount();
+      await loadOrders();
+
+      notify(
+        "Sesión iniciada correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+      showAuthMessage(
+        error && error.message
+          ? error.message
+          : "Correo o contraseña incorrectos.",
+        true
+      );
+    }
+  }
+
+  async function sendPasswordRecovery() {
+    if (!supabaseReady()) return;
+
+    const email =
+      document.getElementById("igAccountEmail").value.trim()
+        .toLowerCase();
+
+    if (!email) {
+      showAuthMessage(
+        "Escribí tu correo electrónico primero.",
+        true
+      );
+      return;
+    }
+
+    try {
+      const result =
+        await supabaseClient.auth.resetPasswordForEmail(
+          email,
+          {
+            redirectTo: window.location.href
+          }
+        );
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      showAuthMessage(
+        "Te enviamos las instrucciones para recuperar tu contraseña.",
+        false
+      );
+
+    } catch (error) {
+      showAuthMessage(
+        error && error.message
+          ? error.message
+          : "No se pudo enviar el correo de recuperación.",
+        true
+      );
+    }
+  }
+
+  async function logout() {
+    if (!supabaseReady()) return;
+
+    try {
+      await supabaseClient.auth.signOut();
+    } catch (e) {}
+
+    currentUser = null;
+    profile = null;
+
+    updateAccountButton();
+    renderAccount();
+  }
+
+  function showAuthMessage(message, error) {
+    const box =
+      document.getElementById("igAccountAuthMessage");
+
+    if (!box) return;
+
+    box.innerHTML =
+      '<div class="' +
+      (error
+        ? "ig-account-error"
+        : "ig-account-success") +
+      '">' +
+      esc(message) +
+      "</div>";
+  }
+
+  /* ---------------------------------------------------------
+     PERFIL
+     --------------------------------------------------------- */
+
+  async function loadProfile() {
+    if (!currentUser || !supabaseReady()) return;
+
+    try {
+      const result =
+        await supabaseClient
+          .from("ig_customer_profiles")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .maybeSingle();
+
+      if (result.error) {
+        console.error(
+          "International Gateway: error cargando perfil",
+          result.error
+        );
+        return;
+      }
+
+      profile = result.data || null;
+
+      if (!profile) {
+        const insertResult =
+          await supabaseClient
+            .from("ig_customer_profiles")
+            .insert({
+              user_id: currentUser.id,
+              full_name:
+                currentUser.user_metadata &&
+                currentUser.user_metadata.full_name
+                  ? currentUser.user_metadata.full_name
+                  : "",
+              phone:
+                currentUser.user_metadata &&
+                currentUser.user_metadata.phone
+                  ? currentUser.user_metadata.phone
+                  : "",
+              email: currentUser.email || ""
+            })
+            .select("*")
+            .single();
+
+        if (!insertResult.error) {
+          profile = insertResult.data;
+        }
+      }
+
+    } catch (error) {
+      console.error(
+        "International Gateway: error de perfil",
+        error
+      );
+    }
+  }
+
+  async function saveProfile() {
+    if (!currentUser || !supabaseReady()) return;
+
+    const data = {
+      full_name:
+        document
+          .getElementById("igProfileName")
+          .value.trim(),
+
+      phone:
+        document
+          .getElementById("igProfilePhone")
+          .value.trim(),
+
+      address:
+        document
+          .getElementById("igProfileAddress")
+          .value.trim(),
+
+      address_number:
+        document
+          .getElementById("igProfileAddressNumber")
+          .value.trim(),
+
+      floor_department:
+        document
+          .getElementById("igProfileFloor")
+          .value.trim(),
+
+      locality:
+        document
+          .getElementById("igProfileLocality")
+          .value.trim(),
+
+      province:
+        document
+          .getElementById("igProfileProvince")
+          .value.trim(),
+
+      postal_code:
+        document
+          .getElementById("igProfilePostal")
+          .value.trim(),
+
+      country:
+        document
+          .getElementById("igProfileCountry")
+          .value.trim() || "Argentina",
+
+      delivery_notes:
+        document
+          .getElementById("igProfileNotes")
+          .value.trim(),
+
+      email: currentUser.email || ""
+    };
+
+    try {
+      const result =
+        await supabaseClient
+          .from("ig_customer_profiles")
+          .upsert(
+            {
+              user_id: currentUser.id,
+              ...data,
+              updated_at: new Date().toISOString()
+            },
+            {
+              onConflict: "user_id"
+            }
+          )
+          .select("*")
+          .single();
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      profile = result.data;
+
+      notify(
+        "Datos guardados correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+      notify(
+        "No se pudieron guardar los datos.",
+        "error"
+      );
+
+      console.error(
+        "International Gateway: error guardando perfil",
+        error
+      );
+    }
+  }
+
+  /* ---------------------------------------------------------
+     CUENTA LOGUEADA
+     --------------------------------------------------------- */
+
+  function renderLoggedAccount(container) {
+    const p = profile || {};
+
+    container.innerHTML = `
+      <div class="ig-account-section">
+
+        <h3>
+          Hola${p.full_name ? ", " + esc(p.full_name) : ""} 👋
+        </h3>
+
+        <p class="ig-account-muted">
+          Esta es tu cuenta de International Gateway.
+          Desde aquí podés consultar tus compras y
+          las actualizaciones de tus envíos.
+        </p>
+
+        <div class="ig-account-actions">
+
+          <button
+            class="ig-account-btn whatsapp"
+            type="button"
+            id="igAccountWhatsApp">
+            💬 Contactar por WhatsApp
+          </button>
+
+          <button
+            class="ig-account-btn danger"
+            type="button"
+            id="igAccountLogout">
+            Cerrar sesión
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="ig-account-section">
+
+        <h3>📋 Mis datos</h3>
+
+        <div class="ig-account-grid">
+
+          <div class="ig-account-field full">
+            <label>Nombre completo</label>
+            <input
+              id="igProfileName"
+              type="text"
+              value="${esc(p.full_name || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Teléfono</label>
+            <input
+              id="igProfilePhone"
+              type="tel"
+              value="${esc(p.phone || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Correo electrónico</label>
+            <input
+              type="email"
+              value="${esc(currentUser.email || "")}"
+              disabled>
+          </div>
+
+          <div class="ig-account-field">
+            <label>Dirección</label>
+            <input
+              id="igProfileAddress"
+              type="text"
+              value="${esc(p.address || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Número</label>
+            <input
+              id="igProfileAddressNumber"
+              type="text"
+              value="${esc(p.address_number || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Piso / Departamento</label>
+            <input
+              id="igProfileFloor"
+              type="text"
+              value="${esc(p.floor_department || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Localidad</label>
+            <input
+              id="igProfileLocality"
+              type="text"
+              value="${esc(p.locality || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Provincia</label>
+            <input
+              id="igProfileProvince"
+              type="text"
+              value="${esc(p.province || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>Código postal</label>
+            <input
+              id="igProfilePostal"
+              type="text"
+              value="${esc(p.postal_code || "")}">
+          </div>
+
+          <div class="ig-account-field">
+            <label>País</label>
+            <input
+              id="igProfileCountry"
+              type="text"
+              value="${esc(p.country || "Argentina")}">
+          </div>
+
+          <div class="ig-account-field full">
+            <label>Indicaciones de entrega</label>
+            <input
+              id="igProfileNotes"
+              type="text"
+              value="${esc(p.delivery_notes || "")}">
+          </div>
+
+        </div>
+
+        <div class="ig-account-actions">
+
+          <button
+            class="ig-account-btn"
+            type="button"
+            id="igAccountSaveProfile">
+            💾 Guardar mis datos
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="ig-account-section">
+
+        <h3>📦 Mis compras</h3>
+
+        <div id="igCustomerOrders">
+          <div class="ig-account-empty">
+            Cargando pedidos…
+          </div>
+        </div>
+
+      </div>
+    `;
+
+    document
+      .getElementById("igAccountLogout")
+      .addEventListener("click", logout);
+
+    document
+      .getElementById("igAccountSaveProfile")
+      .addEventListener("click", saveProfile);
+
+    document
+      .getElementById("igAccountWhatsApp")
+      .addEventListener("click", openWhatsApp);
+
+    loadOrders();
+  }
+
+  /* ---------------------------------------------------------
+     PEDIDOS DEL CLIENTE
+     --------------------------------------------------------- */
+
+  async function loadOrders() {
+    if (!currentUser || !supabaseReady()) return;
+
+    const container =
+      document.getElementById("igCustomerOrders");
+
+    try {
+      const result =
+        await supabaseClient.rpc(
+          "ig_get_my_customer_orders"
+        );
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const orders =
+        Array.isArray(result.data)
+          ? result.data
+          : [];
+
+      renderOrders(orders);
+
+      updateQuoteBadge(orders);
+
+    } catch (error) {
+      console.error(
+        "International Gateway: error cargando pedidos",
+        error
+      );
+
+      if (container) {
+        container.innerHTML = `
+          <div class="ig-account-error">
+            No se pudieron cargar tus pedidos en este momento.
+          </div>
+        `;
+      }
+    }
+  }
+
+  function renderOrders(orders) {
+    const container =
+      document.getElementById("igCustomerOrders");
+
+    if (!container) return;
+
+    if (!orders.length) {
+      container.innerHTML = `
+        <div class="ig-account-empty">
+          <div style="font-size:35px;margin-bottom:8px;">
+            📦
+          </div>
+          <strong>Todavía no tenés compras asociadas.</strong>
+          <p class="ig-account-muted">
+            Cuando realices una compra usando el mismo
+            correo de tu cuenta, podremos vincularla.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = orders
+      .map(renderOrder)
+      .join("");
+  }
+
+  function renderOrder(order) {
+    const items =
+      Array.isArray(order.items)
+        ? order.items
+        : [];
+
+    const shipping =
+      order.shipping || null;
+
+    let itemsHtml = "";
+
+    if (items.length) {
+      itemsHtml = items
+        .map(function (item) {
+          return `
+            <div class="ig-account-item">
+              <span>
+                ${esc(item.product_name)}
+                × ${Number(item.quantity || 0)}
+              </span>
+              <strong>
+                ${money(item.subtotal)}
+              </strong>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    let shippingHtml = "";
+
+    if (shipping) {
+      const quoted =
+        shipping.status === "quoted" ||
+        shipping.status === "accepted";
+
+      shippingHtml = `
+        <div class="ig-account-shipping ${
+          quoted ? "" : "pending"
+        }">
+
+          <strong>
+            🚚 Envío:
+            ${esc(shippingStatusLabel(shipping.status))}
+          </strong>
+
+          <div style="margin-top:7px;">
+            ${
+              quoted
+                ? "Costo de envío: <strong>" +
+                  money(shipping.shipping_cost) +
+                  "</strong>"
+                : "El administrador todavía está calculando el costo del envío."
+            }
+          </div>
+
+          ${
+            quoted
+              ? `
+                <div style="margin-top:5px;">
+                  Total actualizado:
+                  <strong>
+                    ${money(
+                      Number(order.subtotal || 0) +
+                      Number(shipping.shipping_cost || 0)
+                    )}
+                  </strong>
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            shipping.admin_notes
+              ? `
+                <div class="ig-account-note">
+                  <strong>Mensaje del administrador:</strong><br>
+                  ${esc(shipping.admin_notes)}
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+      `;
+    }
+
+    const date =
+      order.created_at
+        ? new Date(order.created_at).toLocaleString(
+            "es-AR",
+            {
+              dateStyle: "medium",
+              timeStyle: "short"
+            }
+          )
+        : "";
+
+    return `
+      <div class="ig-account-order">
+
+        <div class="ig-account-order-head">
+
+          <div>
+            <div class="ig-account-order-number">
+              Pedido #${esc(order.order_number)}
+            </div>
+
+            <div class="ig-account-muted">
+              ${esc(date)}
+            </div>
+          </div>
+
+          <div>
+            <span class="ig-account-status">
+              ${esc(statusLabel(order.order_status))}
+            </span>
+          </div>
+
+        </div>
+
+        <div>
+          ${itemsHtml}
+        </div>
+
+        <div class="ig-account-total">
+          Productos:
+          ${money(order.subtotal)}
+        </div>
+
+        ${shippingHtml}
+
+        <div class="ig-account-actions">
+
+          <button
+            class="ig-account-btn whatsapp"
+            type="button"
+            data-ig-order="${esc(order.order_number)}">
+            💬 Consultar este pedido
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+  /* ---------------------------------------------------------
+     VINCULAR PEDIDO CONFIRMADO CON LA CUENTA
+     
+     No toca showConfirmation().
+     Observa únicamente el número mostrado en:
+     #confirmationNumber
+     --------------------------------------------------------- */
+
+  async function linkVisibleConfirmationOrder() {
+    if (!currentUser || !supabaseReady()) return;
+
+    const confirmation =
+      document.getElementById("confirmationNumber");
+
+    if (!confirmation) return;
+
+    const text =
+      confirmation.textContent || "";
+
+    const match =
+      text.match(/#?\s*(\d+)/);
+
+    if (!match) return;
+
+    const orderNumber =
+      Number(match[1]);
+
+    if (!Number.isFinite(orderNumber)) return;
+
+    try {
+      const result =
+        await supabaseClient.rpc(
+          "ig_link_order_by_number_current_customer",
+          {
+            p_order_number: orderNumber
+          }
+        );
+
+      if (result.error) {
+        console.warn(
+          "International Gateway: no se pudo vincular el pedido",
+          result.error
+        );
+        return;
+      }
+
+      if (result.data === true) {
+        console.log(
+          "International Gateway: pedido vinculado a la cuenta.",
+          orderNumber
+        );
+      }
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: error vinculando pedido",
+        error
+      );
+    }
+  }
+
+  /* ---------------------------------------------------------
+     OBSERVAR CONFIRMACIÓN SIN INTERVENIR EN CHECKOUT
+     --------------------------------------------------------- */
+
+  function watchConfirmation() {
+    const observer =
+      new MutationObserver(function () {
+        if (currentUser) {
+          linkVisibleConfirmationOrder();
+        }
+      });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    window.__IG_CUSTOMER_ACCOUNT_CONFIRMATION_OBSERVER =
+      observer;
+  }
+
+  /* ---------------------------------------------------------
+     BADGE DE COTIZACIÓN
+     --------------------------------------------------------- */
+
+  function updateQuoteBadge(orders) {
+    const badge =
+      document.getElementById(
+        "igCustomerAccountBadge"
+      );
+
+    if (!badge) return;
+
+    const hasQuote =
+      orders.some(function (order) {
+        return (
+          order.shipping &&
+          order.shipping.status === "quoted"
+        );
+      });
+
+    badge.style.display =
+      hasQuote ? "inline-block" : "none";
+  }
+
+  /* ---------------------------------------------------------
+     WHATSAPP
+     --------------------------------------------------------- */
+
+  function openWhatsApp(orderNumber) {
+    let message =
+      "Hola International Gateway. ";
+
+    if (orderNumber) {
+      message +=
+        "Quiero consultar mi pedido #" +
+        orderNumber +
+        ".";
+    } else {
+      message +=
+        "Quiero consultar mi cuenta y mi pedido.";
+    }
+
+    const url =
+      "https://wa.me/" +
+      WHATSAPP_NUMBER +
+      "?text=" +
+      encodeURIComponent(message);
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  /* ---------------------------------------------------------
+     DELEGACIÓN DE BOTONES DE PEDIDOS
+     --------------------------------------------------------- */
+
+  document.addEventListener("click", function (event) {
+    const button =
+      event.target.closest(
+        "[data-ig-order]"
+      );
+
+    if (!button) return;
+
+    const orderNumber =
+      button.getAttribute(
+        "data-ig-order"
+      );
+
+    openWhatsApp(orderNumber);
+  });
+
+  /* ---------------------------------------------------------
+     SESIÓN INICIAL
+     --------------------------------------------------------- */
+
+  async function initializeAuth() {
+    if (!supabaseReady()) {
+      setTimeout(initializeAuth, 500);
+      return;
+    }
+
+    try {
+      const result =
+        await supabaseClient.auth.getUser();
+
+      if (
+        result.data &&
+        result.data.user
+      ) {
+        currentUser =
+          result.data.user;
+
+        await loadProfile();
+
+        if (accountOpen) {
+          renderAccount();
+        }
+
+        await linkVisibleConfirmationOrder();
+      }
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: no se pudo comprobar la sesión.",
+        error
+      );
+    }
+
+    try {
+      const authResult =
+        supabaseClient.auth.onAuthStateChange(
+          function (event, session) {
+
+            currentUser =
+              session && session.user
+                ? session.user
+                : null;
+
+            if (!currentUser) {
+              profile = null;
+            }
+
+            updateAccountButton();
+
+            if (accountOpen) {
+              setTimeout(function () {
+                if (currentUser) {
+                  loadProfile().then(function () {
+                    renderAccount();
+                    linkVisibleConfirmationOrder();
+                  });
+                } else {
+                  renderAccount();
+                }
+              }, 0);
+            }
+
+          }
+        );
+
+      authSubscription =
+        authResult.data &&
+        authResult.data.subscription
+          ? authResult.data.subscription
+          : null;
+
+    } catch (error) {
+      console.warn(
+        "International Gateway: no se pudo registrar el listener de Auth.",
+        error
+      );
+    }
+  }
+
+  function updateAccountButton() {
+    const button =
+      document.getElementById(
+        "igCustomerAccountButton"
+      );
+
+    if (!button) return;
+
+    button.innerHTML =
+      currentUser
+        ? "👤 Mi cuenta <span id=\"igCustomerAccountBadge\"></span>"
+        : "👤 Mi cuenta <span id=\"igCustomerAccountBadge\"></span>";
+  }
+
+  /* ---------------------------------------------------------
+     ACTUALIZACIÓN PERIÓDICA
+     --------------------------------------------------------- */
+
+  function startRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+
+    refreshTimer =
+      setInterval(function () {
+
+        if (
+          currentUser &&
+          accountOpen
+        ) {
+          loadProfile();
+          loadOrders();
+          linkVisibleConfirmationOrder();
+        }
+
+      }, 15000);
+  }
+
+  /* ---------------------------------------------------------
+     ARRANQUE
+     --------------------------------------------------------- */
+
+  function start() {
+    injectStyles();
+    createInterface();
+    watchConfirmation();
+    startRefresh();
+    updateAccountButton();
+    initializeAuth();
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      start,
+      { once: true }
+    );
+  } else {
+    start();
+  }
+
+})();
+</script> 
 </body>
 </html>
