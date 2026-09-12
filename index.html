@@ -20913,5 +20913,27 @@ body.ig-splash-lock{
 
 })();
 </script> 
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — CORRECCIÓN POSICIÓN MI CUENTA
+     Solo cambia la posición visual del botón.
+     No modifica carrito, checkout, Supabase ni funciones.
+     ========================================================= -->
+<style id="igCustomerAccountPositionFix">
+  #igCustomerAccountButton{
+    top:auto !important;
+    right:auto !important;
+    left:14px !important;
+    bottom:90px !important;
+  }
+
+  @media(max-width:600px){
+    #igCustomerAccountButton{
+      top:auto !important;
+      right:auto !important;
+      left:10px !important;
+      bottom:90px !important;
+    }
+  }
+</style>
 </body>
 </html>
