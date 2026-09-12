@@ -21643,5 +21643,229 @@ body.ig-splash-lock{
 
 })();
 </script><!-- FIN CENTRO DE NOTIFICACIONES -->
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     REPARACIÓN DEFINITIVA:
+     CONFIRMAR COTIZACIÓN → NOTIFICACIÓN DEL CLIENTE
+     
+     V2 — independiente
+     No modifica checkout, carrito, productos ni cuentas.
+     ========================================================= --><script>
+(function () {
+  "use strict";
+
+  if (window.__IG_SHIPPING_NOTIFICATION_BRIDGE_V2) return;
+  window.__IG_SHIPPING_NOTIFICATION_BRIDGE_V2 = true;
+
+  const processedClicks = new Set();
+
+  function money(value) {
+    const number = Number(value) || 0;
+
+    try {
+      return number.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 2
+      });
+    } catch (error) {
+      return "$ " + number.toFixed(2);
+    }
+  }
+
+  function extraerDatosBoton(button) {
+    if (!button) return null;
+
+    const onclick =
+      button.getAttribute("onclick") || "";
+
+    /*
+     * Busca:
+     * igConfirmShipping('ORDER_ID','QUOTE_ID')
+     */
+    const match = onclick.match(
+      /igConfirmShipping\s*\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*/i
+    );
+
+    if (!match) return null;
+
+    return {
+      orderId: match[1],
+      quoteId: match[2]
+    };
+  }
+
+  async function crearNotificacion(orderId, quoteId) {
+    try {
+      if (!orderId || !quoteId) return;
+
+      if (
+        typeof supabaseClient === "undefined" ||
+        !supabaseClient
+      ) {
+        console.warn(
+          "IG Notificaciones: Supabase no disponible."
+        );
+        return;
+      }
+
+      /*
+       * Esperamos a que el administrador termine
+       * de guardar la cotización.
+       */
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 1800);
+      });
+
+      const quoteResult =
+        await supabaseClient
+          .from("ig_shipping_quotes")
+          .select(
+            "shipping_cost,status,order_id"
+          )
+          .eq("id", quoteId)
+          .eq("order_id", orderId)
+          .maybeSingle();
+
+      if (quoteResult.error) {
+        console.error(
+          "IG Notificaciones: error leyendo cotización:",
+          quoteResult.error
+        );
+        return;
+      }
+
+      const quote = quoteResult.data;
+
+      if (!quote) {
+        console.warn(
+          "IG Notificaciones: no se encontró la cotización."
+        );
+        return;
+      }
+
+      /*
+       * Solo notificamos cuando realmente está confirmada.
+       */
+      if (quote.status !== "quoted") {
+        console.warn(
+          "IG Notificaciones: la cotización todavía no está confirmada."
+        );
+        return;
+      }
+
+      const cost =
+        Number(quote.shipping_cost) || 0;
+
+      const title =
+        "🚚 Cotización de envío disponible";
+
+      const message =
+        cost > 0
+          ? "El administrador confirmó el costo de envío de tu pedido: " +
+            money(cost) +
+            ". Puedes consultar los detalles desde Mi cuenta."
+          : "El administrador actualizó la cotización de envío de tu pedido. " +
+            "Puedes consultar los detalles desde Mi cuenta.";
+
+      const notificationResult =
+        await supabaseClient.rpc(
+          "ig_notify_customer_order_update",
+          {
+            p_order_id: orderId,
+            p_title: title,
+            p_message: message,
+            p_type: "shipping_quote"
+          }
+        );
+
+      if (notificationResult.error) {
+        console.error(
+          "IG Notificaciones: error creando aviso:",
+          notificationResult.error
+        );
+        return;
+      }
+
+      console.log(
+        "IG Notificaciones: aviso creado correctamente.",
+        notificationResult.data
+      );
+
+    } catch (error) {
+      console.error(
+        "IG Notificaciones: error inesperado:",
+        error
+      );
+    }
+  }
+
+  /*
+   * Capturamos directamente los clics del administrador.
+   *
+   * Esto funciona aunque la función original haya sido
+   * definida por otro script.
+   */
+  document.addEventListener(
+    "click",
+    function (event) {
+
+      const button =
+        event.target.closest(
+          'button[onclick*="igConfirmShipping"]'
+        );
+
+      if (!button) return;
+
+      const data =
+        extraerDatosBoton(button);
+
+      if (!data) return;
+
+      const clickKey =
+        data.orderId +
+        "|" +
+        data.quoteId +
+        "|" +
+        Date.now();
+
+      /*
+       * Evita dobles ejecuciones accidentales
+       * en el mismo instante.
+       */
+      if (processedClicks.has(clickKey)) {
+        return;
+      }
+
+      processedClicks.add(clickKey);
+
+      /*
+       * Limpiamos memoria después de unos segundos.
+       */
+      setTimeout(function () {
+        processedClicks.delete(clickKey);
+      }, 10000);
+
+      /*
+       * Dejamos que el código original del administrador
+       * haga su trabajo primero.
+       */
+      setTimeout(function () {
+        crearNotificacion(
+          data.orderId,
+          data.quoteId
+        );
+      }, 2200);
+
+    },
+    true
+  );
+
+  console.log(
+    "International Gateway: puente V2 de cotizaciones → campanita activo."
+  );
+
+})();
+</script><!-- FIN REPARACIÓN V2 -->
 </body>
 </html>
