@@ -21867,30 +21867,31 @@ body.ig-splash-lock{
 
 })();
 </script><!-- FIN REPARACIÓN V2 -->
-<!-- INTERNATIONAL GATEWAY · BUSCAR CRÉDITO EXTERNO -->
+
+     <!-- INTERNATIONAL GATEWAY · BUSCADOR DE CRÉDITOS EXTERNO -->
 <script>
 (function () {
   "use strict";
 
-  if (window.__IG_EXTERNAL_CREDIT_BUTTON_V3) return;
-  window.__IG_EXTERNAL_CREDIT_BUTTON_V3 = true;
+  if (window.__IG_EXTERNAL_CREDIT_SEARCH_V1) return;
+  window.__IG_EXTERNAL_CREDIT_SEARCH_V1 = true;
 
-  function crearBotonCredito() {
-    if (document.getElementById("igExternalCreditButton")) return;
+  function crearBuscadorCredito() {
+    if (document.getElementById("igExternalCreditSearch")) return;
 
     const button = document.createElement("a");
 
-    button.id = "igExternalCreditButton";
-    button.href = "https://www.bcra.gob.ar/regimen-de-transparencia/";
+    button.id = "igExternalCreditSearch";
+    button.href = "https://www.prestamosfrescos.com/ar/";
     button.target = "_blank";
     button.rel = "noopener noreferrer";
+    button.title = "Buscar y comparar créditos";
     button.setAttribute(
       "aria-label",
-      "Buscar créditos"
+      "Buscar y comparar créditos"
     );
-    button.title = "Buscar crédito";
 
-    button.innerHTML = "💰 Crédito";
+    button.innerHTML = "🔎 Crédito";
 
     button.style.cssText = `
       position:fixed;
@@ -21900,15 +21901,15 @@ body.ig-splash-lock{
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:6px 9px;
-      border-radius:14px;
+      padding:5px 8px;
+      border-radius:12px;
       background:var(--primary, #2563eb);
       color:#fff;
       text-decoration:none;
       font-weight:600;
-      font-size:11px;
+      font-size:10px;
       line-height:1;
-      box-shadow:0 3px 10px rgba(0,0,0,.16);
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
       white-space:nowrap;
     `;
 
@@ -21916,13 +21917,15 @@ body.ig-splash-lock{
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", crearBotonCredito, {
-      once: true
-    });
+    document.addEventListener(
+      "DOMContentLoaded",
+      crearBuscadorCredito,
+      { once: true }
+    );
   } else {
-    crearBotonCredito();
+    crearBuscadorCredito();
   }
 })();
-</script>
+</script> 
 </body>
 </html>
