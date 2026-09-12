@@ -21867,5 +21867,76 @@ body.ig-splash-lock{
 
 })();
 </script><!-- FIN REPARACIÓN V2 -->
+<!-- INTERNATIONAL GATEWAY · BUSCAR CRÉDITO EXTERNO -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__IG_EXTERNAL_CREDIT_BUTTON_V2) return;
+  window.__IG_EXTERNAL_CREDIT_BUTTON_V2 = true;
+
+  function crearBotonCredito() {
+    if (document.getElementById("igExternalCreditButton")) return;
+
+    const button = document.createElement("a");
+
+    button.id = "igExternalCreditButton";
+    button.href = "https://www.bcra.gob.ar/regimen-de-transparencia/";
+    button.target = "_blank";
+    button.rel = "noopener noreferrer";
+    button.setAttribute(
+      "aria-label",
+      "Buscar créditos en el sitio oficial del BCRA"
+    );
+    button.title = "Buscar crédito";
+
+    button.innerHTML = `
+      <span aria-hidden="true">💰</span>
+      <span>Buscar crédito</span>
+    `;
+
+    button.style.cssText = `
+      position:fixed;
+      top:16px;
+      left:33.333%;
+      transform:translateX(-50%);
+      z-index:9997;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:var(--primary, #2563eb);
+      color:#fff;
+      text-decoration:none;
+      font-weight:700;
+      font-size:13px;
+      line-height:1;
+      box-shadow:0 5px 16px rgba(0,0,0,.20);
+      transition:transform .2s ease, opacity .2s ease;
+      white-space:nowrap;
+    `;
+
+    button.addEventListener("mouseenter", function () {
+      button.style.transform = "translateX(-50%) translateY(-2px)";
+    });
+
+    button.addEventListener("mouseleave", function () {
+      button.style.transform = "translateX(-50%) translateY(0)";
+    });
+
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", crearBotonCredito, {
+      once: true
+    });
+  } else {
+    crearBotonCredito();
+  }
+})();
+</script>
 </body>
 </html>
