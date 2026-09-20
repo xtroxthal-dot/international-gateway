@@ -23957,5 +23957,392 @@ body.ig-splash-lock{
 
 })();
 </script>
+
+  <!-- =========================================================
+     REPARADOR PORTADA — GRANJA LO DE NICO
+     Foto grande + zona negra inferior para textos
+     ========================================================= -->
+
+<style id="ig-granja-cover-repair">
+
+/* =========================================================
+   PORTADA COMPLETA
+   ========================================================= */
+
+#igGranjaCategorySection{
+  padding:25px 0 15px !important;
+}
+
+#igGranjaCategoryCard{
+  position:relative !important;
+  overflow:hidden !important;
+
+  /* Más grande y más alta */
+  min-height:520px !important;
+  height:520px !important;
+
+  background:#000 !important;
+  border-radius:18px !important;
+
+  box-shadow:0 8px 28px rgba(0,0,0,.18) !important;
+
+  cursor:pointer !important;
+  isolation:isolate !important;
+
+  display:block !important;
+}
+
+
+/* =========================================================
+   FOTO
+   ========================================================= */
+
+#igGranjaCategoryCard img{
+  position:absolute !important;
+
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+
+  /* La foto ocupa la parte superior */
+  width:100% !important;
+  height:68% !important;
+
+  object-fit:cover !important;
+  object-position:center center !important;
+
+  z-index:0 !important;
+
+  display:block !important;
+
+  transform:none !important;
+}
+
+
+/* Eliminar completamente el degradado anterior */
+
+#igGranjaCategoryCard::after{
+  display:none !important;
+  content:none !important;
+}
+
+
+/* =========================================================
+   ZONA NEGRA INFERIOR
+   ========================================================= */
+
+#igGranjaCategoryContent{
+  position:absolute !important;
+
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+
+  top:68% !important;
+
+  min-height:32% !important;
+
+  padding:20px 25px 22px !important;
+
+  background:#000 !important;
+
+  color:#fff !important;
+
+  z-index:3 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  justify-content:center !important;
+  align-items:center !important;
+
+  text-align:center !important;
+}
+
+
+/* =========================================================
+   TEXTO PEQUEÑO
+   ========================================================= */
+
+#igGranjaCategoryContent .ig-granja-kicker{
+  margin:0 0 5px !important;
+
+  color:#fff !important;
+
+  font-size:12px !important;
+  font-weight:700 !important;
+
+  text-transform:uppercase !important;
+  letter-spacing:2px !important;
+
+  opacity:.85 !important;
+}
+
+
+/* =========================================================
+   TÍTULO
+   ========================================================= */
+
+#igGranjaCategoryContent h2{
+  margin:0 0 7px !important;
+
+  color:#fff !important;
+
+  font-size:clamp(28px,5vw,42px) !important;
+
+  line-height:1.05 !important;
+
+  font-weight:800 !important;
+
+  text-align:center !important;
+}
+
+
+/* =========================================================
+   DESCRIPCIÓN
+   ========================================================= */
+
+#igGranjaCategoryContent p{
+  margin:0 0 12px !important;
+
+  max-width:700px !important;
+
+  color:#fff !important;
+
+  font-size:14px !important;
+
+  line-height:1.4 !important;
+
+  text-align:center !important;
+}
+
+
+/* =========================================================
+   BOTÓN
+   ========================================================= */
+
+#igGranjaCategoryButton{
+  display:inline-flex !important;
+
+  align-items:center !important;
+  justify-content:center !important;
+
+  min-height:40px !important;
+
+  padding:8px 16px !important;
+
+  border-radius:8px !important;
+
+  background:#fff !important;
+
+  color:#111 !important;
+
+  font-weight:700 !important;
+
+  text-decoration:none !important;
+}
+
+
+/* =========================================================
+   CELULARES
+   ========================================================= */
+
+@media(max-width:700px){
+
+  #igGranjaCategoryCard{
+    min-height:500px !important;
+    height:500px !important;
+
+    border-radius:15px !important;
+  }
+
+  #igGranjaCategoryCard img{
+    height:64% !important;
+  }
+
+  #igGranjaCategoryContent{
+    top:64% !important;
+
+    min-height:36% !important;
+
+    padding:17px 16px 19px !important;
+  }
+
+  #igGranjaCategoryContent .ig-granja-kicker{
+    font-size:10px !important;
+    letter-spacing:1.5px !important;
+    margin-bottom:4px !important;
+  }
+
+  #igGranjaCategoryContent h2{
+    font-size:27px !important;
+    margin-bottom:6px !important;
+  }
+
+  #igGranjaCategoryContent p{
+    font-size:13px !important;
+    line-height:1.3 !important;
+    margin-bottom:9px !important;
+  }
+
+  #igGranjaCategoryButton{
+    min-height:38px !important;
+    padding:7px 14px !important;
+    font-size:13px !important;
+  }
+
+}
+
+
+/* =========================================================
+   PANTALLAS MUY PEQUEÑAS
+   ========================================================= */
+
+@media(max-width:380px){
+
+  #igGranjaCategoryCard{
+    min-height:470px !important;
+    height:470px !important;
+  }
+
+  #igGranjaCategoryCard img{
+    height:62% !important;
+  }
+
+  #igGranjaCategoryContent{
+    top:62% !important;
+    min-height:38% !important;
+    padding:14px 12px !important;
+  }
+
+  #igGranjaCategoryContent h2{
+    font-size:24px !important;
+  }
+
+}
+
+</style>
+
+<script>
+/* =========================================================
+   REPARADOR DE PORTADA — GRADIENTE Y POSICIÓN
+   ========================================================= */
+
+(function(){
+
+  "use strict";
+
+  function repararPortadaGranja(){
+
+    const card =
+      document.getElementById(
+        "igGranjaCategoryCard"
+      );
+
+    const image =
+      card?.querySelector("img");
+
+    const content =
+      document.getElementById(
+        "igGranjaCategoryContent"
+      );
+
+    if(!card || !image || !content){
+      return;
+    }
+
+    /* Asegurar que la foto sea la portada */
+    image.style.display = "block";
+
+    /* Eliminar cualquier degradado anterior */
+    card.style.background = "#000";
+
+    /* El texto queda en la zona negra */
+    content.style.background = "#000";
+
+    /* Marcar como reparado */
+    card.dataset.granjaCoverRepaired = "1";
+  }
+
+
+  /*
+   * La categoría se genera dinámicamente,
+   * por eso esperamos a que exista.
+   */
+
+  function iniciar(){
+
+    repararPortadaGranja();
+
+    setTimeout(
+      repararPortadaGranja,
+      300
+    );
+
+    setTimeout(
+      repararPortadaGranja,
+      800
+    );
+
+    setTimeout(
+      repararPortadaGranja,
+      1500
+    );
+  }
+
+
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {once:true}
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+
+  /*
+   * Si la aplicación vuelve a generar
+   * la portada, la reparación se aplica
+   * nuevamente automáticamente.
+   */
+
+  const observer =
+    new MutationObserver(function(){
+
+      repararPortadaGranja();
+
+    });
+
+
+  function observar(){
+
+    if(!document.body){
+      return;
+    }
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+  observar();
+
+})();
+
+</script>
 </body>
 </html>
