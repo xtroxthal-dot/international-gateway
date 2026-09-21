@@ -2848,10 +2848,16 @@ function openAdminPanel(){
           "🔔 Activar notificaciones de pedidos";
 
         if (typeof showToast === "function") {
-          showToast(
-            "⚠️ No se pudieron activar las notificaciones."
-          );
-        }
+  showToast(
+    "⚠️ " +
+    (
+      error &&
+      error.message
+        ? error.message
+        : "Error desconocido al activar las notificaciones."
+    )
+  );
+}
 
       }
 
