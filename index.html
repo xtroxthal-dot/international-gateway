@@ -29775,6 +29775,61 @@ body.ig-splash-lock{
 
 })();
 </script>
-  
+  <script>
+(function () {
+  function aplicarFiltroInternationalGateway() {
+    const container = document.getElementById("productsContainer");
+    if (!container) return;
+
+    const normalizar = (valor) =>
+      String(valor || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    container
+      .querySelectorAll(".product-card")
+      .forEach(card => {
+        const categoria = card.querySelector(".product-category");
+
+        if (!categoria) {
+          card.style.display = "";
+          return;
+        }
+
+        const nombreCategoria = normalizar(categoria.textContent);
+
+        if (
+          nombreCategoria === "sin categoria" ||
+          nombreCategoria === ""
+        ) {
+          card.style.display = "";
+        } else {
+          card.style.display = "none";
+        }
+      });
+  }
+
+  const containerOriginal =
+    document.getElementById("productsContainer");
+
+  if (containerOriginal) {
+    const observador = new MutationObserver(() => {
+      aplicarFiltroInternationalGateway();
+    });
+
+    observador.observe(containerOriginal, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  window.addEventListener("load", () => {
+    setTimeout(aplicarFiltroInternationalGateway, 1000);
+    setTimeout(aplicarFiltroInternationalGateway, 2500);
+  });
+})();
+</script>
 </body>
 </html>
