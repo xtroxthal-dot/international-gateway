@@ -14957,6 +14957,12 @@ body.ig-splash-lock{
   updateCounter();
 
 }
+    
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
     document.addEventListener(
       "DOMContentLoaded",
       start,
@@ -14968,7 +14974,6 @@ body.ig-splash-lock{
     start();
 
   }
-
 
 })();
 </script>
