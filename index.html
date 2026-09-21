@@ -14885,49 +14885,81 @@ body.ig-splash-lock{
 
   function start(){
 
-    loadFavorites();
+  loadFavorites();
 
-    createLauncher();
+  createLauncher();
 
-    createPanel();
-
-    /*
-     * Intento inmediato.
-     */
-    installHearts();
+  createPanel();
 
 
-    /*
-     * El renderProducts() puede ejecutarse
-     * después. Estos intentos son ligeros y
-     * no crean MutationObserver.
-     */
-    setTimeout(
-      installHearts,
-      100
-    );
+  /*
+   * Instalar inmediatamente si
+   * ya existen productos.
+   */
+  installHearts();
 
-    setTimeout(
-      installHearts,
-      500
-    );
 
-    setTimeout(
-      installHearts,
-      1200
+  /*
+   * Vigilar el contenedor de productos.
+   *
+   * Cuando renderProducts() o cualquier
+   * módulo vuelva a crear las tarjetas,
+   * los corazones se instalarán automáticamente.
+   */
+  const productsContainer =
+    document.getElementById(
+      "productsContainer"
     );
 
 
-    updateCounter();
+  if(productsContainer){
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          installHearts();
+
+        }
+      );
+
+
+    observer.observe(
+      productsContainer,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
 
   }
 
 
-  if(
-    document.readyState ===
-    "loading"
-  ){
+  /*
+   * Segundo intento por si el contenedor
+   * aparece después del inicio.
+   */
+  setTimeout(
+    installHearts,
+    500
+  );
 
+
+  setTimeout(
+    installHearts,
+    1500
+  );
+
+
+  setTimeout(
+    installHearts,
+    3000
+  );
+
+
+  updateCounter();
+
+}
     document.addEventListener(
       "DOMContentLoaded",
       start,
