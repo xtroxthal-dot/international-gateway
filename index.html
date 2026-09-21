@@ -2773,11 +2773,73 @@ function openAdminPanel(){
     "dashboard"
   );
 
-  loadAdminData();
-  if (
-    typeof window.__IG_COMPROBAR_PUSH === "function"
-  ) {
-    window.__IG_COMPROBAR_PUSH();
+    loadAdminData();
+
+  if (!document.getElementById("igPushEnableBtn")) {
+
+    var pushButton = document.createElement("button");
+
+    pushButton.id = "igPushEnableBtn";
+    pushButton.type = "button";
+    pushButton.className = "button secondary";
+    pushButton.textContent =
+      "🔔 Activar notificaciones de pedidos";
+
+    pushButton.onclick = async function () {
+
+      if (!window.IGPush) {
+        alert("El sistema de notificaciones todavía no está disponible.");
+        return;
+      }
+
+      pushButton.disabled = true;
+      pushButton.textContent = "🔔 Activando…";
+
+      try {
+
+        await window.IGPush.enable();
+
+        pushButton.textContent =
+          "✅ Notificaciones activadas";
+
+        pushButton.style.display = "none";
+
+        if (typeof showToast === "function") {
+          showToast(
+            "🔔 Notificaciones de pedidos activadas."
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "[IG Push] Error:",
+          error
+        );
+
+        pushButton.disabled = false;
+        pushButton.textContent =
+          "🔔 Activar notificaciones de pedidos";
+
+        if (typeof showToast === "function") {
+          showToast(
+            "⚠️ No se pudieron activar las notificaciones."
+          );
+        }
+
+      }
+
+    };
+
+    var adminTopInner =
+      document.querySelector(
+        "#adminPanel .admin-top-inner"
+      );
+
+    if (adminTopInner) {
+      adminTopInner.appendChild(pushButton);
+    }
+
   }
 }
 
