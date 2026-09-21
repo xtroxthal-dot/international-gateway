@@ -25629,5 +25629,568 @@ body.ig-splash-lock{
 
 })();
 </script>
+<script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   REPARADOR DEFINITIVO DE CATEGORÍAS ESPECIALES
+
+   Repara:
+   - Granja lo de Nico
+   - Iberian Mediterránea
+
+   IMPORTANTE:
+   - No crea productos.
+   - No elimina productos.
+   - No modifica imágenes.
+   - No modifica precios.
+   - No modifica el guardado en Supabase.
+   - No modifica las categorías normales.
+   - Usa los productos que ya carga la aplicación.
+   ============================================================ */
+
+(function () {
+    "use strict";
+
+    const GRANJA = "Granja lo de Nico";
+    const IBERIAN = "Iberian Mediterránea";
+
+    function normalizar(valor) {
+        return String(valor || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase();
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * OBTENER LA LISTA REAL DE PRODUCTOS
+     * ----------------------------------------------------------
+     *
+     * La aplicación tiene:
+     *
+     *     let products = [];
+     *
+     * Por eso "window.products" no necesariamente existe.
+     *
+     * Buscamos la lista real mediante el estado de la aplicación
+     * y, si no está disponible directamente, observamos el DOM
+     * hasta que la aplicación haya terminado de cargar.
+     */
+
+    function obtenerProductosReales() {
+
+        /*
+         * Si la aplicación expuso products globalmente.
+         */
+        if (
+            Array.isArray(window.products)
+        ) {
+            return window.products;
+        }
+
+        /*
+         * Intentamos localizar una copia accesible
+         * creada por otros módulos de la aplicación.
+         */
+        const posibles = [
+            window.adminProducts,
+            window.allProducts,
+            window.loadedProducts,
+            window.currentProducts
+        ];
+
+        for (const lista of posibles) {
+            if (Array.isArray(lista)) {
+                return lista;
+            }
+        }
+
+        return [];
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * SINCRONIZAR LA LISTA REAL
+     * ----------------------------------------------------------
+     */
+
+    function sincronizarProductos() {
+
+        const lista = obtenerProductosReales();
+
+        if (!Array.isArray(lista) || !lista.length) {
+            return null;
+        }
+
+        /*
+         * Exponemos solamente una referencia a la misma lista.
+         * No hacemos una copia destructiva ni modificamos sus datos.
+         */
+        window.IG_PRODUCTOS_REALES = lista;
+
+        return lista;
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * FILTRAR CATEGORÍA
+     * ----------------------------------------------------------
+     */
+
+    function productosDeCategoria(categoria) {
+
+        const productos =
+            window.IG_PRODUCTOS_REALES ||
+            sincronizarProductos() ||
+            [];
+
+        const categoriaNormalizada =
+            normalizar(categoria);
+
+        return productos.filter(function (producto) {
+
+            return normalizar(
+                producto && producto.category
+            ) === categoriaNormalizada;
+
+        });
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * RECONSTRUIR LA REFERENCIA QUE NECESITAN LAS SECCIONES
+     * ESPECIALES
+     * ----------------------------------------------------------
+     */
+
+    function repararReferenciaProductos() {
+
+        const lista = sincronizarProductos();
+
+        if (!lista) {
+            return false;
+        }
+
+        /*
+         * Las funciones especiales existentes consultan
+         * window.products.
+         *
+         * Si todavía no existe, lo enlazamos con la lista real.
+         */
+        if (!Array.isArray(window.products)) {
+
+            try {
+
+                window.products = lista;
+
+            } catch (error) {
+
+                console.warn(
+                    "International Gateway: no se pudo exponer products.",
+                    error
+                );
+
+            }
+
+        }
+
+        return true;
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * RENDERIZADOR DE EMERGENCIA
+     * ----------------------------------------------------------
+     *
+     * Solo se utiliza si la función especial existente
+     * no consiguió renderizar correctamente.
+     */
+
+    function mostrarCategoria(categoria) {
+
+        repararReferenciaProductos();
+
+        const lista =
+            productosDeCategoria(categoria);
+
+        const container =
+            document.getElementById(
+                "productsContainer"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        /*
+         * Si la función específica de la aplicación existe,
+         * dejamos que ella trabaje primero.
+         */
+
+        if (
+            categoria === IBERIAN &&
+            typeof window.showIberianProducts === "function"
+        ) {
+
+            window.showIberianProducts();
+            return;
+
+        }
+
+        if (
+            categoria === GRANJA &&
+            typeof window.showGranjaProducts === "function"
+        ) {
+
+            window.showGranjaProducts();
+            return;
+
+        }
+
+        /*
+         * Si no existe una función específica para Granja,
+         * mostramos directamente los productos correspondientes.
+         */
+
+        if (!lista.length) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    <h3>
+                        ${escapeHtmlIG(categoria)}
+                        todavía no tiene productos
+                    </h3>
+
+                    <p>
+                        Los productos asignados a esta categoría
+                        aparecerán aquí automáticamente.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML =
+            lista.map(renderProductoIG).join("");
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * ESCAPAR HTML
+     * ----------------------------------------------------------
+     */
+
+    function escapeHtmlIG(valor) {
+
+        return String(valor ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * PRECIO
+     * ----------------------------------------------------------
+     */
+
+    function dineroIG(valor) {
+
+        if (
+            typeof window.money === "function"
+        ) {
+            return window.money(valor);
+        }
+
+        return new Intl.NumberFormat(
+            "es-AR",
+            {
+                style: "currency",
+                currency: "ARS",
+                maximumFractionDigits: 2
+            }
+        ).format(
+            Number(valor || 0)
+        );
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * RENDER DE PRODUCTO
+     * ----------------------------------------------------------
+     */
+
+    function renderProductoIG(producto) {
+
+        const imagen =
+            Array.isArray(producto.ig_product_images) &&
+            producto.ig_product_images.length
+                ? producto.ig_product_images[0]
+                : null;
+
+        const imagenHtml =
+            imagen && imagen.public_url
+
+                ? `
+                    <img
+                        src="${escapeHtmlIG(imagen.public_url)}"
+                        alt="${escapeHtmlIG(producto.name)}">
+                  `
+
+                : `
+                    <span>Sin imagen</span>
+                  `;
+
+        const disponible =
+            producto.available !== false;
+
+        return `
+            <article class="product-card">
+
+                <div class="product-image">
+                    ${imagenHtml}
+                </div>
+
+                <div class="product-content">
+
+                    <div class="product-category">
+                        ${escapeHtmlIG(producto.category || "")}
+                    </div>
+
+                    <h3>
+                        ${escapeHtmlIG(producto.name)}
+                    </h3>
+
+                    ${
+                        producto.description
+                            ? `
+                                <div class="product-description">
+                                    ${escapeHtmlIG(
+                                        producto.description
+                                    )}
+                                </div>
+                              `
+                            : ""
+                    }
+
+                    ${
+                        producto.characteristics
+                            ? `
+                                <div class="characteristics">
+                                    ${escapeHtmlIG(
+                                        producto.characteristics
+                                    )}
+                                </div>
+                              `
+                            : ""
+                    }
+
+                    <div class="price">
+                        ${dineroIG(producto.price)}
+                    </div>
+
+                    <button
+                        class="button full"
+                        onclick="addToCart('${escapeHtmlIG(producto.id)}')"
+                        ${disponible ? "" : "disabled"}>
+
+                        ${
+                            disponible
+                                ? "Agregar al carrito"
+                                : "Agotado"
+                        }
+
+                    </button>
+
+                </div>
+
+            </article>
+        `;
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * ASEGURAR QUE LAS FUNCIONES ESPECIALES VEAN LOS PRODUCTOS
+     * ----------------------------------------------------------
+     */
+
+    function instalarPuente() {
+
+        repararReferenciaProductos();
+
+        /*
+         * Granja.
+         */
+        if (
+            typeof window.showGranjaProducts !== "function"
+        ) {
+
+            window.showGranjaProducts =
+                function () {
+
+                    mostrarCategoria(GRANJA);
+
+                };
+
+        }
+
+        /*
+         * Iberian.
+         *
+         * Si ya existe, NO la sustituimos.
+         * El código original podrá utilizar ahora
+         * window.products correctamente.
+         */
+
+        if (
+            typeof window.showIberianProducts !== "function"
+        ) {
+
+            window.showIberianProducts =
+                function () {
+
+                    mostrarCategoria(IBERIAN);
+
+                };
+
+        }
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * BOTONES / TARJETAS DE LAS DOS CATEGORÍAS
+     * ----------------------------------------------------------
+     */
+
+    function conectarEventosEspeciales() {
+
+        /*
+         * Granja.
+         */
+        const granja =
+            document.getElementById(
+                "igGranjaCategoryCard"
+            );
+
+        if (granja) {
+
+            granja.onclick =
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    mostrarCategoria(GRANJA);
+
+                };
+
+        }
+
+
+        /*
+         * Iberian.
+         */
+        const iberian =
+            document.getElementById(
+                "igIberianCategoryCard"
+            );
+
+        if (iberian) {
+
+            iberian.onclick =
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    mostrarCategoria(IBERIAN);
+
+                };
+
+        }
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * OBSERVAR CARGA DINÁMICA
+     * ----------------------------------------------------------
+     */
+
+    function reparar() {
+
+        instalarPuente();
+
+        conectarEventosEspeciales();
+
+        sincronizarProductos();
+
+    }
+
+
+    /*
+     * Primera ejecución.
+     */
+
+    reparar();
+
+
+    /*
+     * La aplicación carga productos y módulos
+     * dinámicamente, así que volvemos a comprobar
+     * después de la carga.
+     */
+
+    setTimeout(reparar, 300);
+    setTimeout(reparar, 800);
+    setTimeout(reparar, 1500);
+    setTimeout(reparar, 3000);
+
+
+    /*
+     * Observador.
+     */
+
+    if (document.body) {
+
+        const observer =
+            new MutationObserver(function () {
+
+                reparar();
+
+            });
+
+        observer.observe(
+            document.body,
+            {
+                childList: true,
+                subtree: true
+            }
+        );
+    }
+
+
+    console.log(
+        "International Gateway: reparación de Granja lo de Nico e Iberian Mediterránea activa."
+    );
+
+})();
+</script>
+  
 </body>
 </html>
