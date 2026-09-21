@@ -18,8 +18,8 @@ self.addEventListener("push", function (event) {
 
   var url =
     data.url ||
-    "./";
-
+    
+"./?ig=open-orders";
   event.waitUntil(
     self.registration.showNotification(
       title,
@@ -68,7 +68,7 @@ self.addEventListener(
       (
         event.notification.data &&
         event.notification.data.url
-      ) || "./";
+      ) || "./?ig=open-orders";
 
 
     event.waitUntil(
