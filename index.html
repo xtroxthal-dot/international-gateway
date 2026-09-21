@@ -2787,9 +2787,35 @@ function openAdminPanel(){
 
     pushButton.onclick = async function () {
 
+            if (!window.IGPush) {
+
+        await new Promise(function (resolve, reject) {
+
+          var script =
+            document.createElement("script");
+
+          script.src = "./ig-push.js";
+
+          script.onload = resolve;
+
+          script.onerror = function () {
+            reject(
+              new Error(
+                "No se pudo cargar ig-push.js"
+              )
+            );
+          };
+
+          document.head.appendChild(script);
+
+        });
+
+      }
+
       if (!window.IGPush) {
-        alert("El sistema de notificaciones todavía no está disponible.");
-        return;
+        throw new Error(
+          "El sistema de notificaciones no está disponible."
+        );
       }
 
       pushButton.disabled = true;
