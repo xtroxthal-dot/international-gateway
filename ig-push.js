@@ -173,15 +173,19 @@
       result = await response.json();
     } catch (_) {}
 
-    if (!response.ok) {
+        if (
+      !response.ok ||
+      !result ||
+      result.ok !== true ||
+      result.verified !== true
+    ) {
       throw new Error(
         result.error ||
-        "No se pudo registrar este dispositivo."
+        "El servidor no confirmó el registro del dispositivo."
       );
     }
 
     return result;
-  }
 
   async function enableAdminPush() {
     const registration =
