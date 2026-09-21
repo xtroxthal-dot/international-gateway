@@ -6642,14 +6642,29 @@ init();
                 .trim()
             : "";
 
-        const esCategoriaEspecial =
+        const granjaActivo =
+  document
+    .getElementById("igGranjaFilterBar")
+    ?.classList.contains("ig-active") || false;
+
+const iberianActivo =
+  document
+    .getElementById("igIberianFilterBar")
+    ?.classList.contains("ig-iberian-active") || false;
+
+const especialActivo =
+  granjaActivo || iberianActivo;
+
+const esCategoriaEspecial =
   cardCategory === "Granja lo de Nico" ||
   cardCategory === "Iberian Mediterránea";
 
 const matches =
-  currentCategory === "all"
-    ? !esCategoriaEspecial
-    : cardCategory === currentCategory;
+  especialActivo
+    ? true
+    : currentCategory === "all"
+      ? !esCategoriaEspecial
+      : cardCategory === currentCategory;
 
         card.style.display =
           matches
