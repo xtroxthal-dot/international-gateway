@@ -29498,50 +29498,85 @@ body.ig-splash-lock{
 
     try {
 
-      var estado =
-        await window.IGPush.status();
+          var estado =
+      await window.IGPush.status();
 
-            if (
-        estado &&
-        estado.subscribed
-      ) {
+    if (
+      estado &&
+      estado.subscribed
+    ) {
+
+      if (activating) return;
+
+      activating = true;
+
+      try {
+
+        await window.IGPush.enable();
 
         button.style.display = "none";
-        return;
-      }
 
-      }
+        console.log(
+          "[IG Push] Suscripción local verificada y registrada."
+        );
 
-      if (
-        estado &&
-        estado.permission === "granted"
-      ) {
+      } catch (error) {
 
-        if (activating) return;
-
-        activating = true;
-
-        try {
-
-          await window.IGPush.enable();
-
-          button.style.display = "none";
-
-          console.log(
-            "[IG Push] Suscripción registrada."
-          );
-
-        } finally {
-
-          activating = false;
-
-        }
-
-      } else {
+        console.warn(
+          "[IG Push] Suscripción local no registrada en servidor:",
+          error
+        );
 
         button.style.display = "";
 
+      } finally {
+
+        activating = false;
+
       }
+
+      return;
+    }
+
+    if (
+      estado &&
+      estado.permission === "granted"
+    ) {
+
+      if (activating) return;
+
+      activating = true;
+
+      try {
+
+        await window.IGPush.enable();
+
+        button.style.display = "none";
+
+        console.log(
+          "[IG Push] Suscripción registrada."
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "[IG Push] No se pudo registrar la suscripción:",
+          error
+        );
+
+        button.style.display = "";
+
+      } finally {
+
+        activating = false;
+
+      }
+
+    } else {
+
+      button.style.display = "";
+
+    }
 
     } catch (error) {
 
