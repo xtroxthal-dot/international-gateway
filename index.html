@@ -29454,5 +29454,68 @@ body.ig-splash-lock{
 
     var observer =
       new MutationObserver(function ()
+<script>
+(function () {
+  "use strict";
+
+  function abrirPedidos() {
+    if (typeof showAdminSection === "function") {
+      showAdminSection("orders");
+    }
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", function (event) {
+      if (
+        event.data &&
+        event.data.type === "IG_OPEN_ORDERS"
+      ) {
+        abrirPedidos();
+      }
+    });
+  }
+
+  function comprobarApertura() {
+    try {
+      var params = new URLSearchParams(
+        window.location.search
+      );
+
+      if (params.get("ig") === "open-orders") {
+        abrirPedidos();
+
+        if (
+          window.history &&
+          window.history.replaceState
+        ) {
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname +
+            window.location.hash
+          );
+        }
+      }
+    } catch (e) {
+      console.warn(
+        "[IG Push] Error al abrir Pedidos:",
+        e
+      );
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      comprobarApertura,
+      { once: true }
+    );
+  } else {
+    comprobarApertura();
+  }
+
+})();
+</script>
+  
 </body>
 </html>
