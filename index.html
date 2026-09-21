@@ -14038,58 +14038,94 @@ body.ig-splash-lock{
   }
 
 
-  /* =======================================================
-     BUSCAR ID REAL DEL PRODUCTO
-     
-     IMPORTANTE:
-     No dependemos del texto del onclick.
-     ======================================================= */
-
   function getProductId(card){
 
-    if(!card){
-      return null;
-    }
+  if(!card){
+    return null;
+  }
 
 
-    /*
-     * Primero intentamos encontrar el botón
-     * de carrito y extraer el ID de forma segura.
-     */
-    const cartButton =
-      card.querySelector(
-        "button[onclick*='addToCart']"
+  /*
+   * PRODUCTOS ESPECIALES
+   *
+   * Granja lo de Nico e Iberian Mediterránea
+   * guardan el ID directamente en la tarjeta.
+   */
+  if(
+    card.dataset &&
+    card.dataset.igSpecialProductId
+  ){
+
+    return String(
+      card.dataset.igSpecialProductId
+    );
+
+  }
+
+
+  /*
+   * PRODUCTOS ESPECIALES
+   *
+   * Segundo método: botón específico.
+   */
+  const specialButton =
+    card.querySelector(
+      "[data-ig-special-add]"
+    );
+
+
+  if(
+    specialButton &&
+    specialButton.dataset &&
+    specialButton.dataset.igSpecialAdd
+  ){
+
+    return String(
+      specialButton.dataset.igSpecialAdd
+    );
+
+  }
+
+
+  /*
+   * PRODUCTOS NORMALES
+   *
+   * Extraemos el ID del onclick original.
+   */
+  const cartButton =
+    card.querySelector(
+      "button[onclick*='addToCart']"
+    );
+
+
+  if(cartButton){
+
+    const onclick =
+      cartButton.getAttribute(
+        "onclick"
+      ) || "";
+
+
+    const match =
+      onclick.match(
+        /addToCart\s*\(\s*['"]([^'"]+)['"]\s*\)/
       );
 
 
-    if(cartButton){
+    if(match && match[1]){
 
-      const onclick =
-        cartButton.getAttribute(
-          "onclick"
-        ) || "";
-
-
-      const match =
-        onclick.match(
-          /addToCart\s*\(\s*['"]([^'"]+)['"]\s*\)/
-        );
-
-
-      if(match && match[1]){
-
-        return String(
-          match[1]
-        );
-
-      }
+      return String(
+        match[1]
+      );
 
     }
 
-
-    return null;
-
   }
+
+
+  return null;
+
+}
 
 
   /* =======================================================
