@@ -28440,5 +28440,336 @@ body.ig-splash-lock{
 
 })();
 </script>
+
+  <script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   ALERTA DE NUEVO PEDIDO — V1
+   Realtime + notificación + sonido
+   ============================================================ */
+(function () {
+  "use strict";
+
+  if (window.__IG_ORDER_ALERT_V1__) {
+    return;
+  }
+
+  window.__IG_ORDER_ALERT_V1__ = true;
+
+  let orderAlertChannel = null;
+  let audioContext = null;
+
+  function unlockAudio() {
+    try {
+      if (!audioContext) {
+        const AudioCtx =
+          window.AudioContext ||
+          window.webkitAudioContext;
+
+        if (!AudioCtx) return;
+
+        audioContext = new AudioCtx();
+      }
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(function () {});
+      }
+
+    } catch (error) {
+      console.warn("[IG Order Alert] Audio:", error);
+    }
+  }
+
+  function playOrderSound() {
+    try {
+      unlockAudio();
+
+      if (!audioContext) return;
+
+      const now = audioContext.currentTime;
+
+      [0, 0.16, 0.32].forEach(function (offset, index) {
+
+        const oscillator =
+          audioContext.createOscillator();
+
+        const gain =
+          audioContext.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.value =
+          index === 1 ? 880 : 660;
+
+        gain.gain.setValueAtTime(
+          0.0001,
+          now + offset
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.18,
+          now + offset + 0.02
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          now + offset + 0.13
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start(now + offset);
+        oscillator.stop(now + offset + 0.14);
+
+      });
+
+    } catch (error) {
+      console.warn("[IG Order Alert] Sonido:", error);
+    }
+  }
+
+  function notifyNewOrder(order) {
+
+    const number =
+      order?.order_number
+        ? "#" + order.order_number
+        : "nuevo pedido";
+
+    const total =
+      typeof money === "function"
+        ? money(order?.total)
+        : "";
+
+    showToast(
+      "🚨 NUEVO PEDIDO " +
+      number +
+      (total ? " · " + total : "")
+    );
+
+    playOrderSound();
+
+    try {
+
+      if (
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+
+        const notification =
+          new Notification(
+            "🚨 Nuevo pedido — International Gateway",
+            {
+              body:
+                "Pedido " +
+                number +
+                (total ? " · " + total : ""),
+
+              icon:
+                settings?.logo_url ||
+                "/icon-192.png",
+
+              tag:
+                "ig-order-" +
+                (order?.id || Date.now()),
+
+              renotify: true
+            }
+          );
+
+        notification.onclick = function () {
+
+          window.focus();
+
+          if (
+            typeof showAdminSection ===
+            "function"
+          ) {
+            showAdminSection("orders");
+          }
+
+        };
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Notificación:",
+        error
+      );
+
+    }
+  }
+
+  async function requestNotificationPermission() {
+
+    try {
+
+      if (!("Notification" in window)) {
+        return;
+      }
+
+      if (
+        Notification.permission ===
+        "default"
+      ) {
+        await Notification.requestPermission();
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Permiso:",
+        error
+      );
+
+    }
+  }
+
+  function stopOrderAlert() {
+
+    if (!orderAlertChannel) {
+      return;
+    }
+
+    try {
+
+      supabaseClient.removeChannel(
+        orderAlertChannel
+      );
+
+    } catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Canal:",
+        error
+      );
+
+    }
+
+    orderAlertChannel = null;
+  }
+
+  function startOrderAlert() {
+
+    if (
+      typeof supabaseClient ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    if (orderAlertChannel) {
+      return;
+    }
+
+    orderAlertChannel =
+      supabaseClient
+        .channel("ig-admin-new-orders")
+
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "ig_orders"
+          },
+
+          function (payload) {
+
+            notifyNewOrder(
+              payload?.new || {}
+            );
+
+            if (
+              typeof loadAdminOrders ===
+              "function"
+            ) {
+              loadAdminOrders();
+            }
+
+            if (
+              typeof loadAdminDashboard ===
+              "function"
+            ) {
+              loadAdminDashboard();
+            }
+
+          }
+        )
+
+        .subscribe(function (status) {
+
+          console.log(
+            "[IG Order Alert] Realtime:",
+            status
+          );
+
+        });
+  }
+
+  const originalOpenAdminPanel =
+    window.openAdminPanel;
+
+  if (
+    typeof originalOpenAdminPanel ===
+    "function"
+  ) {
+
+    window.openAdminPanel =
+      function () {
+
+        unlockAudio();
+
+        requestNotificationPermission();
+
+        const result =
+          originalOpenAdminPanel.apply(
+            this,
+            arguments
+          );
+
+        startOrderAlert();
+
+        return result;
+      };
+  }
+
+  document.addEventListener(
+    "click",
+
+    function (event) {
+
+      const button =
+        event.target.closest(
+          '#adminPanel .admin-nav button[data-section="orders"]'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      unlockAudio();
+
+      requestNotificationPermission();
+
+      startOrderAlert();
+
+    },
+
+    true
+  );
+
+  window.addEventListener(
+    "beforeunload",
+    stopOrderAlert
+  );
+
+  console.log(
+    "[IG Order Alert] V1 activa."
+  );
+
+})();
+</script>
 </body>
 </html>
