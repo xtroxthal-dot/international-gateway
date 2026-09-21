@@ -26191,6 +26191,1052 @@ body.ig-splash-lock{
 
 })();
 </script>
-  
+  <script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   REPARADOR DEFINITIVO DE SECCIONES ESPECIALES
+
+   GRUPO:
+   - Granja lo de Nico
+   - Iberian Mediterránea
+
+   SOLUCIÓN:
+   Las dos secciones consultan directamente ig_products
+   utilizando el campo category de Supabase.
+
+   NO modifica:
+   - productos
+   - imágenes
+   - precios
+   - carrito
+   - pedidos
+   - categorías normales
+   - sistema de administración
+   ============================================================ */
+
+(function () {
+
+  "use strict";
+
+  if (window.__IG_SPECIAL_CATEGORIES_FIX__) {
+    return;
+  }
+
+  window.__IG_SPECIAL_CATEGORIES_FIX__ = true;
+
+
+  /* ==========================================================
+     CONFIGURACIÓN
+     ========================================================== */
+
+  const CATEGORIA_GRANJA =
+    "Granja lo de Nico";
+
+  const CATEGORIA_IBERIAN =
+    "Iberian Mediterránea";
+
+
+  /* ==========================================================
+     NORMALIZAR TEXTO
+     ========================================================== */
+
+  function normalizar(texto) {
+
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+
+  }
+
+
+  /* ==========================================================
+     ESCAPAR HTML
+     ========================================================== */
+
+  function esc(texto) {
+
+    return String(texto ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* ==========================================================
+     OBTENER CLIENTE SUPABASE
+     ========================================================== */
+
+  function getSupabase() {
+
+    try {
+
+      if (
+        typeof supabaseClient !== "undefined" &&
+        supabaseClient
+      ) {
+        return supabaseClient;
+      }
+
+    } catch (error) {}
+
+    return window.supabaseClient || null;
+
+  }
+
+
+  /* ==========================================================
+     OBTENER PRODUCTOS DE LA CATEGORÍA DIRECTAMENTE
+     DESDE SUPABASE
+     ========================================================== */
+
+  async function obtenerProductosCategoria(categoria) {
+
+    const client =
+      getSupabase();
+
+    if (!client) {
+
+      console.error(
+        "[IG Special Categories] Supabase no disponible."
+      );
+
+      return [];
+
+    }
+
+
+    try {
+
+      const resultado =
+        await client
+          .from("ig_products")
+          .select(`
+            id,
+            name,
+            description,
+            characteristics,
+            price,
+            category,
+            available,
+            active,
+            ig_product_images(
+              id,
+              storage_path,
+              public_url,
+              is_primary,
+              sort_order
+            )
+          `)
+          .eq("active", true)
+          .eq("category", categoria)
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
+
+
+      if (resultado.error) {
+
+        console.error(
+          "[IG Special Categories] Error Supabase:",
+          resultado.error
+        );
+
+        return [];
+
+      }
+
+
+      const lista =
+        Array.isArray(resultado.data)
+          ? resultado.data
+          : [];
+
+
+      lista.forEach(producto => {
+
+        producto.ig_product_images =
+          (
+            producto.ig_product_images || []
+          ).sort((a, b) => {
+
+            if (
+              a.is_primary &&
+              !b.is_primary
+            ) {
+              return -1;
+            }
+
+            if (
+              !a.is_primary &&
+              b.is_primary
+            ) {
+              return 1;
+            }
+
+            return (
+              Number(a.sort_order || 0) -
+              Number(b.sort_order || 0)
+            );
+
+          });
+
+      });
+
+
+      return lista;
+
+
+    } catch (error) {
+
+      console.error(
+        "[IG Special Categories] Error inesperado:",
+        error
+      );
+
+      return [];
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     IMAGEN
+     ========================================================== */
+
+  function imagenProducto(producto) {
+
+    const imagen =
+      (
+        producto.ig_product_images || []
+      )[0];
+
+
+    if (
+      imagen &&
+      imagen.public_url
+    ) {
+
+      return `
+        <img
+          src="${esc(imagen.public_url)}"
+          alt="${esc(producto.name)}">
+      `;
+
+    }
+
+
+    return `
+      <span>
+        Sin imagen
+      </span>
+    `;
+
+  }
+
+
+  /* ==========================================================
+     PRECIO
+     ========================================================== */
+
+  function precioProducto(valor) {
+
+    try {
+
+      if (
+        typeof money === "function"
+      ) {
+
+        return money(valor);
+
+      }
+
+    } catch (error) {}
+
+
+    return new Intl.NumberFormat(
+      "es-AR",
+      {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 2
+      }
+    ).format(
+      Number(valor || 0)
+    );
+
+  }
+
+
+  /* ==========================================================
+     TARJETA DEL PRODUCTO
+     ========================================================== */
+
+  function tarjetaProducto(producto) {
+
+    const disponible =
+      producto.available !== false;
+
+
+    return `
+
+      <article
+        class="product-card"
+        data-ig-special-product-id="${esc(producto.id)}">
+
+        <div class="product-image">
+
+          ${imagenProducto(producto)}
+
+        </div>
+
+
+        <div class="product-content">
+
+          ${
+            producto.category
+              ? `
+                <div class="product-category">
+                  ${esc(producto.category)}
+                </div>
+              `
+              : ""
+          }
+
+
+          <h3>
+            ${esc(producto.name)}
+          </h3>
+
+
+          ${
+            producto.description
+              ? `
+                <div class="product-description">
+                  ${esc(producto.description)}
+                </div>
+              `
+              : ""
+          }
+
+
+          ${
+            producto.characteristics
+              ? `
+                <div class="characteristics">
+                  ${esc(producto.characteristics)}
+                </div>
+              `
+              : ""
+          }
+
+
+          <div class="price">
+
+            ${precioProducto(producto.price)}
+
+          </div>
+
+
+          <button
+            class="button full"
+            type="button"
+            data-ig-special-add="${esc(producto.id)}"
+            ${disponible ? "" : "disabled"}>
+
+            ${
+              disponible
+                ? "Agregar al carrito"
+                : "Agotado"
+            }
+
+          </button>
+
+
+          <button
+            class="ig-product-share"
+            type="button"
+            data-ig-special-share="${esc(producto.id)}">
+
+            📤 Compartir producto
+
+          </button>
+
+        </div>
+
+      </article>
+
+    `;
+
+  }
+
+
+  /* ==========================================================
+     RENDERIZAR PRODUCTOS ESPECIALES
+     ========================================================== */
+
+  function renderEspeciales(
+    categoria,
+    productos
+  ) {
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+
+    if (!container) {
+
+      console.warn(
+        "[IG Special Categories] No se encontró productsContainer."
+      );
+
+      return;
+
+    }
+
+
+    if (!productos.length) {
+
+      const emoji =
+        categoria === CATEGORIA_GRANJA
+          ? "🐄"
+          : "🇪🇸";
+
+
+      container.innerHTML = `
+
+        <div class="empty">
+
+          <h3>
+            ${emoji}
+            ${esc(categoria)}
+            todavía no tiene productos
+          </h3>
+
+          <p>
+            Los productos asignados a esta categoría
+            aparecerán aquí automáticamente.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      productos
+        .map(tarjetaProducto)
+        .join("");
+
+
+    /* ========================================================
+       BOTONES AGREGAR AL CARRITO
+       ======================================================== */
+
+    container
+      .querySelectorAll(
+        "[data-ig-special-add]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const id =
+              button.dataset.igSpecialAdd;
+
+
+            const producto =
+              productos.find(
+                p =>
+                  String(p.id) ===
+                  String(id)
+              );
+
+
+            if (!producto) {
+              return;
+            }
+
+
+            /*
+             * Utilizamos el sistema de carrito
+             * original de International Gateway.
+             */
+
+            try {
+
+              if (
+                typeof addToCart ===
+                "function"
+              ) {
+
+                addToCart(
+                  producto.id
+                );
+
+                return;
+
+              }
+
+            } catch (error) {
+
+              console.warn(
+                "[IG Special Categories] addToCart:",
+                error
+              );
+
+            }
+
+
+            /* Respaldo mínimo si la función original
+               no está disponible. */
+
+            if (
+              Array.isArray(window.cart)
+            ) {
+
+              const existente =
+                window.cart.find(
+                  item =>
+                    String(item.id) ===
+                    String(producto.id)
+                );
+
+
+              if (existente) {
+
+                existente.quantity++;
+
+              } else {
+
+                window.cart.push({
+
+                  id: producto.id,
+
+                  name: producto.name,
+
+                  price:
+                    Number(producto.price),
+
+                  image:
+                    producto
+                      .ig_product_images?.[0]
+                      ?.public_url || "",
+
+                  quantity: 1
+
+                });
+
+              }
+
+            }
+
+          }
+        );
+
+      });
+
+
+    /* ========================================================
+       BOTONES COMPARTIR
+       ======================================================== */
+
+    container
+      .querySelectorAll(
+        "[data-ig-special-share]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          async function () {
+
+            const id =
+              button.dataset.igSpecialShare;
+
+
+            const producto =
+              productos.find(
+                p =>
+                  String(p.id) ===
+                  String(id)
+              );
+
+
+            if (!producto) {
+              return;
+            }
+
+
+            const url =
+              new URL(
+                window.location.href
+              );
+
+
+            url.search = "";
+
+            url.hash = "";
+
+
+            url.searchParams.set(
+              "producto",
+              producto.id
+            );
+
+
+            try {
+
+              if (
+                navigator.share
+              ) {
+
+                await navigator.share({
+
+                  title:
+                    producto.name,
+
+                  text:
+                    "🛍️ " +
+                    producto.name +
+                    " — International Gateway",
+
+                  url:
+                    url.toString()
+
+                });
+
+              } else {
+
+                await navigator.clipboard.writeText(
+                  url.toString()
+                );
+
+
+                if (
+                  typeof showToast ===
+                  "function"
+                ) {
+
+                  showToast(
+                    "✓ Enlace del producto copiado"
+                  );
+
+                }
+
+              }
+
+            } catch (error) {
+
+              if (
+                error &&
+                error.name ===
+                "AbortError"
+              ) {
+
+                return;
+
+              }
+
+              console.warn(
+                "[IG Special Categories] compartir:",
+                error
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+  }
+
+
+  /* ==========================================================
+     MOSTRAR CATEGORÍA ESPECIAL
+     ========================================================== */
+
+  async function mostrarCategoriaEspecial(
+    categoria
+  ) {
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+
+    if (!container) {
+      return;
+    }
+
+
+    /*
+     * Título de la sección.
+     */
+
+    const title =
+      document.querySelector(
+        "#productsSection .section-title"
+      );
+
+
+    if (title) {
+
+      title.innerHTML = `
+
+        ${
+          categoria === CATEGORIA_GRANJA
+            ? "🐄"
+            : "🇪🇸"
+        }
+
+        ${esc(categoria)}
+
+        <button
+          type="button"
+          id="igSpecialBack"
+          style="
+            display:block;
+            margin:10px auto 0;
+            padding:8px 14px;
+            border-radius:9px;
+            background:#eee;
+            color:#111;
+            font-weight:700;
+            cursor:pointer;
+          ">
+
+          ← Todos los productos
+
+        </button>
+
+      `;
+
+
+      const back =
+        document.getElementById(
+          "igSpecialBack"
+        );
+
+
+      if (back) {
+
+        back.onclick =
+          function () {
+
+            /*
+             * Volvemos al sistema original.
+             */
+
+            if (
+              typeof loadProducts ===
+              "function"
+            ) {
+
+              loadProducts();
+
+            }
+
+
+            title.textContent =
+              "Productos";
+
+          };
+
+      }
+
+    }
+
+
+    /*
+     * Mensaje de carga.
+     */
+
+    container.innerHTML = `
+
+      <div class="loading">
+
+        Cargando productos de
+        <strong>
+          ${esc(categoria)}
+        </strong>...
+
+      </div>
+
+    `;
+
+
+    /*
+     * CONSULTA REAL A SUPABASE.
+     */
+
+    const productos =
+      await obtenerProductosCategoria(
+        categoria
+      );
+
+
+    /*
+     * Render final.
+     */
+
+    renderEspeciales(
+      categoria,
+      productos
+    );
+
+
+    /*
+     * Subimos hasta la sección.
+     */
+
+    const section =
+      document.getElementById(
+        "productsSection"
+      );
+
+
+    if (section) {
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     DETECTAR BOTONES DE LAS DOS SECCIONES
+     ========================================================== */
+
+  function conectarBotones() {
+
+    const elementos =
+      document.querySelectorAll(
+        "button, a, [role='button']"
+      );
+
+
+    elementos.forEach(elemento => {
+
+      if (
+        elemento.dataset
+          .igSpecialConnected === "1"
+      ) {
+
+        return;
+
+      }
+
+
+      const texto =
+        normalizar(
+          elemento.textContent
+        );
+
+
+      let categoria = null;
+
+
+      if (
+        texto.includes(
+          normalizar(
+            "Granja lo de Nico"
+          )
+        )
+      ) {
+
+        /*
+         * No interceptamos cualquier título.
+         * Solo elementos que además indiquen
+         * que sirven para ver/entrar a productos.
+         */
+
+        if (
+          texto.includes("ver productos") ||
+          texto.includes("productos")
+        ) {
+
+          categoria =
+            CATEGORIA_GRANJA;
+
+        }
+
+      }
+
+
+      if (
+        texto.includes(
+          normalizar(
+            "Iberian Mediterránea"
+          )
+        )
+      ) {
+
+        if (
+          texto.includes("ver productos") ||
+          texto.includes("productos")
+        ) {
+
+          categoria =
+            CATEGORIA_IBERIAN;
+
+        }
+
+      }
+
+
+      if (!categoria) {
+        return;
+      }
+
+
+      elemento.dataset
+        .igSpecialConnected = "1";
+
+
+      elemento.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+          event.stopImmediatePropagation();
+
+
+          mostrarCategoriaEspecial(
+            categoria
+          );
+
+        },
+        true
+      );
+
+    });
+
+  }
+
+
+  /* ==========================================================
+     API PÚBLICA
+     ========================================================== */
+
+  window.InternationalGatewaySpecialCategories = {
+
+    showGranja:
+      function () {
+
+        mostrarCategoriaEspecial(
+          CATEGORIA_GRANJA
+        );
+
+      },
+
+    showIberian:
+      function () {
+
+        mostrarCategoriaEspecial(
+          CATEGORIA_IBERIAN
+        );
+
+      },
+
+    reload:
+      function () {
+
+        conectarBotones();
+
+      }
+
+  };
+
+
+  /* ==========================================================
+     ARRANQUE
+     ========================================================== */
+
+  function iniciar() {
+
+    conectarBotones();
+
+
+    /*
+     * La aplicación genera parte del contenido
+     * dinámicamente, así que volvemos a conectar
+     * cuando aparecen nuevos elementos.
+     */
+
+    const observer =
+      new MutationObserver(
+        function () {
+
+          conectarBotones();
+
+        }
+      );
+
+
+    if (document.body) {
+
+      observer.observe(
+        document.body,
+        {
+          childList: true,
+          subtree: true
+        }
+      );
+
+    }
+
+  }
+
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {
+        once: true
+      }
+    );
+
+  } else {
+
+    iniciar();
+
+  }
+
+
+  console.log(
+    "[International Gateway] Reparador de Granja lo de Nico + Iberian Mediterránea activo."
+  );
+
+})();
+</script>
 </body>
 </html>
