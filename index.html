@@ -29385,75 +29385,223 @@ body.ig-splash-lock{
   window.__IG_PUSH_BOOT_V1 = true;
 
   var activating = false;
-  var activated = false;
 
-  async function activarNotificacionesAdmin() {
-    if (activating || activated) return;
-    if (!window.IGPush) return;
+  function getPanel() {
+    return document.getElementById("adminPanel");
+  }
 
-    var panel = document.getElementById("adminPanel");
-    if (!panel) return;
+  function isVisible(panel) {
+    if (!panel) return false;
 
     var style = window.getComputedStyle(panel);
 
-    var visible =
+    return (
       !panel.classList.contains("hidden") &&
       style.display !== "none" &&
-      style.visibility !== "hidden";
+      style.visibility !== "hidden"
+    );
+  }
 
-    if (!visible) return;
+  function getButton(panel) {
+    return panel
+      ? document.getElementById("igPushEnableBtn")
+      : null;
+  }
 
-    activating = true;
+  function ensureButton(panel) {
+    if (!panel) return null;
+
+    var existing = getButton(panel);
+    if (existing) return existing;
+
+    var topInner =
+      panel.querySelector(".admin-top-inner");
+
+    if (!topInner) return null;
+
+    var button = document.createElement("button");
+
+    button.id = "igPushEnableBtn";
+    button.type = "button";
+    button.className = "button secondary";
+    button.textContent =
+      "🔔 Activar notificaciones de pedidos";
+
+    button.addEventListener("click", async function () {
+
+      if (activating || !window.IGPush) return;
+
+      activating = true;
+      button.disabled = true;
+      button.textContent = "🔔 Activando…";
+
+      try {
+
+        await window.IGPush.enable();
+
+        button.textContent =
+          "✅ Notificaciones activadas";
+
+        button.style.display = "none";
+
+        if (typeof showToast === "function") {
+          showToast(
+            "🔔 Notificaciones de pedidos activadas."
+          );
+        }
+
+        console.log(
+          "[IG Push] Administrador registrado correctamente."
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "[IG Push] No se pudo activar:",
+          error
+        );
+
+        button.disabled = false;
+        button.textContent =
+          "🔔 Activar notificaciones de pedidos";
+
+        if (typeof showToast === "function") {
+          showToast(
+            "⚠️ No se pudieron activar las notificaciones."
+          );
+        }
+
+      } finally {
+
+        activating = false;
+
+      }
+
+    });
+
+    topInner.appendChild(button);
+
+    return button;
+  }
+
+  async function comprobarPush() {
+
+    if (!window.IGPush) return;
+
+    var panel = getPanel();
+
+    if (!isVisible(panel)) return;
+
+    var button = ensureButton(panel);
+
+    if (!button) return;
 
     try {
-      var estado = await window.IGPush.status();
+
+      var estado =
+        await window.IGPush.status();
 
       if (estado && estado.subscribed) {
-        activated = true;
+
+        button.style.display = "none";
         return;
+
       }
 
-      await window.IGPush.enable();
+      if (
+        estado &&
+        estado.permission === "granted"
+      ) {
 
-      activated = true;
+        if (activating) return;
 
-      if (typeof showToast === "function") {
-        showToast(
-          "🔔 Notificaciones de pedidos activadas."
-        );
+        activating = true;
+
+        try {
+
+          await window.IGPush.enable();
+
+          button.style.display = "none";
+
+          console.log(
+            "[IG Push] Suscripción registrada."
+          );
+
+        } finally {
+
+          activating = false;
+
+        }
+
+      } else {
+
+        button.style.display = "";
+
       }
-
-      console.log(
-        "[IG Push] Administrador registrado correctamente."
-      );
 
     } catch (error) {
 
       console.warn(
-        "[IG Push] No se pudo activar todavía:",
+        "[IG Push] Estado de Push no disponible:",
         error
       );
 
-    } finally {
-      activating = false;
+      button.style.display = "";
+
     }
+
   }
 
   function observarAdministrador() {
 
-    var panel =
-      document.getElementById("adminPanel");
+    var panel = getPanel();
 
     if (!panel) {
+
       setTimeout(
         observarAdministrador,
         1000
       );
+
       return;
+
     }
 
     var observer =
-      new MutationObserver(function ()
+      new MutationObserver(function () {
+        comprobarPush();
+      });
+
+    observer.observe(panel, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+        "style"
+      ]
+    });
+
+    comprobarPush();
+
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      observarAdministrador,
+      { once: true }
+    );
+
+  } else {
+
+    observarAdministrador();
+
+  }
+
+})();
+</script>
 <script>
 (function () {
   "use strict";
