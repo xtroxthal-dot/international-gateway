@@ -185,7 +185,9 @@
       );
     }
 
-    return result;
+        return result;
+
+  }
 
   async function enableAdminPush() {
     const registration =
