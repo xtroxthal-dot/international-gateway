@@ -28415,5 +28415,30 @@ body.ig-splash-lock{
 
 })();
 </script>
+
+  <script>
+(function () {
+  "use strict";
+
+  function mostrarCatalogo() {
+    var seccion = document.getElementById("productsSection");
+
+    if (seccion) {
+      seccion.style.display = "";
+    }
+  }
+
+  document.addEventListener("click", function (event) {
+    var elemento = event.target.closest(
+      "#igMainGatewayCard, #igGranjaCategoryCard, #igIberianCategoryCard"
+    );
+
+    if (elemento) {
+      mostrarCatalogo();
+    }
+  }, true);
+
+})();
+</script>
 </body>
 </html>
