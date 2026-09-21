@@ -27052,22 +27052,53 @@ body.ig-splash-lock{
 
       if (back) {
 
-        back.onclick =
+                back.onclick =
           function () {
 
-            /*
-             * Volvemos al sistema original.
-             */
+            const granjaFilterBar =
+              document.getElementById(
+                "igGranjaFilterBar"
+              );
+
+            const iberianFilterBar =
+              document.getElementById(
+                "igIberianFilterBar"
+              );
+
+            if (granjaFilterBar) {
+              granjaFilterBar.classList.remove(
+                "ig-active"
+              );
+            }
+
+            if (iberianFilterBar) {
+              iberianFilterBar.classList.remove(
+                "ig-iberian-active"
+              );
+            }
 
             if (
               typeof loadProducts ===
               "function"
             ) {
 
-              loadProducts();
+              loadProducts().then(
+                function () {
+
+                  if (
+                    window.InternationalGatewayCategories &&
+                    typeof window.InternationalGatewayCategories.showAll ===
+                      "function"
+                  ) {
+
+                    window.InternationalGatewayCategories.showAll();
+
+                  }
+
+                }
+              );
 
             }
-
 
             title.textContent =
               "Productos";
