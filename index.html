@@ -26978,7 +26978,29 @@ body.ig-splash-lock{
       return;
     }
 
+    const granjaFilterBar =
+      document.getElementById(
+        "igGranjaFilterBar"
+      );
 
+    const iberianFilterBar =
+      document.getElementById(
+        "igIberianFilterBar"
+      );
+
+    if (granjaFilterBar) {
+      granjaFilterBar.classList.toggle(
+        "ig-active",
+        categoria === CATEGORIA_GRANJA
+      );
+    }
+
+    if (iberianFilterBar) {
+      iberianFilterBar.classList.toggle(
+        "ig-iberian-active",
+        categoria === CATEGORIA_IBERIAN
+      );
+    }
     /*
      * Título de la sección.
      */
