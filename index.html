@@ -29501,10 +29501,14 @@ body.ig-splash-lock{
       var estado =
         await window.IGPush.status();
 
-      if (estado && estado.subscribed) {
+            if (
+        estado &&
+        estado.subscribed
+      ) {
 
         button.style.display = "none";
         return;
+      }
 
       }
 
