@@ -14883,7 +14883,7 @@ body.ig-splash-lock{
      INICIO
      ======================================================= */
 
-      function start(){
+  function start(){
 
     loadFavorites();
 
@@ -14891,73 +14891,38 @@ body.ig-splash-lock{
 
     createPanel();
 
-    function conectarObservadorProductos(){
-
-    const container =
-      document.getElementById(
-        "productsContainer"
-      );
-
-    if(!container){
-      return false;
-    }
-
+    /*
+     * Intento inmediato.
+     */
     installHearts();
 
-    const observer =
-      new MutationObserver(
-        function(){
-          installHearts();
-        }
-      );
 
-    observer.observe(
-      container,
-      {
-        childList:true,
-        subtree:true
-      }
+    /*
+     * El renderProducts() puede ejecutarse
+     * después. Estos intentos son ligeros y
+     * no crean MutationObserver.
+     */
+    setTimeout(
+      installHearts,
+      100
     );
 
-    return true;
+    setTimeout(
+      installHearts,
+      500
+    );
+
+    setTimeout(
+      installHearts,
+      1200
+    );
+
+
+    updateCounter();
 
   }
 
 
-  if(
-    !conectarObservadorProductos()
-  ){
-
-    const bodyObserver =
-      new MutationObserver(
-        function(){
-
-          if(
-            conectarObservadorProductos()
-          ){
-
-            bodyObserver.disconnect();
-
-          }
-
-        }
-      );
-
-    bodyObserver.observe(
-      document.body,
-      {
-        childList:true,
-        subtree:true
-      }
-    );
-
-  }
-
-
-  updateCounter();
-
-}
-    
   if(
     document.readyState ===
     "loading"
@@ -14974,6 +14939,7 @@ body.ig-splash-lock{
     start();
 
   }
+
 
 })();
 </script>
