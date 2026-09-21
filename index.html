@@ -2774,7 +2774,11 @@ function openAdminPanel(){
   );
 
   loadAdminData();
-
+  if (
+    typeof window.__IG_COMPROBAR_PUSH === "function"
+  ) {
+    window.__IG_COMPROBAR_PUSH();
+  }
 }
 
 
