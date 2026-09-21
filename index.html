@@ -29374,5 +29374,85 @@ body.ig-splash-lock{
 
 })();
 </script>
+
+  <script src="./ig-push.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.__IG_PUSH_BOOT_V1) return;
+  window.__IG_PUSH_BOOT_V1 = true;
+
+  var activating = false;
+  var activated = false;
+
+  async function activarNotificacionesAdmin() {
+    if (activating || activated) return;
+    if (!window.IGPush) return;
+
+    var panel = document.getElementById("adminPanel");
+    if (!panel) return;
+
+    var style = window.getComputedStyle(panel);
+
+    var visible =
+      !panel.classList.contains("hidden") &&
+      style.display !== "none" &&
+      style.visibility !== "hidden";
+
+    if (!visible) return;
+
+    activating = true;
+
+    try {
+      var estado = await window.IGPush.status();
+
+      if (estado && estado.subscribed) {
+        activated = true;
+        return;
+      }
+
+      await window.IGPush.enable();
+
+      activated = true;
+
+      if (typeof showToast === "function") {
+        showToast(
+          "🔔 Notificaciones de pedidos activadas."
+        );
+      }
+
+      console.log(
+        "[IG Push] Administrador registrado correctamente."
+      );
+
+    } catch (error) {
+
+      console.warn(
+        "[IG Push] No se pudo activar todavía:",
+        error
+      );
+
+    } finally {
+      activating = false;
+    }
+  }
+
+  function observarAdministrador() {
+
+    var panel =
+      document.getElementById("adminPanel");
+
+    if (!panel) {
+      setTimeout(
+        observarAdministrador,
+        1000
+      );
+      return;
+    }
+
+    var observer =
+      new MutationObserver(function ()
 </body>
 </html>
