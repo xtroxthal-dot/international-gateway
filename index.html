@@ -6642,10 +6642,14 @@ init();
                 .trim()
             : "";
 
-        const matches =
-          currentCategory === "all" ||
-          cardCategory ===
-            currentCategory;
+        const esCategoriaEspecial =
+  cardCategory === "Granja lo de Nico" ||
+  cardCategory === "Iberian Mediterránea";
+
+const matches =
+  currentCategory === "all"
+    ? !esCategoriaEspecial
+    : cardCategory === currentCategory;
 
         card.style.display =
           matches
