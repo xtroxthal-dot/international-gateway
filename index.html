@@ -25477,5 +25477,157 @@ body.ig-splash-lock{
 })();
 
 </script>
+
+  <script>
+/*
+ * INTERNATIONAL GATEWAY
+ * Reparación del selector de categorías del Administrador
+ *
+ * Recupera las categorías originales y conserva:
+ * - Granja lo de Nico
+ * - Iberian Mediterránea
+ *
+ * No agrega "Sin categoría".
+ * No modifica productos existentes.
+ * No modifica imágenes.
+ * No modifica el catálogo público.
+ */
+
+(function () {
+    'use strict';
+
+    const CATEGORIAS_INTERNATIONAL_GATEWAY = [
+        { nombre: 'Hogar', emoji: '🏠' },
+        { nombre: 'Cocina', emoji: '🍳' },
+        { nombre: 'Limpieza', emoji: '🧹' },
+        { nombre: 'Baño', emoji: '🛁' },
+        { nombre: 'Jardín', emoji: '🪴' },
+        { nombre: 'Herramientas', emoji: '🔧' },
+        { nombre: 'Librería', emoji: '📚' },
+        { nombre: 'Escolar', emoji: '🎒' },
+        { nombre: 'Juguetes', emoji: '🧸' },
+        { nombre: 'Regalería', emoji: '🎁' },
+        { nombre: 'Perfumería y cuidado personal', emoji: '🧴' },
+        { nombre: 'Textil y accesorios', emoji: '👕' },
+        { nombre: 'Iluminación', emoji: '💡' },
+        { nombre: 'Temporada', emoji: '🎄' },
+        { nombre: 'Celulares', emoji: '📱' },
+        { nombre: 'Electrónica', emoji: '💻' },
+        { nombre: 'Electrodomésticos', emoji: '📺' },
+        { nombre: 'Segunda mano', emoji: '♻️' },
+        { nombre: 'Otros', emoji: '📦' },
+        { nombre: 'Granja lo de Nico', emoji: '🐄' },
+        { nombre: 'Iberian Mediterránea', emoji: '🇪🇸' }
+    ];
+
+    const NORMALIZAR = texto =>
+        String(texto || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase();
+
+    const categoriasNormalizadas =
+        CATEGORIAS_INTERNATIONAL_GATEWAY.map(c => NORMALIZAR(c.nombre));
+
+    function esSelectorDeCategoriasDelAdmin(select) {
+        if (!select || select.tagName !== 'SELECT') return false;
+
+        const textos = Array.from(select.options)
+            .map(option => NORMALIZAR(option.textContent));
+
+        const tieneGranja = textos.includes(NORMALIZAR('Granja lo de Nico'));
+        const tieneIberian = textos.includes(NORMALIZAR('Iberian Mediterránea'));
+        const tieneSinCategoria = textos.includes(NORMALIZAR('Sin categoría'));
+
+        /*
+         * El selector problemático actual tiene las categorías
+         * especiales que acabamos de añadir.
+         */
+        return tieneGranja || tieneIberian || tieneSinCategoria;
+    }
+
+    function repararSelector(select) {
+        if (!esSelectorDeCategoriasDelAdmin(select)) return;
+
+        // Evitar repararlo repetidamente.
+        if (select.dataset.igCategoriasReparadas === 'true') return;
+
+        const valorAnterior = select.value;
+
+        const fragment = document.createDocumentFragment();
+
+        CATEGORIAS_INTERNATIONAL_GATEWAY.forEach(categoria => {
+            const option = document.createElement('option');
+
+            /*
+             * El value coincide con el nombre de la categoría,
+             * que es el formato utilizado por los productos actuales.
+             */
+            option.value = categoria.nombre;
+            option.textContent = categoria.emoji + ' ' + categoria.nombre;
+
+            fragment.appendChild(option);
+        });
+
+        select.innerHTML = '';
+        select.appendChild(fragment);
+
+        /*
+         * Si el producto que se estaba editando ya tenía una categoría,
+         * intentamos conservarla.
+         */
+        const valorNormalizado = NORMALIZAR(valorAnterior);
+
+        const opcionExistente = Array.from(select.options).find(
+            option => NORMALIZAR(option.value) === valorNormalizado
+        );
+
+        if (opcionExistente) {
+            select.value = opcionExistente.value;
+        } else {
+            select.selectedIndex = 0;
+        }
+
+        select.dataset.igCategoriasReparadas = 'true';
+
+        /*
+         * Disparamos change para que el código existente de International
+         * Gateway pueda seguir trabajando normalmente.
+         */
+        select.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
+
+        console.log(
+            'International Gateway: selector de categorías reparado.',
+            CATEGORIAS_INTERNATIONAL_GATEWAY.map(c => c.nombre)
+        );
+    }
+
+    function buscarYReparar() {
+        document.querySelectorAll('select').forEach(repararSelector);
+    }
+
+    /*
+     * Primera comprobación.
+     */
+    buscarYReparar();
+
+    /*
+     * El administrador puede generarse dinámicamente.
+     * Por eso observamos cambios en el DOM.
+     */
+    const observer = new MutationObserver(() => {
+        buscarYReparar();
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+})();
+</script>
 </body>
 </html>
