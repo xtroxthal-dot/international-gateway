@@ -14883,7 +14883,7 @@ body.ig-splash-lock{
      INICIO
      ======================================================= */
 
-  function start(){
+    function start(){
 
     loadFavorites();
 
@@ -14892,31 +14892,41 @@ body.ig-splash-lock{
     createPanel();
 
     /*
-     * Intento inmediato.
+     * Instala los corazones inmediatamente.
      */
     installHearts();
 
-
     /*
-     * El renderProducts() puede ejecutarse
-     * después. Estos intentos son ligeros y
-     * no crean MutationObserver.
+     * El catálogo puede reemplazar las tarjetas
+     * después del renderizado. Observamos el
+     * contenedor para volver a instalar los
+     * corazones automáticamente.
      */
-    setTimeout(
-      installHearts,
-      100
-    );
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
 
-    setTimeout(
-      installHearts,
-      500
-    );
+    if(container){
 
-    setTimeout(
-      installHearts,
-      1200
-    );
+      const favoritesObserver =
+        new MutationObserver(
+          function(){
 
+            installHearts();
+
+          }
+        );
+
+      favoritesObserver.observe(
+        container,
+        {
+          childList:true,
+          subtree:true
+        }
+      );
+
+    }
 
     updateCounter();
 
