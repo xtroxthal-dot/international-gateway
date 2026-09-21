@@ -63,10 +63,20 @@
       );
     }
 
-    let subscription =
+        let subscription =
       await registration.pushManager.getSubscription();
 
-    if (subscription) return subscription;
+    /*
+     * Renovar la suscripción para utilizar
+     * la nueva pareja de claves VAPID.
+     */
+    if (subscription) {
+      try {
+        await subscription.unsubscribe();
+      } catch (_) {}
+
+      subscription = null;
+    }
 
     if (!("Notification" in window)) {
       throw new Error(
