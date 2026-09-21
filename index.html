@@ -28441,6 +28441,938 @@ body.ig-splash-lock{
 })();
 </script>
 
-  
+  <script>
+/* ============================================================
+   INTERNATIONAL GATEWAY
+   ALERTA DE NUEVO PEDIDO — V2 FINAL
+   Realtime + sonido + notificación + reconexión
+   ============================================================ */
+
+(function () {
+
+  "use strict";
+
+
+  /* ==========================================================
+     PROTECCIÓN CONTRA DUPLICADOS
+     ========================================================== */
+
+  if (window.__IG_ORDER_ALERT_V2__) {
+    return;
+  }
+
+  window.__IG_ORDER_ALERT_V2__ = true;
+
+
+  /* ==========================================================
+     ESTADO
+     ========================================================== */
+
+  var orderAlertChannel = null;
+
+  var reconnectTimer = null;
+
+  var audioContext = null;
+
+  var lastAlertedOrderId = null;
+
+
+  /* ==========================================================
+     AUDIO
+     ========================================================== */
+
+  function unlockAudio() {
+
+    try {
+
+      var AudioCtx =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if (!AudioCtx) {
+        return;
+      }
+
+
+      if (!audioContext) {
+
+        audioContext =
+          new AudioCtx();
+
+      }
+
+
+      if (
+        audioContext.state ===
+        "suspended"
+      ) {
+
+        audioContext
+          .resume()
+          .catch(function () {});
+
+      }
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Audio:",
+        error
+      );
+
+    }
+
+  }
+
+
+  function playOrderSound() {
+
+    try {
+
+      unlockAudio();
+
+
+      if (!audioContext) {
+        return;
+      }
+
+
+      var now =
+        audioContext.currentTime;
+
+
+      [0, 0.16, 0.32].forEach(
+        function (offset, index) {
+
+          var oscillator =
+            audioContext.createOscillator();
+
+
+          var gain =
+            audioContext.createGain();
+
+
+          oscillator.type =
+            "sine";
+
+
+          oscillator.frequency.value =
+            index === 1
+              ? 880
+              : 660;
+
+
+          gain.gain.setValueAtTime(
+            0.0001,
+            now + offset
+          );
+
+
+          gain.gain.exponentialRampToValueAtTime(
+            0.18,
+            now + offset + 0.02
+          );
+
+
+          gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            now + offset + 0.13
+          );
+
+
+          oscillator.connect(gain);
+
+          gain.connect(
+            audioContext.destination
+          );
+
+
+          oscillator.start(
+            now + offset
+          );
+
+
+          oscillator.stop(
+            now + offset + 0.14
+          );
+
+        }
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Sonido:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     NOTIFICACIÓN
+     ========================================================== */
+
+  function requestNotificationPermission() {
+
+    try {
+
+      if (
+        "Notification" in window &&
+        Notification.permission ===
+        "default"
+      ) {
+
+        Notification
+          .requestPermission()
+          .catch(function () {});
+
+      }
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Permiso:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     AVISO DE NUEVO PEDIDO
+     ========================================================== */
+
+  function notifyNewOrder(order) {
+
+    var orderId =
+      order &&
+      order.id
+        ? String(order.id)
+        : "";
+
+
+    /*
+     * Evita que el mismo pedido
+     * genere dos alertas.
+     */
+
+    if (
+      orderId &&
+      orderId === lastAlertedOrderId
+    ) {
+
+      return;
+
+    }
+
+
+    if (orderId) {
+
+      lastAlertedOrderId =
+        orderId;
+
+    }
+
+
+    var number =
+      order &&
+      order.order_number
+        ? "#" +
+          order.order_number
+        : "nuevo pedido";
+
+
+    var total = "";
+
+
+    try {
+
+      if (
+        typeof money ===
+        "function"
+      ) {
+
+        total =
+          money(
+            order &&
+            order.total
+          );
+
+      }
+
+    }
+
+    catch (error) {
+
+      total = "";
+
+    }
+
+
+    /* ========================================================
+       TOAST VISUAL
+       ======================================================== */
+
+    try {
+
+      if (
+        typeof showToast ===
+        "function"
+      ) {
+
+        showToast(
+          "🚨 NUEVO PEDIDO " +
+          number +
+          (
+            total
+              ? " · " + total
+              : ""
+          )
+        );
+
+      }
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Toast:",
+        error
+      );
+
+    }
+
+
+    /* ========================================================
+       SONIDO
+       ======================================================== */
+
+    playOrderSound();
+
+
+    /* ========================================================
+       NOTIFICACIÓN DEL NAVEGADOR
+       ======================================================== */
+
+    try {
+
+      if (
+        "Notification" in window &&
+        Notification.permission ===
+        "granted"
+      ) {
+
+        var logo = "/icon-192.png";
+
+
+        try {
+
+          if (
+            typeof settings !==
+              "undefined" &&
+            settings &&
+            settings.logo_url
+          ) {
+
+            logo =
+              settings.logo_url;
+
+          }
+
+        }
+
+        catch (error) {}
+
+
+        var notification =
+          new Notification(
+            "🚨 Nuevo pedido — International Gateway",
+            {
+              body:
+                "Pedido " +
+                number +
+                (
+                  total
+                    ? " · " + total
+                    : ""
+                ),
+
+              icon: logo,
+
+              tag:
+                "ig-order-" +
+                (
+                  orderId ||
+                  Date.now()
+                ),
+
+              renotify: true
+
+            }
+          );
+
+
+        notification.onclick =
+          function () {
+
+            try {
+
+              window.focus();
+
+            }
+
+            catch (error) {}
+
+
+            if (
+              typeof showAdminSection ===
+              "function"
+            ) {
+
+              showAdminSection(
+                "orders"
+              );
+
+            }
+
+          };
+
+      }
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Notificación:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     DETENER CANAL
+     ========================================================== */
+
+  function stopOrderAlert() {
+
+    if (reconnectTimer) {
+
+      clearTimeout(
+        reconnectTimer
+      );
+
+      reconnectTimer =
+        null;
+
+    }
+
+
+    if (
+      !orderAlertChannel
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      supabaseClient
+        .removeChannel(
+          orderAlertChannel
+        );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "[IG Order Alert] Cierre:",
+        error
+      );
+
+    }
+
+
+    orderAlertChannel =
+      null;
+
+  }
+
+
+  /* ==========================================================
+     RECONEXIÓN
+     ========================================================== */
+
+  function scheduleReconnect() {
+
+    if (
+      reconnectTimer ||
+      orderAlertChannel
+    ) {
+
+      return;
+
+    }
+
+
+    reconnectTimer =
+      setTimeout(
+        function () {
+
+          reconnectTimer =
+            null;
+
+          startOrderAlert();
+
+        },
+        5000
+      );
+
+  }
+
+
+  /* ==========================================================
+     INICIAR REALTIME
+     ========================================================== */
+
+  function startOrderAlert() {
+
+    if (
+      typeof supabaseClient ===
+      "undefined" ||
+      !supabaseClient
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      orderAlertChannel
+    ) {
+
+      return;
+
+    }
+
+
+    console.log(
+      "[IG Order Alert] Conectando Realtime..."
+    );
+
+
+    var currentChannel =
+      supabaseClient
+        .channel(
+          "ig-admin-new-orders-v2"
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "ig_orders"
+          },
+
+          function (payload) {
+
+            console.log(
+              "[IG Order Alert] 🚨 INSERT recibido:",
+              payload &&
+              payload.new
+            );
+
+
+            notifyNewOrder(
+              (
+                payload &&
+                payload.new
+              ) || {}
+            );
+
+
+            /* Actualizar Pedidos */
+
+            try {
+
+              if (
+                typeof loadAdminOrders ===
+                "function"
+              ) {
+
+                loadAdminOrders();
+
+              }
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "[IG Order Alert] Pedidos:",
+                error
+              );
+
+            }
+
+
+            /* Actualizar Dashboard */
+
+            try {
+
+              if (
+                typeof loadAdminDashboard ===
+                "function"
+              ) {
+
+                loadAdminDashboard();
+
+              }
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "[IG Order Alert] Dashboard:",
+                error
+              );
+
+            }
+
+          }
+        );
+
+
+    orderAlertChannel =
+      currentChannel;
+
+
+    /* ========================================================
+       ESTADO DE LA CONEXIÓN
+       ======================================================== */
+
+    currentChannel.subscribe(
+      function (status, error) {
+
+        console.log(
+          "[IG Order Alert] Realtime:",
+          status,
+          error || ""
+        );
+
+
+        /* CONECTADO */
+
+        if (
+          status ===
+          "SUBSCRIBED"
+        ) {
+
+          console.log(
+            "[IG Order Alert] ✅ CONECTADO — escuchando nuevos pedidos."
+          );
+
+          return;
+
+        }
+
+
+        /* ERROR / TIMEOUT / CIERRE */
+
+        if (
+          status ===
+            "CHANNEL_ERROR" ||
+          status ===
+            "TIMED_OUT" ||
+          status ===
+            "CLOSED"
+        ) {
+
+          console.warn(
+            "[IG Order Alert] Realtime desconectado:",
+            status,
+            error || ""
+          );
+
+
+          try {
+
+            supabaseClient
+              .removeChannel(
+                currentChannel
+              );
+
+          }
+
+          catch (removeError) {
+
+            console.warn(
+              "[IG Order Alert] Error cerrando canal:",
+              removeError
+            );
+
+          }
+
+
+          if (
+            orderAlertChannel ===
+            currentChannel
+          ) {
+
+            orderAlertChannel =
+              null;
+
+          }
+
+
+          scheduleReconnect();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================================
+     ACTIVAR SISTEMA
+     ========================================================== */
+
+  function activateOrderAlert() {
+
+    unlockAudio();
+
+    requestNotificationPermission();
+
+    startOrderAlert();
+
+  }
+
+
+  /* ==========================================================
+     DETECTAR APERTURA DEL ADMINISTRADOR
+     
+     No dependemos de openAdminPanel().
+     No dependemos del botón "Pedidos".
+     Observamos directamente si el panel
+     de administración deja de estar oculto.
+     ========================================================== */
+
+  function checkAdminPanel() {
+
+    var panel =
+      document.getElementById(
+        "adminPanel"
+      );
+
+
+    if (!panel) {
+      return;
+    }
+
+
+    var style =
+      window.getComputedStyle(
+        panel
+      );
+
+
+    var visible =
+      !panel.classList.contains(
+        "hidden"
+      ) &&
+      style.display !==
+        "none" &&
+      style.visibility !==
+        "hidden";
+
+
+    if (visible) {
+
+      activateOrderAlert();
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     OBSERVADOR DEL PANEL ADMIN
+     ========================================================== */
+
+  function startAdminObserver() {
+
+    var panel =
+      document.getElementById(
+        "adminPanel"
+      );
+
+
+    if (!panel) {
+
+      setTimeout(
+        startAdminObserver,
+        1000
+      );
+
+      return;
+
+    }
+
+
+    var observer =
+      new MutationObserver(
+        function () {
+
+          checkAdminPanel();
+
+        }
+      );
+
+
+    observer.observe(
+      panel,
+      {
+        attributes: true,
+        attributeFilter: [
+          "class",
+          "style"
+        ]
+      }
+    );
+
+
+    checkAdminPanel();
+
+  }
+
+
+  /* ==========================================================
+     CLIC DENTRO DEL ADMIN
+     
+     Sirve además para desbloquear
+     el audio del navegador mediante
+     una interacción real del usuario.
+     ========================================================== */
+
+  document.addEventListener(
+    "click",
+    function (event) {
+
+      var target =
+        event.target &&
+        event.target.closest
+          ? event.target.closest(
+              "#adminPanel"
+            )
+          : null;
+
+
+      if (target) {
+
+        activateOrderAlert();
+
+      }
+
+    },
+    true
+  );
+
+
+  /* ==========================================================
+     VOLVER A ACTIVAR AL REGRESAR A LA PÁGINA
+     ========================================================== */
+
+  document.addEventListener(
+    "visibilitychange",
+    function () {
+
+      if (
+        !document.hidden
+      ) {
+
+        checkAdminPanel();
+
+      }
+
+    }
+  );
+
+
+  window.addEventListener(
+    "focus",
+    function () {
+
+      checkAdminPanel();
+
+    }
+  );
+
+
+  /* ==========================================================
+     ARRANQUE
+     ========================================================== */
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      startAdminObserver,
+      {
+        once: true
+      }
+    );
+
+  }
+
+  else {
+
+    startAdminObserver();
+
+  }
+
+
+  /* ==========================================================
+     LIMPIEZA
+     ========================================================== */
+
+  window.addEventListener(
+    "beforeunload",
+    stopOrderAlert
+  );
+
+
+  console.log(
+    "[IG Order Alert] V2 FINAL activa."
+  );
+
+
+})();
+</script>
 </body>
 </html>
