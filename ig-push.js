@@ -25,8 +25,8 @@
    * La privada permanece exclusivamente en Supabase.
    */
   const VAPID_PUBLIC_KEY =
-    "BPVSNnCf5xmQrOl2rPYVqA1CSHXdGmuAz3-OWiWgNLLRVm8kHTVQafOfqQMxqDRNYsi-iWmFfmO7eAW_9N40ydA";
-
+    
+"BHrwnC3gl9Xzd94JcEp19rJOCyd-OuOYXiloFkby3UaZFuS12zeuIlglhkKT9ijSDRQFkXmCtMQ2Ygg8E3FnnXs";
   function base64ToUint8Array(base64String) {
     const padding = "=".repeat(
       (4 - (base64String.length % 4)) % 4
