@@ -14379,10 +14379,28 @@ if(image){
          * AHORA sí se inserta directamente
          * dentro de la tarjeta del producto.
          */
-        card.appendChild(
-          heart
-        );
+        
+const photo =
+  card.querySelector(
+    ".product-image"
+  );
 
+if(photo){
+
+  photo.style.position =
+    "relative";
+
+  photo.appendChild(
+    heart
+  );
+
+}else{
+
+  card.appendChild(
+    heart
+  );
+
+}
 
         updateHeart(
           heart
