@@ -30939,5 +30939,514 @@ function start(){
 })();
 </script>
 <!-- FIN REPARACIÓN LISTA FAVORITOS -->
+
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — COMPRAR DESDE FAVORITOS
+     PARCHE INDEPENDIENTE
+     NO reemplaza el sistema de favoritos ni el carrito.
+     ========================================================= -->
+
+<style>
+.ig-favorite-buy{
+  flex:none !important;
+  min-height:38px !important;
+  padding:8px 10px !important;
+  border:0 !important;
+  border-radius:8px !important;
+  background:#111 !important;
+  color:#fff !important;
+  font-weight:bold !important;
+  font-size:12px !important;
+  white-space:nowrap !important;
+  cursor:pointer !important;
+}
+
+.ig-favorite-buy:disabled{
+  opacity:.55;
+  cursor:default !important;
+}
+
+@media(max-width:600px){
+  .ig-favorite-buy{
+    min-height:36px !important;
+    padding:7px 8px !important;
+    font-size:11px !important;
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_FAVORITES_BUY_PATCH){
+    return;
+  }
+
+  window.__IG_FAVORITES_BUY_PATCH = true;
+
+
+  /*
+   * Busca el nombre del producto mostrado
+   * dentro del favorito.
+   */
+  function obtenerNombre(item){
+
+    const nombre =
+      item.querySelector(
+        ".ig-favorite-item-info strong"
+      );
+
+    return nombre
+      ? nombre.textContent.trim()
+      : "";
+
+  }
+
+
+  /*
+   * Busca el producto real en products.
+   */
+  function obtenerProducto(nombre){
+
+    try{
+
+      if(
+        Array.isArray(window.products)
+      ){
+
+        return window.products.find(
+          function(product){
+
+            return(
+              product &&
+              String(
+                product.name || ""
+              ).trim() === nombre
+            );
+
+          }
+        ) || null;
+
+      }
+
+    }catch(error){}
+
+    return null;
+
+  }
+
+
+  /*
+   * Agrega utilizando el MISMO carrito
+   * que utiliza la tienda.
+   */
+  function agregarAlCarrito(item){
+
+    const nombre =
+      obtenerNombre(item);
+
+
+    if(!nombre){
+      return false;
+    }
+
+
+    /*
+     * Productos normales.
+     */
+    const producto =
+      obtenerProducto(nombre);
+
+
+    if(
+      producto &&
+      typeof window.addToCart === "function"
+    ){
+
+      window.addToCart(
+        producto.id
+      );
+
+      return true;
+
+    }
+
+
+    /*
+     * Segunda posibilidad:
+     * localizar la tarjeta original.
+     */
+    const cards =
+      document.querySelectorAll(
+        "#productsContainer .product-card"
+      );
+
+
+    for(
+      let i = 0;
+      i < cards.length;
+      i++
+    ){
+
+      const card =
+        cards[i];
+
+
+      const titulo =
+        card.querySelector("h3");
+
+
+      if(
+        !titulo ||
+        titulo.textContent.trim() !== nombre
+      ){
+        continue;
+      }
+
+
+      /*
+       * Botón normal del producto.
+       */
+      const boton =
+        card.querySelector(
+          "button[onclick*='addToCart']"
+        );
+
+
+      if(boton){
+
+        boton.click();
+
+        return true;
+
+      }
+
+
+      /*
+       * Productos especiales.
+       */
+      const especial =
+        card.querySelector(
+          "[data-ig-special-add]"
+        );
+
+
+      if(especial){
+
+        especial.click();
+
+        return true;
+
+      }
+
+    }
+
+
+    return false;
+
+  }
+
+
+  /*
+   * Añade el botón a cada favorito.
+   */
+  function instalarBotones(){
+
+    const lista =
+      document.getElementById(
+        "igFavoritesList"
+      );
+
+
+    if(!lista){
+      return;
+    }
+
+
+    const favoritos =
+      lista.querySelectorAll(
+        ".ig-favorite-item"
+      );
+
+
+    favoritos.forEach(
+      function(item){
+
+        /*
+         * Evitar duplicados.
+         */
+        if(
+          item.querySelector(
+            ".ig-favorite-buy"
+          )
+        ){
+          return;
+        }
+
+
+        const boton =
+          document.createElement(
+            "button"
+          );
+
+
+        boton.type =
+          "button";
+
+
+        boton.className =
+          "ig-favorite-buy";
+
+
+        boton.textContent =
+          "🛒 Agregar";
+
+
+        boton.title =
+          "Agregar al carrito";
+
+
+        boton.setAttribute(
+          "aria-label",
+          "Agregar al carrito"
+        );
+
+
+        boton.addEventListener(
+          "click",
+          function(event){
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+
+            const agregado =
+              agregarAlCarrito(item);
+
+
+            if(!agregado){
+
+              if(
+                typeof window.showToast ===
+                "function"
+              ){
+
+                window.showToast(
+                  "No se pudo agregar este producto al carrito."
+                );
+
+              }
+
+              return;
+
+            }
+
+
+            boton.textContent =
+              "✓ Agregado";
+
+
+            boton.disabled =
+              true;
+
+
+            /*
+             * Después vuelve a estar disponible
+             * por si el usuario quiere aumentar
+             * la cantidad desde favoritos.
+             */
+            setTimeout(
+              function(){
+
+                if(
+                  document.body.contains(
+                    boton
+                  )
+                ){
+
+                  boton.textContent =
+                    "🛒 Agregar";
+
+                  boton.disabled =
+                    false;
+
+                }
+
+              },
+              1400
+            );
+
+          }
+        );
+
+
+        /*
+         * Lo colocamos justo antes del botón
+         * de quitar de favoritos.
+         */
+        const quitar =
+          item.querySelector(
+            ".ig-favorite-remove"
+          );
+
+
+        if(quitar){
+
+          item.insertBefore(
+            boton,
+            quitar
+          );
+
+        }else{
+
+          item.appendChild(
+            boton
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Cuando se abre Favoritos,
+   * el sistema original construye la lista.
+   * Nosotros esperamos y añadimos solamente
+   * el botón de compra.
+   */
+  function programar(){
+
+    setTimeout(
+      instalarBotones,
+      80
+    );
+
+    setTimeout(
+      instalarBotones,
+      300
+    );
+
+    setTimeout(
+      instalarBotones,
+      800
+    );
+
+    setTimeout(
+      instalarBotones,
+      1500
+    );
+
+  }
+
+
+  document.addEventListener(
+    "click",
+    function(event){
+
+      if(
+        event.target.closest &&
+        event.target.closest(
+          "#igFavoritesLauncher"
+        )
+      ){
+
+        programar();
+
+      }
+
+    },
+    true
+  );
+
+
+  /*
+   * Detecta cuando renderFavorites()
+   * vuelve a construir la lista.
+   */
+  function observarLista(){
+
+    const lista =
+      document.getElementById(
+        "igFavoritesList"
+      );
+
+
+    if(!lista){
+      return;
+    }
+
+
+    if(
+      lista.__IG_BUY_OBSERVER
+    ){
+      return;
+    }
+
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          instalarBotones();
+
+        }
+      );
+
+
+    observer.observe(
+      lista,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+
+    lista.__IG_BUY_OBSERVER =
+      observer;
+
+
+    instalarBotones();
+
+  }
+
+
+  function iniciar(){
+
+    observarLista();
+
+    programar();
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {once:true}
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+
+})();
+</script>
+
+<!-- FIN COMPRAR DESDE FAVORITOS -->
 </body>
 </html>
