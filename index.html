@@ -29913,6 +29913,46 @@ function start(){
 
 })();
 </script>
-  
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — REGISTRO PWA
+     ========================================================= -->
+<script>
+(function () {
+  "use strict";
+
+  if (!("serviceWorker" in navigator)) {
+    console.warn(
+      "International Gateway: Service Worker no compatible."
+    );
+    return;
+  }
+
+  window.addEventListener("load", function () {
+
+    navigator.serviceWorker
+      .register("./sw.js", {
+        scope: "./"
+      })
+      .then(function (registration) {
+
+        console.log(
+          "International Gateway PWA: Service Worker registrado.",
+          registration.scope
+        );
+
+      })
+      .catch(function (error) {
+
+        console.error(
+          "International Gateway PWA: error al registrar Service Worker.",
+          error
+        );
+
+      });
+
+  });
+
+})();
+</script>
 </body>
 </html>
