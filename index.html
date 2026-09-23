@@ -34249,5 +34249,340 @@ if(
 
 })();
 </script>
+
+  <script>
+/* =========================================================
+   INTERNATIONAL GATEWAY
+   RESEÑAS EN PRODUCTOS NORMALES
+   PARCHE AISLADO
+   ========================================================= */
+
+(function(){
+
+  "use strict";
+
+  if(window.__IG_NORMAL_PRODUCTS_REVIEWS){
+    return;
+  }
+
+  window.__IG_NORMAL_PRODUCTS_REVIEWS = true;
+
+
+  async function igNormalProductReviews(){
+
+    var container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if(!container){
+      return;
+    }
+
+
+    /*
+     * Esperamos a que el catálogo original
+     * termine de renderizar.
+     */
+    var cards =
+      container.querySelectorAll(
+        ".product-card"
+      );
+
+    if(!cards.length){
+      return;
+    }
+
+
+    if(
+      typeof window.supabaseClient ===
+      "undefined"
+    ){
+      return;
+    }
+
+
+    /*
+     * Los productos que corresponden
+     * a estas tarjetas son los productos
+     * normales del catálogo.
+     */
+    var normalProducts =
+      Array.isArray(window.products)
+        ? window.products
+        : products;
+
+
+    if(
+      !normalProducts ||
+      !normalProducts.length
+    ){
+      return;
+    }
+
+
+    var ids =
+      normalProducts.map(
+        function(product){
+          return String(product.id);
+        }
+      );
+
+
+    var result =
+      await supabaseClient
+        .from("ig_product_reviews")
+        .select(
+          "product_id,rating"
+        )
+        .in(
+          "product_id",
+          ids
+        )
+        .eq(
+          "approved",
+          true
+        );
+
+
+    if(result.error){
+
+      console.error(
+        "[IG Reviews normales]",
+        result.error
+      );
+
+      return;
+    }
+
+
+    var stats = {};
+
+
+    (result.data || []).forEach(
+      function(row){
+
+        var id =
+          String(row.product_id);
+
+
+        if(!stats[id]){
+
+          stats[id] = {
+            count:0,
+            sum:0
+          };
+
+        }
+
+
+        stats[id].count++;
+
+        stats[id].sum +=
+          Number(row.rating || 0);
+
+      }
+    );
+
+
+    cards.forEach(
+      function(card,index){
+
+        var product =
+          normalProducts[index];
+
+
+        if(!product){
+          return;
+        }
+
+
+        var productId =
+          String(product.id);
+
+
+        var productStats =
+          stats[productId] || {
+            count:0,
+            sum:0
+          };
+
+
+        var content =
+          card.querySelector(
+            ".product-content"
+          );
+
+
+        if(!content){
+          return;
+        }
+
+
+        /*
+         * Evitar duplicados.
+         */
+        if(
+          content.querySelector(
+            "[data-ig-normal-review]"
+          )
+        ){
+          return;
+        }
+
+
+        var reviewBox =
+          document.createElement("div");
+
+
+        reviewBox.setAttribute(
+          "data-ig-normal-review",
+          productId
+        );
+
+
+        reviewBox.style.cssText =
+          "font-size:13px;" +
+          "color:#555;" +
+          "margin:10px 0 12px;" +
+          "display:grid;" +
+          "gap:8px;";
+
+
+        var reviewText =
+          productStats.count
+            ? (
+                "⭐ " +
+                (
+                  productStats.sum /
+                  productStats.count
+                ).toFixed(1) +
+                " · " +
+                productStats.count +
+                (
+                  productStats.count === 1
+                    ? " reseña"
+                    : " reseñas"
+                )
+              )
+            : "Sin reseñas todavía";
+
+
+        reviewBox.innerHTML =
+
+          '<div>' +
+            reviewText +
+          '</div>' +
+
+          '<button ' +
+          'type="button" ' +
+          'class="button secondary" ' +
+          'data-ig-normal-show-reviews>' +
+            '⭐ Ver reseñas' +
+          '</button>';
+
+
+        var cartButton =
+          content.querySelector(
+            'button[onclick*="addToCart"]'
+          );
+
+
+        if(cartButton){
+
+          cartButton.insertAdjacentElement(
+            "beforebegin",
+            reviewBox
+          );
+
+        }else{
+
+          content.appendChild(
+            reviewBox
+          );
+
+        }
+
+
+        var reviewButton =
+          reviewBox.querySelector(
+            "[data-ig-normal-show-reviews]"
+          );
+
+
+        if(reviewButton){
+
+          reviewButton.addEventListener(
+            "click",
+            function(){
+
+              if(
+                typeof window.igPR_showReviewsPublic ===
+                "function"
+              ){
+
+                window.igPR_showReviewsPublic(
+                  product.id,
+                  product.name
+                );
+
+              }
+
+            }
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Conservamos completamente la función
+   * original y solamente añadimos las reseñas
+   * después de que renderProducts() termine.
+   */
+  var originalRenderProducts =
+    window.renderProducts;
+
+
+  if(
+    typeof originalRenderProducts !==
+    "function"
+  ){
+
+    console.error(
+      "[IG Reviews normales] renderProducts no encontrado."
+    );
+
+    return;
+  }
+
+
+  window.renderProducts =
+    function(){
+
+      originalRenderProducts.apply(
+        this,
+        arguments
+      );
+
+
+      setTimeout(
+        function(){
+
+          igNormalProductReviews();
+
+        },
+        50
+      );
+
+    };
+
+
+})();
+</script>
 </body>
 </html>
