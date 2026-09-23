@@ -13676,31 +13676,7 @@ if(image){
       decorarProductos,
       1000
     );
-const container =
-  document.getElementById(
-    "productsContainer"
-  );
 
-if(container){
-
-  const observer =
-    new MutationObserver(
-      function(){
-
-        decorarProductos();
-
-      }
-    );
-
-  observer.observe(
-    container,
-    {
-      childList:true,
-      subtree:true
-    }
-  );
-
-}
 
     console.log(
       "[IG Favoritos] Sistema instalado correctamente."
