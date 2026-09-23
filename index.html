@@ -30575,40 +30575,7 @@ function start(){
 
           reparar();
 
-        }
-      );
 
-
-    observer.observe(
-      container,
-      {
-        childList:true,
-        subtree:true
-      }
-    );
-
-  }
-
-
-  if(
-    document.readyState ===
-    "loading"
-  ){
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      iniciar,
-      {once:true}
-    );
-
-  }else{
-
-    iniciar();
-
-  }
-
-
-})();
 </script>
 </body>
 </html>
