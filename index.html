@@ -34560,7 +34560,6 @@ if(
     return;
   }
 
-
   window.renderProducts =
     function(){
 
@@ -34569,12 +34568,9 @@ if(
         arguments
       );
 
-
       setTimeout(
         function(){
-
           igNormalProductReviews();
-
         },
         50
       );
@@ -34582,7 +34578,68 @@ if(
     };
 
 
+  /*
+   * Comprobar también el catálogo que ya
+   * pudo haberse renderizado antes de instalar
+   * este parche.
+   */
+  setTimeout(
+    igNormalProductReviews,
+    300
+  );
+
+  setTimeout(
+    igNormalProductReviews,
+    800
+  );
+
+  setTimeout(
+    igNormalProductReviews,
+    1500
+  );
+
+  setTimeout(
+    igNormalProductReviews,
+    3000
+  );
+
+
+  /*
+   * Si el catálogo se vuelve a renderizar,
+   * volvemos a incorporar las reseñas.
+   * Observamos solamente productsContainer.
+   */
+  var productsContainer =
+    document.getElementById(
+      "productsContainer"
+    );
+
+
+  if(productsContainer){
+
+    var observer =
+      new MutationObserver(
+        function(){
+
+          igNormalProductReviews();
+
+        }
+      );
+
+
+    observer.observe(
+      productsContainer,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
 })();
+  
 </script>
 </body>
 </html>
