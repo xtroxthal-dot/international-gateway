@@ -13090,9 +13090,27 @@ body.ig-splash-lock{
         );
 
 
-        card.appendChild(
-          favoriteButton
-        );
+      const image =
+  card.querySelector(
+    ".product-image"
+  );
+
+if(image){
+
+  image.style.position =
+    "relative";
+
+  image.appendChild(
+    favoriteButton
+  );
+
+}else{
+
+  card.appendChild(
+    favoriteButton
+  );
+
+}
 
 
         actualizarBoton(
