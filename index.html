@@ -29954,5 +29954,90 @@ function start(){
 
 })();
 </script>
+
+  <!-- CÓDIGO DE REPARACIÓN DE CORAZONES -->
+<script>
+(function () {
+  "use strict";
+
+  function repararCorazones() {
+
+    var container =
+      document.getElementById("productsContainer");
+
+    if (!container) return;
+
+    var cards =
+      container.querySelectorAll(".product-card");
+
+    cards.forEach(function (card) {
+
+      var heart =
+        card.querySelector(".ig-favorite-button");
+
+      if (!heart) return;
+
+      var photo =
+        card.querySelector(".product-image");
+
+      if (!photo) return;
+
+      photo.style.position = "relative";
+
+      if (heart.parentElement !== photo) {
+        photo.appendChild(heart);
+      }
+
+      heart.style.position = "absolute";
+      heart.style.top = "12px";
+      heart.style.right = "12px";
+      heart.style.zIndex = "50";
+      heart.style.display = "flex";
+      heart.style.alignItems = "center";
+      heart.style.justifyContent = "center";
+    });
+  }
+
+  function iniciar() {
+
+    repararCorazones();
+
+    setTimeout(repararCorazones, 300);
+    setTimeout(repararCorazones, 1000);
+    setTimeout(repararCorazones, 2000);
+
+    var container =
+      document.getElementById("productsContainer");
+
+    if (container) {
+
+      var observer =
+        new MutationObserver(function () {
+          repararCorazones();
+        });
+
+      observer.observe(container, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      { once: true }
+    );
+
+  } else {
+
+    iniciar();
+
+  }
+
+})();
+</script>
 </body>
 </html>
