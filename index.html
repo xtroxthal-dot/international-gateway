@@ -31448,5 +31448,2306 @@ function start(){
 </script>
 
 <!-- FIN COMPRAR DESDE FAVORITOS -->
+
+<!-- =========================================================
+     INTERNATIONAL GATEWAY
+     OFERTAS + PROMOCIONES + RESEÑAS
+     PARCHE AISLADO Y REVERSIBLE
+     ========================================================= -->
+
+<script>
+(function(){
+
+"use strict";
+
+if(window.__IG_PROMOS_REVIEWS_FINAL){
+  return;
+}
+
+window.__IG_PROMOS_REVIEWS_FINAL = true;
+
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+
+var igPromoProducts = [];
+var igPromoImages = {};
+var igReviewStats = {};
+var igReviewPoll = null;
+
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
+function igPR_escape(value){
+
+  return String(
+    value == null ? "" : value
+  )
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+
+}
+
+
+function igPR_money(value){
+
+  var number = Number(value || 0);
+
+  try{
+
+    return number.toLocaleString(
+      "es-AR",
+      {
+        style:"currency",
+        currency:"ARS",
+        minimumFractionDigits:2
+      }
+    );
+
+  }catch(error){
+
+    return "$ " + number.toFixed(2);
+
+  }
+
+}
+
+
+function igPR_message(message){
+
+  try{
+
+    if(
+      typeof showToast === "function"
+    ){
+
+      showToast(message);
+      return;
+
+    }
+
+  }catch(error){}
+
+  alert(message);
+
+}
+
+
+/* =========================================================
+   SECCIÓN PÚBLICA
+   ========================================================= */
+
+function igPR_createPublicSection(){
+
+  if(
+    document.getElementById(
+      "igPromoSection"
+    )
+  ){
+
+    return true;
+
+  }
+
+
+  var productsSection =
+    document.getElementById(
+      "productsSection"
+    );
+
+
+  if(!productsSection){
+
+    return false;
+
+  }
+
+
+  var section =
+    document.createElement("section");
+
+
+  section.id =
+    "igPromoSection";
+
+  section.className =
+    "section";
+
+
+  section.innerHTML =
+
+    '<div class="container">' +
+
+      '<h2 class="section-title">' +
+        '🎁 Ofertas y promociones' +
+      '</h2>' +
+
+      '<div id="igPromoBlocks"></div>' +
+
+    '</div>';
+
+
+  productsSection.parentNode.insertBefore(
+    section,
+    productsSection
+  );
+
+
+  return true;
+
+}
+
+
+/* =========================================================
+   CARGAR ESTADÍSTICAS DE RESEÑAS
+   ========================================================= */
+
+async function igPR_loadReviewStats(){
+
+  igReviewStats = {};
+
+
+  var result =
+    await supabaseClient
+      .from("ig_product_reviews")
+      .select("product_id,rating")
+      .eq("approved",true);
+
+
+  if(result.error){
+
+    console.error(
+      "[IG Reviews]",
+      result.error
+    );
+
+    return;
+
+  }
+
+
+  (result.data || []).forEach(
+    function(row){
+
+      var id =
+        String(row.product_id);
+
+
+      if(!igReviewStats[id]){
+
+        igReviewStats[id] = {
+          count:0,
+          sum:0,
+          avg:0
+        };
+
+      }
+
+
+      igReviewStats[id].count++;
+
+      igReviewStats[id].sum +=
+        Number(row.rating || 0);
+
+    }
+  );
+
+
+  Object.keys(igReviewStats).forEach(
+    function(id){
+
+      var item =
+        igReviewStats[id];
+
+
+      item.avg =
+        item.sum / item.count;
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   CARGAR PRODUCTOS PROMOCIONALES
+   ========================================================= */
+
+async function igPR_loadPromoProducts(){
+
+  if(
+    typeof supabaseClient ===
+    "undefined"
+  ){
+
+    return;
+
+  }
+
+
+  var result =
+    await supabaseClient
+      .from("ig_products")
+      .select(
+        "id,name,description,price,original_price,promo_section,is_featured,active,available,ig_product_images(public_url,is_primary,sort_order)"
+      )
+      .eq("active",true)
+      .eq("available",true);
+
+
+  if(result.error){
+
+    console.error(
+      "[IG Promos]",
+      result.error
+    );
+
+    return;
+
+  }
+
+
+  igPromoProducts =
+    result.data || [];
+
+
+  igPromoImages = {};
+
+
+  igPromoProducts.forEach(
+    function(product){
+
+      var images =
+        (
+          product.ig_product_images ||
+          []
+        ).slice();
+
+
+      images.sort(
+        function(a,b){
+
+          if(
+            a.is_primary &&
+            !b.is_primary
+          ){
+
+            return -1;
+
+          }
+
+
+          if(
+            !a.is_primary &&
+            b.is_primary
+          ){
+
+            return 1;
+
+          }
+
+
+          return (
+            Number(a.sort_order || 0) -
+            Number(b.sort_order || 0)
+          );
+
+        }
+      );
+
+
+      var image =
+        images[0];
+
+
+      igPromoImages[
+        String(product.id)
+      ] =
+        image &&
+        image.public_url
+          ? image.public_url
+          : "";
+
+    }
+  );
+
+
+  await igPR_loadReviewStats();
+
+  igPR_renderPromos();
+
+}
+
+
+/* =========================================================
+   TARJETA PROMOCIONAL
+   ========================================================= */
+
+function igPR_card(
+  product,
+  label
+){
+
+  var id =
+    String(product.id);
+
+
+  var image =
+    igPromoImages[id] || "";
+
+
+  var price =
+    Number(product.price || 0);
+
+
+  var original =
+    Number(product.original_price || 0);
+
+
+  var stats =
+    igReviewStats[id] || {
+      count:0,
+      avg:0
+    };
+
+
+  var priceHTML =
+    igPR_money(price);
+
+
+  if(
+    original > price
+  ){
+
+    priceHTML +=
+      ' <del style="' +
+      'font-size:13px;' +
+      'color:#777;' +
+      'font-weight:normal;' +
+      '">' +
+      igPR_money(original) +
+      '</del>';
+
+  }
+
+
+  var reviewText =
+    stats.count
+      ? (
+          "⭐ " +
+          stats.avg.toFixed(1) +
+          " · " +
+          stats.count +
+          (
+            stats.count === 1
+              ? " reseña"
+              : " reseñas"
+          )
+        )
+      : "Sin reseñas todavía";
+
+
+  return (
+
+    '<article class="product-card">' +
+
+      '<div class="product-image">' +
+
+        (
+          image
+
+          ?
+
+          '<img src="' +
+          igPR_escape(image) +
+          '" alt="' +
+          igPR_escape(product.name) +
+          '">' 
+
+          :
+
+          '<span>Sin imagen</span>'
+        ) +
+
+      '</div>' +
+
+
+      '<div class="product-content">' +
+
+        '<div class="product-category">' +
+          igPR_escape(label) +
+        '</div>' +
+
+
+        '<h3>' +
+          igPR_escape(product.name) +
+        '</h3>' +
+
+
+        (
+          product.description
+
+          ?
+
+          '<p class="product-description">' +
+            igPR_escape(
+              product.description
+            ) +
+          '</p>'
+
+          :
+
+          ''
+        ) +
+
+
+        '<div class="price">' +
+          priceHTML +
+        '</div>' +
+
+
+        '<div style="' +
+        'font-size:13px;' +
+        'color:#555;' +
+        'margin-bottom:12px;' +
+        '">' +
+
+          reviewText +
+
+        '</div>' +
+
+
+        '<div style="' +
+        'display:grid;' +
+        'gap:8px;' +
+        '">' +
+
+          '<button ' +
+          'type="button" ' +
+          'class="button" ' +
+          'data-ig-promo-buy="' +
+          igPR_escape(id) +
+          '">' +
+
+            '🛒 Agregar al carrito' +
+
+          '</button>' +
+
+
+          '<button ' +
+          'type="button" ' +
+          'class="button secondary" ' +
+          'data-ig-promo-reviews="' +
+          igPR_escape(id) +
+          '">' +
+
+            '⭐ Ver reseñas' +
+
+          '</button>' +
+
+        '</div>' +
+
+      '</div>' +
+
+    '</article>'
+
+  );
+
+}
+
+
+/* =========================================================
+   RENDER DE LAS CUATRO SECCIONES
+   ========================================================= */
+
+function igPR_renderPromos(){
+
+  var host =
+    document.getElementById(
+      "igPromoBlocks"
+    );
+
+
+  if(!host){
+
+    return;
+
+  }
+
+
+  var groups = [
+
+    ["offers","🔥 Ofertas"],
+
+    ["new","🆕 Nuevos productos"],
+
+    ["featured","⭐ Destacados"],
+
+    ["clearance","💥 Liquidación"]
+
+  ];
+
+
+  var html = "";
+
+
+  groups.forEach(
+    function(group){
+
+      var products =
+        igPromoProducts.filter(
+          function(product){
+
+            if(
+              group[0] ===
+              "featured"
+            ){
+
+              return !!product.is_featured;
+
+            }
+
+
+            return (
+              product.promo_section ===
+              group[0]
+            );
+
+          }
+        );
+
+
+      if(!products.length){
+
+        return;
+
+      }
+
+
+      html +=
+
+        '<div style="' +
+        'margin-bottom:34px;' +
+        '">' +
+
+          '<h3 style="' +
+          'font-size:24px;' +
+          'margin-bottom:16px;' +
+          '">' +
+
+            group[1] +
+
+          '</h3>' +
+
+          '<div class="products">' +
+
+            products.map(
+              function(product){
+
+                return igPR_card(
+                  product,
+                  group[1]
+                );
+
+              }
+            ).join("") +
+
+          '</div>' +
+
+        '</div>';
+
+    }
+  );
+
+
+  if(!html){
+
+    html =
+      '<div class="empty">' +
+
+        '<h3>Próximamente</h3>' +
+
+        '<p>' +
+          'Las ofertas y promociones ' +
+          'aparecerán aquí.' +
+        '</p>' +
+
+      '</div>';
+
+  }
+
+
+  host.innerHTML =
+    html;
+
+
+  host
+    .querySelectorAll(
+      "[data-ig-promo-buy]"
+    )
+    .forEach(
+      function(button){
+
+        button.addEventListener(
+          "click",
+          function(){
+
+            var id =
+              button.getAttribute(
+                "data-ig-promo-buy"
+              );
+
+
+            var product =
+              igPromoProducts.find(
+                function(item){
+
+                  return (
+                    String(item.id) ===
+                    String(id)
+                  );
+
+                }
+              );
+
+
+            if(!product){
+
+              return;
+
+            }
+
+
+            try{
+
+              if(
+                typeof addToCart ===
+                "function"
+              ){
+
+                addToCart(
+                  product.id
+                );
+
+              }else{
+
+                igPR_message(
+                  "No se pudo acceder al carrito."
+                );
+
+              }
+
+            }catch(error){
+
+              console.error(
+                "[IG Promos]",
+                error
+              );
+
+              igPR_message(
+                "No se pudo agregar el producto al carrito."
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+  host
+    .querySelectorAll(
+      "[data-ig-promo-reviews]"
+    )
+    .forEach(
+      function(button){
+
+        button.addEventListener(
+          "click",
+          function(){
+
+            var id =
+              button.getAttribute(
+                "data-ig-promo-reviews"
+              );
+
+
+            var product =
+              igPromoProducts.find(
+                function(item){
+
+                  return (
+                    String(item.id) ===
+                    String(id)
+                  );
+
+                }
+              );
+
+
+            if(product){
+
+              igPR_showReviews(
+                product.id,
+                product.name
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   MODAL DE RESEÑAS
+   ========================================================= */
+
+function igPR_openModal(
+  id,
+  title,
+  content
+){
+
+  var old =
+    document.getElementById(id);
+
+
+  if(old){
+
+    old.remove();
+
+  }
+
+
+  var modal =
+    document.createElement("div");
+
+
+  modal.id =
+    id;
+
+  modal.className =
+    "modal open";
+
+
+  modal.innerHTML =
+
+    '<div class="modal-box">' +
+
+      '<div class="modal-head">' +
+
+        '<h2>' +
+          igPR_escape(title) +
+        '</h2>' +
+
+        '<button ' +
+        'type="button" ' +
+        'data-ig-close>' +
+
+          '×' +
+
+        '</button>' +
+
+      '</div>' +
+
+      '<div id="' +
+      id +
+      'Body">' +
+
+        content +
+
+      '</div>' +
+
+    '</div>';
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  modal.addEventListener(
+    "click",
+    function(event){
+
+      if(
+        event.target === modal ||
+        (
+          event.target.closest &&
+          event.target.closest(
+            "[data-ig-close]"
+          )
+        )
+      ){
+
+        modal.remove();
+
+      }
+
+    }
+  );
+
+
+  return modal;
+
+}
+
+
+/* =========================================================
+   MOSTRAR RESEÑAS
+   ========================================================= */
+
+async function igPR_showReviews(
+  productId,
+  productName
+){
+
+  igPR_openModal(
+    "igReviewsModal",
+    "⭐ Reseñas — " + productName,
+    '<div>Cargando reseñas…</div>'
+  );
+
+
+  var result =
+    await supabaseClient
+      .from("ig_product_reviews")
+      .select(
+        "customer_name,rating,comment,created_at"
+      )
+      .eq("product_id",productId)
+      .eq("approved",true)
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      );
+
+
+  var body =
+    document.getElementById(
+      "igReviewsModalBody"
+    );
+
+
+  if(!body){
+
+    return;
+
+  }
+
+
+  if(result.error){
+
+    body.innerHTML =
+      '<div class="notice error">' +
+        'No se pudieron cargar las reseñas.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  var rows =
+    result.data || [];
+
+
+  if(!rows.length){
+
+    body.innerHTML =
+      '<div class="empty">' +
+        'Todavía no hay reseñas aprobadas.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  body.innerHTML =
+    rows.map(
+      function(row){
+
+        return (
+
+          '<div class="card" ' +
+          'style="margin-bottom:10px;">' +
+
+            '<strong>' +
+              igPR_escape(
+                row.customer_name
+              ) +
+            '</strong>' +
+
+            '<div>' +
+
+              "⭐".repeat(
+                Number(row.rating || 0)
+              ) +
+
+            '</div>' +
+
+            '<p>' +
+              igPR_escape(
+                row.comment
+              ) +
+            '</p>' +
+
+          '</div>'
+
+        );
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   FORMULARIO DE RESEÑA
+   ========================================================= */
+
+function igPR_reviewForm(
+  productId,
+  productName,
+  orderId
+){
+
+  var modal =
+    igPR_openModal(
+      "igReviewModal",
+      "⭐ Tu reseña — " + productName,
+
+      '<form id="igReviewForm">' +
+
+        '<input type="hidden" ' +
+        'id="igReviewProductId" value="' +
+        igPR_escape(productId) +
+        '">' +
+
+        '<input type="hidden" ' +
+        'id="igReviewOrderId" value="' +
+        igPR_escape(orderId) +
+        '">' +
+
+        '<div class="field">' +
+
+          '<label>Nombre</label>' +
+
+          '<input ' +
+          'id="igReviewName" ' +
+          'maxlength="80" ' +
+          'required>' +
+
+        '</div>' +
+
+        '<div class="field">' +
+
+          '<label>' +
+            '¿Qué te pareció este producto?' +
+          '</label>' +
+
+          '<div id="igReviewStars" ' +
+          'style="display:flex;gap:6px;flex-wrap:wrap;">' +
+
+            [1,2,3,4,5].map(
+              function(number){
+
+                return (
+
+                  '<button ' +
+                  'type="button" ' +
+                  'class="button secondary" ' +
+                  'data-ig-rating="' +
+                  number +
+                  '">' +
+
+                    number + "⭐" +
+
+                  '</button>'
+
+                );
+
+              }
+            ).join("") +
+
+          '</div>' +
+
+          '<input type="hidden" ' +
+          'id="igReviewRating" value="5">' +
+
+        '</div>' +
+
+        '<div class="field">' +
+
+          '<label>Comentario</label>' +
+
+          '<textarea ' +
+          'id="igReviewComment" ' +
+          'maxlength="1000" ' +
+          'minlength="3" ' +
+          'required></textarea>' +
+
+        '</div>' +
+
+        '<button ' +
+        'type="submit" ' +
+        'class="button full">' +
+
+          '⭐ Enviar reseña' +
+
+        '</button>' +
+
+      '</form>'
+    );
+
+
+  var form =
+    document.getElementById(
+      "igReviewForm"
+    );
+
+
+  if(!form){
+
+    return;
+
+  }
+
+
+  modal
+    .querySelectorAll(
+      "[data-ig-rating]"
+    )
+    .forEach(
+      function(button){
+
+        button.addEventListener(
+          "click",
+          function(){
+
+            var rating =
+              Number(
+                button.getAttribute(
+                  "data-ig-rating"
+                )
+              );
+
+
+            document.getElementById(
+              "igReviewRating"
+            ).value =
+              rating;
+
+
+            modal
+              .querySelectorAll(
+                "[data-ig-rating]"
+              )
+              .forEach(
+                function(other){
+
+                  if(
+                    Number(
+                      other.getAttribute(
+                        "data-ig-rating"
+                      )
+                    ) === rating
+                  ){
+
+                    other.classList.remove(
+                      "secondary"
+                    );
+
+                  }else{
+
+                    other.classList.add(
+                      "secondary"
+                    );
+
+                  }
+
+                }
+              );
+
+          }
+        );
+
+      }
+    );
+
+
+  form.addEventListener(
+    "submit",
+    async function(event){
+
+      event.preventDefault();
+
+
+      var button =
+        form.querySelector(
+          'button[type="submit"]'
+        );
+
+
+      button.disabled =
+        true;
+
+
+      var payload = {
+
+        product_id:
+          document.getElementById(
+            "igReviewProductId"
+          ).value,
+
+        order_id:
+          document.getElementById(
+            "igReviewOrderId"
+          ).value,
+
+        customer_name:
+          document.getElementById(
+            "igReviewName"
+          ).value.trim(),
+
+        rating:
+          Number(
+            document.getElementById(
+              "igReviewRating"
+            ).value
+          ),
+
+        comment:
+          document.getElementById(
+            "igReviewComment"
+          ).value.trim(),
+
+        approved:false
+
+      };
+
+
+      var result =
+        await supabaseClient
+          .from("ig_product_reviews")
+          .insert(payload);
+
+
+      if(result.error){
+
+        button.disabled =
+          false;
+
+
+        igPR_message(
+          "No se pudo enviar la reseña: " +
+          (
+            result.error.message ||
+            "error"
+          )
+        );
+
+        return;
+
+      }
+
+
+      modal.remove();
+
+
+      igPR_message(
+        "⭐ Reseña enviada. Quedará pendiente de aprobación."
+      );
+
+
+      await igPR_loadPromoProducts();
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   AÑADIR RESEÑAS A LA CONFIRMACIÓN
+   ========================================================= */
+
+async function igPR_renderOrderReviews(
+  order
+){
+
+  var view =
+    document.getElementById(
+      "confirmationView"
+    );
+
+
+  if(!view){
+
+    return;
+
+  }
+
+
+  var old =
+    document.getElementById(
+      "igOrderReviews"
+    );
+
+
+  if(old){
+
+    old.remove();
+
+  }
+
+
+  var itemsResult =
+    await supabaseClient
+      .from("ig_order_items")
+      .select(
+        "product_id,product_name,quantity"
+      )
+      .eq(
+        "order_id",
+        order.id
+      );
+
+
+  if(
+    itemsResult.error ||
+    !itemsResult.data ||
+    !itemsResult.data.length
+  ){
+
+    return;
+
+  }
+
+
+  var box =
+    document.createElement("div");
+
+
+  box.id =
+    "igOrderReviews";
+
+  box.className =
+    "card";
+
+
+  box.style.marginTop =
+    "20px";
+
+
+  box.innerHTML =
+
+    '<h3>' +
+      '⭐ ¿Qué te parecieron tus productos?' +
+    '</h3>' +
+
+    '<p style="color:#666;">' +
+      'Podés dejar una reseña de cada producto comprado.' +
+    '</p>' +
+
+    '<div id="igOrderReviewList"></div>';
+
+
+  view.appendChild(box);
+
+
+  var list =
+    document.getElementById(
+      "igOrderReviewList"
+    );
+
+
+  itemsResult.data.forEach(
+    function(item){
+
+      var row =
+        document.createElement("div");
+
+
+      row.style.cssText =
+        "display:flex;" +
+        "justify-content:space-between;" +
+        "align-items:center;" +
+        "gap:10px;" +
+        "padding:10px 0;" +
+        "border-top:1px solid #ddd;" +
+        "flex-wrap:wrap;";
+
+
+      var name =
+        item.product_name ||
+        "Producto";
+
+
+      row.innerHTML =
+
+        '<strong>' +
+          igPR_escape(name) +
+        '</strong>' +
+
+        '<button ' +
+        'type="button" ' +
+        'class="button secondary">' +
+
+          '⭐ Dejar reseña' +
+
+        '</button>';
+
+
+      var button =
+        row.querySelector("button");
+
+
+      button.addEventListener(
+        "click",
+        async function(){
+
+          var existing =
+            await supabaseClient
+              .from("ig_product_reviews")
+              .select("id")
+              .eq(
+                "order_id",
+                order.id
+              )
+              .eq(
+                "product_id",
+                item.product_id
+              )
+              .maybeSingle();
+
+
+          if(existing.error){
+
+            igPR_message(
+              "No se pudo comprobar la reseña."
+            );
+
+            return;
+
+          }
+
+
+          if(existing.data){
+
+            igPR_message(
+              "Ya existe una reseña para este producto."
+            );
+
+            return;
+
+          }
+
+
+          igPR_reviewForm(
+            item.product_id,
+            name,
+            order.id
+          );
+
+        }
+      );
+
+
+      list.appendChild(row);
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   DETECTAR PEDIDO CREADO
+   ========================================================= */
+
+function igPR_startOrderPolling(
+  previousNumber
+){
+
+  clearInterval(
+    igReviewPoll
+  );
+
+
+  var started =
+    Date.now();
+
+
+  igReviewPoll =
+    setInterval(
+      async function(){
+
+        if(
+          Date.now() - started >
+          90000
+        ){
+
+          clearInterval(
+            igReviewPoll
+          );
+
+          igReviewPoll =
+            null;
+
+          return;
+
+        }
+
+
+        var numberElement =
+          document.getElementById(
+            "confirmationNumber"
+          );
+
+
+        var currentNumber =
+          numberElement
+            ? String(
+                numberElement.textContent || ""
+              )
+                .replace(/^#/,"")
+                .trim()
+            : "";
+
+
+        if(
+          !currentNumber ||
+          currentNumber ===
+          previousNumber
+        ){
+
+          return;
+
+        }
+
+
+        var result =
+          await supabaseClient
+            .from("ig_orders")
+            .select(
+              "id,order_number,customer_name"
+            )
+            .eq(
+              "order_number",
+              currentNumber
+            )
+            .maybeSingle();
+
+
+        if(
+          result.error ||
+          !result.data
+        ){
+
+          return;
+
+        }
+
+
+        clearInterval(
+          igReviewPoll
+        );
+
+        igReviewPoll =
+          null;
+
+
+        igPR_renderOrderReviews(
+          result.data
+        );
+
+      },
+      1000
+    );
+
+}
+
+
+/* =========================================================
+   GANCHO DEL BOTÓN DE COMPRA
+   NO CANCELA EL CHECKOUT EXISTENTE
+   ========================================================= */
+
+function igPR_installCheckoutHook(){
+
+  var button =
+    document.getElementById(
+      "finishOrderButton"
+    );
+
+
+  if(
+    !button ||
+    button.dataset.igReviewHook
+  ){
+
+    return;
+
+  }
+
+
+  button.dataset.igReviewHook =
+    "1";
+
+
+  button.addEventListener(
+    "click",
+    function(){
+
+      var previousNumber =
+        document.getElementById(
+          "confirmationNumber"
+        );
+
+
+      previousNumber =
+        previousNumber
+          ? String(
+              previousNumber.textContent || ""
+            )
+              .replace(/^#/,"")
+              .trim()
+          : "";
+
+
+      igPR_startOrderPolling(
+        previousNumber
+      );
+
+    },
+    true
+  );
+
+}
+
+
+/* =========================================================
+   ADMIN — CREAR SECCIÓN
+   ========================================================= */
+
+function igPR_createAdminSection(){
+
+  if(
+    document.getElementById(
+      "admin-promotions"
+    )
+  ){
+
+    return true;
+
+  }
+
+
+  var adminMain =
+    document.querySelector(
+      "#adminPanel .admin-main"
+    );
+
+
+  var adminNav =
+    document.querySelector(
+      "#adminPanel .admin-nav"
+    );
+
+
+  if(
+    !adminMain ||
+    !adminNav
+  ){
+
+    return false;
+
+  }
+
+
+  var button =
+    document.createElement("button");
+
+
+  button.type =
+    "button";
+
+  button.textContent =
+    "🎁 Promos / ⭐ Reseñas";
+
+  button.setAttribute(
+    "data-section",
+    "promotions"
+  );
+
+
+  adminNav.appendChild(button);
+
+
+  var section =
+    document.createElement("section");
+
+
+  section.id =
+    "admin-promotions";
+
+  section.className =
+    "admin-section";
+
+
+  adminMain.appendChild(section);
+
+
+  button.addEventListener(
+    "click",
+    function(){
+
+      if(
+        typeof showAdminSection ===
+        "function"
+      ){
+
+        showAdminSection(
+          "promotions"
+        );
+
+      }
+
+
+      igPR_loadAdmin();
+
+    }
+  );
+
+
+  return true;
+
+}
+
+
+/* =========================================================
+   ADMIN — CARGAR DATOS
+   ========================================================= */
+
+async function igPR_loadAdmin(){
+
+  var section =
+    document.getElementById(
+      "admin-promotions"
+    );
+
+
+  if(!section){
+
+    return;
+
+  }
+
+
+  section.innerHTML =
+    '<div class="card">' +
+      'Cargando promociones y reseñas…' +
+    '</div>';
+
+
+  var productsResult =
+    await supabaseClient
+      .from("ig_products")
+      .select(
+        "id,name,price,original_price,promo_section,is_featured"
+      )
+      .order("name");
+
+
+  var reviewsResult =
+    await supabaseClient
+      .from("ig_product_reviews")
+      .select(
+        "id,product_id,order_id,customer_name,rating,comment,approved,created_at"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      );
+
+
+  if(productsResult.error){
+
+    section.innerHTML =
+      '<div class="notice error">' +
+        'No se pudieron cargar los productos.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  if(reviewsResult.error){
+
+    section.innerHTML =
+      '<div class="notice error">' +
+        'No se pudieron cargar las reseñas.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  var products =
+    productsResult.data || [];
+
+
+  var reviews =
+    reviewsResult.data || [];
+
+
+  var productHTML =
+    products.map(
+      function(product){
+
+        return (
+
+          '<div class="card" ' +
+          'style="margin-bottom:10px;">' +
+
+            '<strong>' +
+              igPR_escape(product.name) +
+            '</strong>' +
+
+            '<div style="' +
+            'display:grid;' +
+            'grid-template-columns:1fr 1fr;' +
+            'gap:8px;' +
+            'margin-top:10px;' +
+            '">' +
+
+              '<select ' +
+              'data-ig-promo="' +
+              igPR_escape(product.id) +
+              '">' +
+
+                '<option value="none">' +
+                  'Sin promoción' +
+                '</option>' +
+
+                '<option value="offers">' +
+                  '🔥 Ofertas' +
+                '</option>' +
+
+                '<option value="new">' +
+                  '🆕 Nuevos productos' +
+                '</option>' +
+
+                '<option value="clearance">' +
+                  '💥 Liquidación' +
+                '</option>' +
+
+              '</select>' +
+
+              '<input ' +
+              'type="number" ' +
+              'min="0" ' +
+              'step="0.01" ' +
+              'data-ig-original="' +
+              igPR_escape(product.id) +
+              '" ' +
+              'value="' +
+              (
+                product.original_price ==
+                null
+                  ? ""
+                  : igPR_escape(
+                      product.original_price
+                    )
+              ) +
+              '" ' +
+              'placeholder="Precio original">' +
+
+            '</div>' +
+
+            '<label style="' +
+            'display:flex;' +
+            'gap:8px;' +
+            'align-items:center;' +
+            'margin-top:8px;' +
+            '">' +
+
+              '<input ' +
+              'type="checkbox" ' +
+              'data-ig-featured="' +
+              igPR_escape(product.id) +
+              '" ' +
+              (
+                product.is_featured
+                  ? "checked"
+                  : ""
+              ) +
+              '>' +
+
+              ' ⭐ Destacado' +
+
+            '</label>' +
+
+            '<button ' +
+            'type="button" ' +
+            'class="button" ' +
+            'data-ig-save-promo="' +
+            igPR_escape(product.id) +
+            '" ' +
+            'style="margin-top:10px;">' +
+
+              'Guardar promoción' +
+
+            '</button>' +
+
+          '</div>'
+
+        );
+
+      }
+    ).join("");
+
+
+  var reviewHTML =
+    reviews.map(
+      function(review){
+
+        return (
+
+          '<div class="card" ' +
+          'style="margin-bottom:10px;">' +
+
+            '<strong>' +
+              igPR_escape(
+                review.customer_name
+              ) +
+            '</strong>' +
+
+            '<div>' +
+              "⭐".repeat(
+                Number(review.rating || 0)
+              ) +
+            '</div>' +
+
+            '<p>' +
+              igPR_escape(
+                review.comment
+              ) +
+            '</p>' +
+
+            '<small>' +
+              'Producto: ' +
+              igPR_escape(
+                review.product_id
+              ) +
+            '</small>' +
+
+            '<br>' +
+
+            '<button ' +
+            'type="button" ' +
+            'class="button" ' +
+            'data-ig-review-toggle="' +
+            igPR_escape(review.id) +
+            '" ' +
+            'style="margin-top:10px;">' +
+
+              (
+                review.approved
+                  ? "Ocultar reseña"
+                  : "Aprobar reseña"
+              ) +
+
+            '</button>' +
+
+          '</div>'
+
+        );
+
+      }
+    ).join("");
+
+
+  section.innerHTML =
+
+    '<div class="card" ' +
+    'style="margin-bottom:20px;">' +
+
+      '<h2>🎁 Ofertas y promociones</h2>' +
+
+      '<p>' +
+        'Configurá las promociones sin modificar el funcionamiento del catálogo.' +
+      '</p>' +
+
+    '</div>' +
+
+    (
+      productHTML ||
+      '<div class="empty">No hay productos.</div>'
+    ) +
+
+    '<div class="card" ' +
+    'style="margin:25px 0 15px;">' +
+
+      '<h2>⭐ Reseñas</h2>' +
+
+      '<p>' +
+        'Aprobá u ocultá las reseñas recibidas.' +
+      '</p>' +
+
+    '</div>' +
+
+    (
+      reviewHTML ||
+      '<div class="empty">No hay reseñas todavía.</div>'
+    );
+
+
+  products.forEach(
+    function(product){
+
+      var select =
+        section.querySelector(
+          '[data-ig-promo="' +
+          product.id +
+          '"]'
+        );
+
+
+      if(select){
+
+        select.value =
+          product.promo_section ||
+          "none";
+
+      }
+
+    }
+  );
+
+
+  section
+    .querySelectorAll(
+      "[data-ig-save-promo]"
+    )
+    .forEach(
+      function(button){
+
+        button.addEventListener(
+          "click",
+          async function(){
+
+            var id =
+              button.getAttribute(
+                "data-ig-save-promo"
+              );
+
+
+            var select =
+              section.querySelector(
+                '[data-ig-promo="' +
+                id +
+                '"]'
+              );
+
+
+            var original =
+              section.querySelector(
+                '[data-ig-original="' +
+                id +
+                '"]'
+              );
+
+
+            var featured =
+              section.querySelector(
+                '[data-ig-featured="' +
+                id +
+                '"]'
+              );
+
+
+            if(
+              !select ||
+              !original ||
+              !featured
+            ){
+
+              return;
+
+            }
+
+
+            button.disabled =
+              true;
+
+
+            var result =
+              await supabaseClient
+                .from("ig_products")
+                .update({
+
+                  promo_section:
+                    select.value,
+
+                  original_price:
+                    original.value.trim() === ""
+                      ? null
+                      : Number(
+                          original.value
+                        ),
+
+                  is_featured:
+                    !!featured.checked
+
+                })
+                .eq(
+                  "id",
+                  id
+                );
+
+
+            button.disabled =
+              false;
+
+
+            if(result.error){
+
+              igPR_message(
+                "No se pudo guardar: " +
+                result.error.message
+              );
+
+              return;
+
+            }
+
+
+            igPR_message(
+              "✅ Promoción guardada."
+            );
+
+
+            await igPR_loadPromoProducts();
+
+          }
+        );
+
+      }
+    );
+
+
+  section
+    .querySelectorAll(
+      "[data-ig-review-toggle]"
+    )
+    .forEach(
+      function(button){
+
+        button.addEventListener(
+          "click",
+          async function(){
+
+            var id =
+              button.getAttribute(
+                "data-ig-review-toggle"
+              );
+
+
+            var review =
+              reviews.find(
+                function(item){
+
+                  return (
+                    String(item.id) ===
+                    String(id)
+                  );
+
+                }
+              );
+
+
+            if(!review){
+
+              return;
+
+            }
+
+
+            button.disabled =
+              true;
+
+
+            var result =
+              await supabaseClient
+                .from("ig_product_reviews")
+                .update({
+                  approved:
+                    !review.approved
+                })
+                .eq(
+                  "id",
+                  id
+                );
+
+
+            button.disabled =
+              false;
+
+
+            if(result.error){
+
+              igPR_message(
+                "No se pudo actualizar la reseña: " +
+                result.error.message
+              );
+
+              return;
+
+            }
+
+
+            igPR_message(
+              review.approved
+                ? "Reseña ocultada."
+                : "⭐ Reseña aprobada."
+            );
+
+
+            await igPR_loadAdmin();
+            await igPR_loadPromoProducts();
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+
+function igPR_boot(){
+
+  if(
+    typeof supabaseClient ===
+    "undefined"
+  ){
+
+    return;
+
+  }
+
+
+  igPR_createPublicSection();
+  igPR_installCheckoutHook();
+  igPR_createAdminSection();
+
+
+  if(
+    !window.__IG_PROMOS_LOADED
+  ){
+
+    window.__IG_PROMOS_LOADED = true;
+
+    igPR_loadPromoProducts();
+
+  }
+
+}
+
+
+/*
+ * Reintentos limitados.
+ * No hay MutationObserver global.
+ */
+
+function igPR_start(){
+
+  igPR_boot();
+
+
+  setTimeout(
+    function(){
+
+      igPR_createPublicSection();
+      igPR_installCheckoutHook();
+      igPR_createAdminSection();
+
+    },
+    500
+  );
+
+
+  setTimeout(
+    function(){
+
+      igPR_createPublicSection();
+      igPR_installCheckoutHook();
+      igPR_createAdminSection();
+
+    },
+    1500
+  );
+
+
+  setTimeout(
+    function(){
+
+      igPR_createPublicSection();
+      igPR_installCheckoutHook();
+      igPR_createAdminSection();
+
+    },
+    3000
+  );
+
+}
+
+
+if(
+  document.readyState ===
+  "loading"
+){
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    igPR_start,
+    {once:true}
+  );
+
+}else{
+
+  igPR_start();
+
+}
+
+})();
+</script>
+  
 </body>
 </html>
