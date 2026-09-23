@@ -34133,5 +34133,120 @@ if(
 </script>
 
 <!-- FIN ACCIÓN ADMIN — QUITAR PROMOCIÓN -->
+
+  <script>
+/* =========================================================
+   INTERNATIONAL GATEWAY
+   RESEÑAS — ENGANCHAR DIRECTAMENTE A LA CONFIRMACIÓN
+   PARCHE QUIRÚRGICO
+   ========================================================= */
+
+(function(){
+
+  function igFixReviewsOnConfirmation(){
+
+    if(
+      typeof window.showConfirmation !== "function" ||
+      typeof window.igPR_renderOrderReviews !== "function"
+    ){
+      return false;
+    }
+
+    if(
+      window.__IG_DIRECT_REVIEW_CONFIRMATION
+    ){
+      return true;
+    }
+
+    const originalShowConfirmation =
+      window.showConfirmation;
+
+    window.showConfirmation =
+      function(order,paymentMethod){
+
+        /*
+         * Ejecutar primero la confirmación original.
+         * No se modifica el proceso de compra.
+         */
+        originalShowConfirmation.apply(
+          this,
+          arguments
+        );
+
+        /*
+         * Cuando la confirmación ya está visible,
+         * mostrar directamente las reseñas usando
+         * el ID REAL del pedido recién creado.
+         */
+        if(
+          order &&
+          order.id &&
+          typeof window.igPR_renderOrderReviews ===
+            "function"
+        ){
+
+          setTimeout(
+            function(){
+
+              try{
+
+                window.igPR_renderOrderReviews(
+                  {
+                    id: order.id,
+                    order_number:
+                      order.order_number,
+                    customer_name:
+                      order.customer_name || ""
+                  }
+                );
+
+              }catch(error){
+
+                console.error(
+                  "[IG Reviews] Error mostrando reseñas:",
+                  error
+                );
+
+              }
+
+            },
+            150
+          );
+
+        }
+
+      };
+
+    window.__IG_DIRECT_REVIEW_CONFIRMATION =
+      true;
+
+    return true;
+
+  }
+
+
+  if(
+    !igFixReviewsOnConfirmation()
+  ){
+
+    setTimeout(
+      igFixReviewsOnConfirmation,
+      300
+    );
+
+    setTimeout(
+      igFixReviewsOnConfirmation,
+      800
+    );
+
+    setTimeout(
+      igFixReviewsOnConfirmation,
+      1500
+    );
+
+  }
+
+})();
+</script>
 </body>
 </html>
