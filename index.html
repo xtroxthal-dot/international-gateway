@@ -33748,6 +33748,378 @@ if(
 
 })();
 </script>
-  
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     ACCIÓN ADMIN — QUITAR PROMOCIÓN
+     PARCHE INDEPENDIENTE
+     
+     NO modifica:
+     - productos
+     - precios actuales
+     - carrito
+     - favoritos
+     - pedidos
+     - checkout
+     - Mercado Pago
+     - fotos
+     - reseñas
+     
+     Solamente añade una acción para quitar:
+     - promo_section
+     - original_price
+     - is_featured
+     ========================================================= -->
+
+<style>
+.ig-remove-promo-button{
+  margin-top:8px !important;
+  width:100% !important;
+  background:#b00020 !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:8px !important;
+  padding:10px 12px !important;
+  font-weight:700 !important;
+  cursor:pointer !important;
+}
+
+.ig-remove-promo-button:hover{
+  opacity:.9 !important;
+}
+
+.ig-remove-promo-button:disabled{
+  opacity:.55 !important;
+  cursor:default !important;
+}
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_REMOVE_PROMO_PATCH){
+    return;
+  }
+
+  window.__IG_REMOVE_PROMO_PATCH = true;
+
+
+  function instalarBotones(){
+
+    var section =
+      document.getElementById(
+        "admin-promotions"
+      );
+
+    if(!section){
+      return;
+    }
+
+
+    var saveButtons =
+      section.querySelectorAll(
+        "[data-ig-save-promo]"
+      );
+
+
+    saveButtons.forEach(
+      function(saveButton){
+
+        var id =
+          saveButton.getAttribute(
+            "data-ig-save-promo"
+          );
+
+
+        if(!id){
+          return;
+        }
+
+
+        /*
+         * Evitar duplicar el botón.
+         */
+        if(
+          section.querySelector(
+            '[data-ig-remove-promo="' +
+            id +
+            '"]'
+          )
+        ){
+
+          return;
+
+        }
+
+
+        var removeButton =
+          document.createElement(
+            "button"
+          );
+
+
+        removeButton.type =
+          "button";
+
+
+        removeButton.className =
+          "ig-remove-promo-button";
+
+
+        removeButton.setAttribute(
+          "data-ig-remove-promo",
+          id
+        );
+
+
+        removeButton.textContent =
+          "🗑️ Quitar promoción";
+
+
+        removeButton.title =
+          "Quitar completamente la promoción de este producto";
+
+
+        removeButton.addEventListener(
+          "click",
+          function(){
+
+            var select =
+              section.querySelector(
+                '[data-ig-promo="' +
+                id +
+                '"]'
+              );
+
+
+            var original =
+              section.querySelector(
+                '[data-ig-original="' +
+                id +
+                '"]'
+              );
+
+
+            var featured =
+              section.querySelector(
+                '[data-ig-featured="' +
+                id +
+                '"]'
+              );
+
+
+            if(
+              !select ||
+              !original ||
+              !featured
+            ){
+
+              return;
+
+            }
+
+
+            var confirmed =
+              confirm(
+                "¿Quitar completamente la promoción de este producto?\n\n" +
+                "Se eliminará la oferta/promoción y el precio original asociado.\n\n" +
+                "El producto, su precio actual, fotos, stock y pedidos NO se eliminarán."
+              );
+
+
+            if(!confirmed){
+              return;
+            }
+
+
+            /*
+             * Restauramos solamente
+             * los campos de promoción.
+             */
+            select.value =
+              "none";
+
+
+            original.value =
+              "";
+
+
+            featured.checked =
+              false;
+
+
+            /*
+             * Utilizamos el botón Guardar
+             * ORIGINAL del sistema.
+             *
+             * De esta manera no duplicamos
+             * la lógica Supabase existente.
+             */
+            removeButton.disabled =
+              true;
+
+
+            saveButton.click();
+
+
+            /*
+             * Volvemos a habilitarlo después
+             * de que el sistema existente
+             * termine su operación.
+             */
+            setTimeout(
+              function(){
+
+                if(
+                  document.body.contains(
+                    removeButton
+                  )
+                ){
+
+                  removeButton.disabled =
+                    false;
+
+                }
+
+              },
+              1800
+            );
+
+          }
+        );
+
+
+        /*
+         * El botón queda inmediatamente
+         * debajo de "Guardar promoción".
+         */
+        saveButton.insertAdjacentElement(
+          "afterend",
+          removeButton
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+   * La sección de promociones se reconstruye
+   * mediante innerHTML cuando se recarga.
+   *
+   * Observamos SOLAMENTE esa sección.
+   * No usamos MutationObserver sobre todo
+   * el documento.
+   */
+  function observar(){
+
+    var section =
+      document.getElementById(
+        "admin-promotions"
+      );
+
+
+    if(!section){
+      return;
+    }
+
+
+    if(
+      section.__IG_REMOVE_PROMO_OBSERVER
+    ){
+
+      instalarBotones();
+
+      return;
+
+    }
+
+
+    var observer =
+      new MutationObserver(
+        function(){
+
+          instalarBotones();
+
+        }
+      );
+
+
+    observer.observe(
+      section,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+
+    section.__IG_REMOVE_PROMO_OBSERVER =
+      observer;
+
+
+    instalarBotones();
+
+  }
+
+
+  function iniciar(){
+
+    observar();
+
+
+    /*
+     * El módulo de promociones
+     * se crea dinámicamente.
+     */
+    setTimeout(
+      observar,
+      300
+    );
+
+
+    setTimeout(
+      observar,
+      800
+    );
+
+
+    setTimeout(
+      observar,
+      1500
+    );
+
+
+    setTimeout(
+      observar,
+      3000
+    );
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {once:true}
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+})();
+</script>
+
+<!-- FIN ACCIÓN ADMIN — QUITAR PROMOCIÓN -->
 </body>
 </html>
