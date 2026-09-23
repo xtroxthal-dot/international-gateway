@@ -14960,30 +14960,73 @@ function start(){
 
   createPanel();
 
-  /*
-   * Intento inmediato.
+    /*
+   * Instalar inmediatamente si las tarjetas
+   * ya existen.
    */
   installHearts();
 
   /*
-   * El renderProducts() puede ejecutarse
-   * después. Estos intentos son ligeros y
-   * no crean MutationObserver.
+   * REPARACIÓN QUIRÚRGICA DE FAVORITOS
+   *
+   * Observamos únicamente productsContainer.
+   * No observamos toda la página.
+   * No observamos atributos.
+   * No modificamos Supabase.
    */
-  setTimeout(
-    installHearts,
-    100
-  );
+  const productsContainer =
+    document.getElementById(
+      "productsContainer"
+    );
 
-  setTimeout(
-    installHearts,
-    500
-  );
+  if(
+    productsContainer &&
+    !productsContainer.__IG_FAVORITES_OBSERVER
+  ){
 
-  setTimeout(
-    installHearts,
-    1200
-  );
+    const observer =
+      new MutationObserver(
+        function(mutations){
+
+          let productCardsChanged =
+            false;
+
+          for(
+            const mutation of mutations
+          ){
+
+            if(
+              mutation.type ===
+              "childList" &&
+              mutation.addedNodes &&
+              mutation.addedNodes.length
+            ){
+
+              productCardsChanged =
+                true;
+
+              break;
+            }
+          }
+
+          if(productCardsChanged){
+
+            installHearts();
+          }
+
+        }
+      );
+
+    observer.observe(
+      productsContainer,
+      {
+        childList:true
+      }
+    );
+
+    productsContainer.__IG_FAVORITES_OBSERVER =
+      observer;
+  }
 
   updateCounter();
 
