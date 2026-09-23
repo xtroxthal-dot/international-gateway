@@ -30172,6 +30172,368 @@ function start(){
 
 
 </script>
-             
+     <!-- =========================================================
+     INTERNATIONAL GATEWAY — REUBICACIÓN FINAL DE BOTONES
+     NO MODIFICA: carrito, productos, pedidos, pagos,
+     Supabase, categorías ni funciones existentes.
+     ========================================================= -->
+<style id="igFinalButtonPositionFix">
+
+/* =========================================================
+   🔔 CAMPANITA
+   Arriba del todo a la derecha, dentro de la zona negra
+   ========================================================= */
+#igCustomerNotificationButton{
+  position:fixed !important;
+  top:12px !important;
+  right:12px !important;
+  left:auto !important;
+  bottom:auto !important;
+
+  width:46px !important;
+  height:46px !important;
+
+  z-index:1002 !important;
+}
+
+
+/* =========================================================
+   💳 CRÉDITO
+   La posición horizontal y vertical la calcula el script
+   exactamente debajo del botón 🛒 Carrito.
+   ========================================================= */
+#igExternalCreditSearch{
+  position:fixed !important;
+  left:auto !important;
+  z-index:1001 !important;
+
+  padding:6px 9px !important;
+  border-radius:10px !important;
+  font-size:10px !important;
+  line-height:1 !important;
+}
+
+
+/* =========================================================
+   👤 MI CUENTA
+   ❤️ FAVORITOS
+   💬 WHATSAPP
+
+   Los tres quedan abajo del todo, en una sola línea.
+   ========================================================= */
+
+#igCustomerAccountButton{
+  position:fixed !important;
+
+  top:auto !important;
+  left:auto !important;
+
+  bottom:15px !important;
+  right:139px !important;
+
+  width:72px !important;
+  min-width:72px !important;
+  height:48px !important;
+
+  padding:0 5px !important;
+  margin:0 !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  box-sizing:border-box !important;
+
+  font-size:10px !important;
+  line-height:1 !important;
+
+  border-radius:24px !important;
+
+  z-index:1000 !important;
+}
+
+
+#igFavoritesLauncher{
+  position:fixed !important;
+
+  top:auto !important;
+  left:auto !important;
+
+  bottom:15px !important;
+  right:79px !important;
+
+  width:52px !important;
+  min-width:52px !important;
+  height:48px !important;
+
+  padding:0 5px !important;
+  margin:0 !important;
+
+  box-sizing:border-box !important;
+
+  font-size:12px !important;
+
+  z-index:1000 !important;
+}
+
+
+#igFloatingWhatsApp{
+  position:fixed !important;
+
+  top:auto !important;
+  left:auto !important;
+
+  bottom:15px !important;
+  right:15px !important;
+
+  width:55px !important;
+  height:55px !important;
+
+  margin:0 !important;
+
+  box-sizing:border-box !important;
+
+  font-size:27px !important;
+
+  z-index:1000 !important;
+}
+
+
+/* =========================================================
+   MÓVIL
+   Mantiene los tres juntos y evita que se salgan de pantalla.
+   ========================================================= */
+@media(max-width:600px){
+
+  #igCustomerNotificationButton{
+    top:10px !important;
+    right:10px !important;
+    width:46px !important;
+    height:46px !important;
+  }
+
+  #igCustomerAccountButton{
+    bottom:10px !important;
+    right:126px !important;
+
+    width:68px !important;
+    min-width:68px !important;
+    height:46px !important;
+
+    font-size:9px !important;
+  }
+
+  #igFavoritesLauncher{
+    bottom:10px !important;
+    right:70px !important;
+
+    width:48px !important;
+    min-width:48px !important;
+    height:46px !important;
+
+    font-size:11px !important;
+  }
+
+  #igFloatingWhatsApp{
+    bottom:10px !important;
+    right:10px !important;
+
+    width:52px !important;
+    height:52px !important;
+
+    font-size:25px !important;
+  }
+
+}
+
+
+/* Pantallas muy pequeñas */
+@media(max-width:360px){
+
+  #igCustomerAccountButton{
+    right:112px !important;
+
+    width:62px !important;
+    min-width:62px !important;
+
+    font-size:8px !important;
+  }
+
+  #igFavoritesLauncher{
+    right:66px !important;
+
+    width:44px !important;
+    min-width:44px !important;
+
+    font-size:10px !important;
+  }
+
+  #igFloatingWhatsApp{
+    right:8px !important;
+
+    width:48px !important;
+    height:48px !important;
+
+    font-size:23px !important;
+  }
+
+}
+
+</style>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+  /* =========================================================
+     💳 COLOCAR CRÉDITO EXACTAMENTE DEBAJO DEL CARRITO
+     ========================================================= */
+
+  function colocarCreditoDebajoDelCarrito(){
+
+    var credito =
+      document.getElementById(
+        "igExternalCreditSearch"
+      );
+
+    var carrito =
+      document.querySelector(
+        ".cart-button"
+      );
+
+    if(!credito || !carrito){
+      return;
+    }
+
+    var rect =
+      carrito.getBoundingClientRect();
+
+    /*
+     * El borde derecho del crédito coincide
+     * con el borde derecho del carrito.
+     */
+    var right =
+      window.innerWidth - rect.right;
+
+    /*
+     * Lo colocamos inmediatamente debajo
+     * del carrito.
+     */
+    var top =
+      rect.bottom + 6;
+
+    credito.style.setProperty(
+      "right",
+      Math.max(8, right) + "px",
+      "important"
+    );
+
+    credito.style.setProperty(
+      "left",
+      "auto",
+      "important"
+    );
+
+    credito.style.setProperty(
+      "top",
+      Math.max(8, top) + "px",
+      "important"
+    );
+
+  }
+
+
+  /* =========================================================
+     🔧 ESPERAR A QUE LOS BOTONES DINÁMICOS EXISTAN
+     ========================================================= */
+
+  function repararPosiciones(){
+
+    colocarCreditoDebajoDelCarrito();
+
+  }
+
+
+  /*
+   * Primera ejecución.
+   */
+  repararPosiciones();
+
+
+  /*
+   * Refuerzos porque International Gateway
+   * genera algunos elementos dinámicamente.
+   */
+  setTimeout(
+    repararPosiciones,
+    100
+  );
+
+  setTimeout(
+    repararPosiciones,
+    500
+  );
+
+  setTimeout(
+    repararPosiciones,
+    1200
+  );
+
+
+  /*
+   * Si cambia el tamaño/orientación del teléfono,
+   * recalculamos la posición del crédito.
+   */
+  window.addEventListener(
+    "resize",
+    repararPosiciones,
+    {passive:true}
+  );
+
+
+  /*
+   * Al desplazarse, volvemos a comprobar
+   * la posición del carrito sticky.
+   */
+  window.addEventListener(
+    "scroll",
+    colocarCreditoDebajoDelCarrito,
+    {passive:true}
+  );
+
+
+  /*
+   * Observamos solamente la creación de elementos.
+   * No modificamos productos ni contenido.
+   */
+  if(
+    document.body &&
+    typeof MutationObserver !== "undefined"
+  ){
+
+    var observer =
+      new MutationObserver(
+        function(){
+
+          colocarCreditoDebajoDelCarrito();
+
+        }
+      );
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+})();
+</script>
+<!-- FIN REUBICACIÓN FINAL -->        
 </body>
 </html>
