@@ -34883,5 +34883,418 @@ if(
   
   
 </script>
+
+  <script>
+/* =========================================================
+   INTERNATIONAL GATEWAY
+   REPARADOR DEFINITIVO DE RESEÑAS
+   UNO + UNO = TODAS LAS TARJETAS
+   NO ELIMINA NI REEMPLAZA PARCHES ANTERIORES
+   ========================================================= */
+
+(function(){
+
+  if(window.__IG_REVIEWS_REPAIR_FINAL){
+    return;
+  }
+
+  window.__IG_REVIEWS_REPAIR_FINAL = true;
+
+
+  function igRepairGetProductId(card){
+
+    if(!card){
+      return null;
+    }
+
+
+    /* =========================================
+       1. PRODUCTOS ESPECIALES
+       GRanja / Iberian
+       ========================================= */
+
+    if(
+      card.dataset &&
+      card.dataset.igSpecialProductId
+    ){
+
+      return String(
+        card.dataset.igSpecialProductId
+      );
+
+    }
+
+
+    var specialButton =
+      card.querySelector(
+        "button[data-ig-special-add]"
+      );
+
+
+    if(
+      specialButton &&
+      specialButton.dataset &&
+      specialButton.dataset.igSpecialAdd
+    ){
+
+      return String(
+        specialButton.dataset.igSpecialAdd
+      );
+
+    }
+
+
+    /* =========================================
+       2. PRODUCTOS NORMALES
+       International Gateway
+       ========================================= */
+
+    var cartButton =
+      card.querySelector(
+        'button[onclick*="addToCart"]'
+      );
+
+
+    if(cartButton){
+
+      var onclick =
+        cartButton.getAttribute(
+          "onclick"
+        ) || "";
+
+
+      var match =
+        onclick.match(
+          /addToCart\s*\(\s*['"]([^'"]+)['"]\s*\)/
+        );
+
+
+      if(
+        match &&
+        match[1]
+      ){
+
+        return String(
+          match[1]
+        );
+
+      }
+
+    }
+
+
+    return null;
+
+  }
+
+
+  function igRepairGetProductName(card){
+
+    if(!card){
+      return "Producto";
+    }
+
+
+    var title =
+      card.querySelector(
+        "h3"
+      );
+
+
+    if(
+      title &&
+      title.textContent
+    ){
+
+      return title.textContent.trim();
+
+    }
+
+
+    return "Producto";
+
+  }
+
+
+  function igRepairReviews(){
+
+    var cards =
+      document.querySelectorAll(
+        ".product-card"
+      );
+
+
+    if(!cards.length){
+      return;
+    }
+
+
+    cards.forEach(
+      function(card){
+
+        /*
+         * Evitar duplicados.
+         * No tocamos ningún botón de compra
+         * ni ningún botón existente.
+         */
+
+        if(
+          card.querySelector(
+            "[data-ig-reviews-repair-button]"
+          )
+        ){
+
+          return;
+
+        }
+
+
+        var productId =
+          igRepairGetProductId(
+            card
+          );
+
+
+        if(!productId){
+          return;
+        }
+
+
+        var productName =
+          igRepairGetProductName(
+            card
+          );
+
+
+        var cartButton =
+          card.querySelector(
+            'button[onclick*="addToCart"]'
+          );
+
+
+        /*
+         * Productos especiales
+         */
+        if(!cartButton){
+
+          cartButton =
+            card.querySelector(
+              "button[data-ig-special-add]"
+            );
+
+        }
+
+
+        if(!cartButton){
+          return;
+        }
+
+
+        /*
+         * Crear botón de reseñas.
+         */
+        var reviewButton =
+          document.createElement(
+            "button"
+          );
+
+
+        reviewButton.type =
+          "button";
+
+
+        reviewButton.className =
+          "button full";
+
+
+        reviewButton.setAttribute(
+          "data-ig-reviews-repair-button",
+          "true"
+        );
+
+
+        reviewButton.setAttribute(
+          "data-product-id",
+          productId
+        );
+
+
+        reviewButton.textContent =
+          "⭐ Ver reseñas";
+
+
+        reviewButton.style.marginTop =
+          "8px";
+
+
+        reviewButton.onclick =
+          function(){
+
+            try{
+
+              if(
+                typeof window.igPR_showReviewsPublic ===
+                "function"
+              ){
+
+                window.igPR_showReviewsPublic(
+                  productId,
+                  productName
+                );
+
+                return;
+
+              }
+
+
+              /*
+               * Compatibilidad adicional con
+               * la función original.
+               */
+
+              if(
+                typeof igPR_showReviews ===
+                "function"
+              ){
+
+                igPR_showReviews(
+                  productId,
+                  productName
+                );
+
+                return;
+
+              }
+
+
+              alert(
+                "Las reseñas todavía no están disponibles."
+              );
+
+            }catch(error){
+
+              console.error(
+                "[IG Reviews Repair]",
+                error
+              );
+
+            }
+
+          };
+
+
+        /*
+         * Se coloca justo antes de comprar.
+         */
+        cartButton.insertAdjacentElement(
+          "beforebegin",
+          reviewButton
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Ejecutar varias veces para cubrir:
+   * - catálogo inicial
+   * - Granja
+   * - Iberian
+   * - filtros
+   * - reconstrucciones de tarjetas
+   */
+
+  setTimeout(
+    igRepairReviews,
+    200
+  );
+
+
+  setTimeout(
+    igRepairReviews,
+    600
+  );
+
+
+  setTimeout(
+    igRepairReviews,
+    1200
+  );
+
+
+  setTimeout(
+    igRepairReviews,
+    2000
+  );
+
+
+  setTimeout(
+    igRepairReviews,
+    4000
+  );
+
+
+  /*
+   * Vigilar reconstrucciones del catálogo.
+   */
+  if(
+    document.body &&
+    typeof MutationObserver !==
+    "undefined"
+  ){
+
+    var igReviewsRepairTimer =
+      null;
+
+
+    var observer =
+      new MutationObserver(
+        function(){
+
+          if(
+            igReviewsRepairTimer
+          ){
+
+            clearTimeout(
+              igReviewsRepairTimer
+            );
+
+          }
+
+
+          igReviewsRepairTimer =
+            setTimeout(
+              igRepairReviews,
+              100
+            );
+
+        }
+      );
+
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+  /*
+   * Exponer para comprobación manual
+   * sin modificar ninguna función existente.
+   */
+
+  window.igRepairReviewsNow =
+    igRepairReviews;
+
+
+})();
+</script>
 </body>
 </html>
