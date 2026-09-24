@@ -3,7 +3,7 @@
    PWA + Web Push de pedidos
    ========================================================= */
 
-const CACHE_NAME = "international-gateway-v2";
+const CACHE_NAME = "international-gateway-v3";
 
 const APP_SHELL = [
   "./",
