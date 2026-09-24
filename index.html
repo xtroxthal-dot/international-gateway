@@ -34623,50 +34623,124 @@ if(
 
   }
 
+  /*
+   * OBSERVADOR GLOBAL DEL CATÁLOGO
+   *
+   * No dependemos de que productsContainer
+   * exista cuando arranca este parche.
+   * Esto permite detectar también las tarjetas
+   * reconstruidas por Granja e Iberian.
+   */
 
-  setTimeout(ejecutar,300);
-  setTimeout(ejecutar,800);
-  setTimeout(ejecutar,1500);
-  setTimeout(ejecutar,3000);
+  var igReviewsScanTimer = null;
+
+  function igScheduleReviewsScan(){
+
+    if(igReviewsScanTimer){
+      clearTimeout(
+        igReviewsScanTimer
+      );
+    }
+
+    igReviewsScanTimer =
+      setTimeout(
+        function(){
+
+          igReviewsScanTimer = null;
+
+          igNormalProductReviews();
+
+        },
+        80
+      );
+
+  }
 
 
-  var productsContainer =
-    document.getElementById(
-      "productsContainer"
-    );
+  function igStartReviewsObserver(){
 
+    if(!document.body){
+      return;
+    }
 
-  if(productsContainer){
+    if(
+      window.__IG_NORMAL_REVIEWS_BODY_OBSERVER
+    ){
+      return;
+    }
+
+    window.__IG_NORMAL_REVIEWS_BODY_OBSERVER =
+      true;
+
 
     var observer =
       new MutationObserver(
         function(){
 
-          setTimeout(
-            igNormalProductReviews,
-            50
-          );
+          igScheduleReviewsScan();
 
         }
       );
 
 
     observer.observe(
-      productsContainer,
+      document.body,
       {
         childList:true,
         subtree:true
       }
     );
 
+
+    igScheduleReviewsScan();
+
   }
 
 
-})();
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      igStartReviewsObserver,
+      {once:true}
+    );
+
+  }else{
+
+    igStartReviewsObserver();
+
+  }
+
+
+  setTimeout(
+    igScheduleReviewsScan,
+    300
+  );
+
+  setTimeout(
+    igScheduleReviewsScan,
+    800
+  );
+
+  setTimeout(
+    igScheduleReviewsScan,
+    1500
+  );
+
+  setTimeout(
+    igScheduleReviewsScan,
+    3000
+  );
 
 
 })();
 
+
+})();
+  
   
 </script>
 </body>
