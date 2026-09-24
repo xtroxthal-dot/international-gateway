@@ -34459,5 +34459,431 @@ if(
 
 })();
 </script>
+
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY — CENTRO DE NOTIFICACIONES ADMIN
+     Conecta el panel de administración con Supabase
+     ========================================================= -->
+<script>
+(function () {
+
+  "use strict";
+
+  var iniciado = false;
+
+  function escapar(valor) {
+
+    return String(valor == null ? "" : valor)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+  function mensaje(texto) {
+
+    try {
+
+      if (typeof showToast === "function") {
+        showToast(texto);
+        return;
+      }
+
+    } catch (e) {}
+
+    alert(texto);
+
+  }
+
+  async function cargarClientes() {
+
+    var selector =
+      document.getElementById(
+        "igAdminNotificationRecipient"
+      );
+
+    if (!selector) return;
+
+    try {
+
+      var respuesta =
+        await supabaseClient.rpc(
+          "ig_admin_list_customers"
+        );
+
+      if (respuesta.error) {
+        throw respuesta.error;
+      }
+
+      var clientes =
+        Array.isArray(respuesta.data)
+          ? respuesta.data
+          : [];
+
+      selector.innerHTML =
+        '<option value="all">👥 Todos los clientes</option>';
+
+      clientes.forEach(function (cliente) {
+
+        var option =
+          document.createElement("option");
+
+        option.value =
+          String(cliente.user_id);
+
+        var nombre =
+          cliente.full_name ||
+          cliente.email ||
+          "Cliente";
+
+        option.textContent =
+          "👤 " +
+          nombre +
+          (
+            cliente.email
+              ? " — " + cliente.email
+              : ""
+          );
+
+        selector.appendChild(option);
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "[IG Notificaciones] Error cargando clientes:",
+        error
+      );
+
+      mensaje(
+        "No se pudieron cargar los clientes."
+      );
+
+    }
+
+  }
+
+  async function cargarHistorial() {
+
+    var contenedor =
+      document.getElementById(
+        "igAdminNotificationHistory"
+      );
+
+    if (!contenedor) return;
+
+    contenedor.innerHTML =
+      "<p>Cargando historial...</p>";
+
+    try {
+
+      var respuesta =
+        await supabaseClient.rpc(
+          "ig_admin_list_sent_notifications"
+        );
+
+      if (respuesta.error) {
+        throw respuesta.error;
+      }
+
+      var registros =
+        Array.isArray(respuesta.data)
+          ? respuesta.data
+          : [];
+
+      if (!registros.length) {
+
+        contenedor.innerHTML =
+          "<p>Todavía no hay notificaciones enviadas.</p>";
+
+        return;
+
+      }
+
+      var html = "";
+
+      registros.forEach(function (item) {
+
+        var fecha = "";
+
+        try {
+
+          fecha =
+            new Date(
+              item.created_at
+            ).toLocaleString(
+              "es-AR"
+            );
+
+        } catch (e) {
+
+          fecha =
+            item.created_at || "";
+
+        }
+
+        html +=
+          '<div style="' +
+          'padding:12px;' +
+          'margin-bottom:10px;' +
+          'border:1px solid rgba(255,255,255,.12);' +
+          'border-radius:12px;' +
+          '">' +
+
+          '<strong>' +
+          escapar(item.title) +
+          '</strong>' +
+
+          '<div style="margin-top:5px;">' +
+          escapar(item.message) +
+          '</div>' +
+
+          '<small style="display:block;margin-top:8px;opacity:.7;">' +
+          escapar(
+            item.customer_name ||
+            item.customer_email ||
+            "Cliente"
+          ) +
+          " · " +
+          escapar(item.type || "general") +
+          " · " +
+          escapar(fecha) +
+          "</small>" +
+
+          "</div>";
+
+      });
+
+      contenedor.innerHTML = html;
+
+    } catch (error) {
+
+      console.error(
+        "[IG Notificaciones] Error cargando historial:",
+        error
+      );
+
+      contenedor.innerHTML =
+        "<p>No se pudo cargar el historial.</p>";
+
+    }
+
+  }
+
+  window.igAdminSendCustomerNotification =
+    async function () {
+
+      var destinatario =
+        document.getElementById(
+          "igAdminNotificationRecipient"
+        );
+
+      var tipo =
+        document.getElementById(
+          "igAdminNotificationType"
+        );
+
+      var titulo =
+        document.getElementById(
+          "igAdminNotificationTitle"
+        );
+
+      var mensajeCampo =
+        document.getElementById(
+          "igAdminNotificationMessage"
+        );
+
+      if (
+        !destinatario ||
+        !tipo ||
+        !titulo ||
+        !mensajeCampo
+      ) {
+
+        mensaje(
+          "No se encontraron los campos de notificación."
+        );
+
+        return;
+
+      }
+
+      var title =
+        titulo.value.trim();
+
+      var message =
+        mensajeCampo.value.trim();
+
+      if (!title) {
+
+        mensaje(
+          "Escribe un título para la notificación."
+        );
+
+        titulo.focus();
+
+        return;
+
+      }
+
+      if (!message) {
+
+        mensaje(
+          "Escribe el mensaje que recibirá el cliente."
+        );
+
+        mensajeCampo.focus();
+
+        return;
+
+      }
+
+      var boton =
+        document.querySelector(
+          '[onclick="igAdminSendCustomerNotification()"]'
+        );
+
+      if (boton) {
+        boton.disabled = true;
+      }
+
+      try {
+
+        var customerId =
+          destinatario.value === "all"
+            ? null
+            : destinatario.value;
+
+        var respuesta =
+          await supabaseClient.rpc(
+            "ig_admin_send_customer_notification",
+            {
+              p_customer_user_id:
+                customerId,
+
+              p_title:
+                title,
+
+              p_message:
+                message,
+
+              p_type:
+                tipo.value,
+
+              p_order_id:
+                null
+            }
+          );
+
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+
+        var cantidad =
+          Number(respuesta.data || 0);
+
+        titulo.value = "";
+        mensajeCampo.value = "";
+
+        mensaje(
+          cantidad === 1
+            ? "✅ Notificación enviada correctamente."
+            : "✅ Notificaciones enviadas correctamente: " +
+              cantidad
+        );
+
+        await cargarHistorial();
+
+      } catch (error) {
+
+        console.error(
+          "[IG Notificaciones] Error enviando:",
+          error
+        );
+
+        mensaje(
+          "❌ No se pudo enviar la notificación."
+        );
+
+      } finally {
+
+        if (boton) {
+          boton.disabled = false;
+        }
+
+      }
+
+    };
+
+  async function iniciarCentroNotificaciones() {
+
+    if (iniciado) return;
+
+    var seccion =
+      document.getElementById(
+        "admin-notifications"
+      );
+
+    if (!seccion) return;
+
+    iniciado = true;
+
+    await cargarClientes();
+    await cargarHistorial();
+
+  }
+
+  document.addEventListener(
+    "click",
+    function (event) {
+
+      var boton =
+        event.target.closest &&
+        event.target.closest(
+          '[data-section="notifications"]'
+        );
+
+      if (!boton) return;
+
+      setTimeout(
+        iniciarCentroNotificaciones,
+        100
+      );
+
+    },
+    true
+  );
+
+  if (
+    document.readyState === "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+
+        setTimeout(
+          iniciarCentroNotificaciones,
+          500
+        );
+
+      },
+      { once: true }
+    );
+
+  } else {
+
+    setTimeout(
+      iniciarCentroNotificaciones,
+      500
+    );
+
+  }
+
+})();
+</script>
 </body>
 </html>
