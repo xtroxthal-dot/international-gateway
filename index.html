@@ -25549,7 +25549,15 @@ function start(){
 
                 </div>
 
+                <button
+                  type="button"
+                  class="button full"
+                  data-ig-review-product-id="${escapeIberian(product.id)}"
+                  data-ig-review-product-name="${escapeIberian(product.name)}"
+                  onclick="igPR_showReviews(this.dataset.igReviewProductId, this.dataset.igReviewProductName)">
 
+                  ⭐ Ver reseñas
+                </button>
                 <button
                   class="button full"
                   onclick="addToCart('${product.id}')"
