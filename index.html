@@ -34268,6 +34268,24 @@ if(
   window.__IG_NORMAL_PRODUCTS_REVIEWS = true;
 
 
+  <script>
+/* =========================================================
+   INTERNATIONAL GATEWAY
+   RESEÑAS — PRODUCTOS NORMALES
+   IDENTIFICACIÓN DIRECTA POR PRODUCT ID
+   ========================================================= */
+
+(function(){
+
+  "use strict";
+
+  if(window.__IG_NORMAL_PRODUCTS_REVIEWS_V2){
+    return;
+  }
+
+  window.__IG_NORMAL_PRODUCTS_REVIEWS_V2 = true;
+
+
   async function igNormalProductReviews(){
 
     var container =
@@ -34280,55 +34298,93 @@ if(
     }
 
 
-    /*
-     * Esperamos a que el catálogo original
-     * termine de renderizar.
-     */
+    if(
+      typeof supabaseClient ===
+      "undefined"
+    ){
+      return;
+    }
+
+
     var cards =
       container.querySelectorAll(
         ".product-card"
       );
+
 
     if(!cards.length){
       return;
     }
 
 
-    if(
-  typeof supabaseClient ===
-  "undefined"
-){
-  return;
-}
-
-
     /*
-     * Los productos que corresponden
-     * a estas tarjetas son los productos
-     * normales del catálogo.
+     * Obtener directamente los IDs de producto
+     * desde el botón original del catálogo.
      */
-    var normalProducts =
-      Array.isArray(window.products)
-        ? window.products
-        : products;
+    var productIds = [];
 
 
-    if(
-      !normalProducts ||
-      !normalProducts.length
-    ){
+    cards.forEach(
+      function(card){
+
+        var cartButton =
+          card.querySelector(
+            'button[onclick*="addToCart"]'
+          );
+
+
+        if(!cartButton){
+          return;
+        }
+
+
+        var onclick =
+          cartButton.getAttribute(
+            "onclick"
+          );
+
+
+        if(!onclick){
+          return;
+        }
+
+
+        var match =
+          onclick.match(
+            /addToCart\(['"]([^'"]+)['"]\)/
+          );
+
+
+        if(!match || !match[1]){
+          return;
+        }
+
+
+        var id =
+          String(match[1]);
+
+
+        if(
+          productIds.indexOf(id) === -1
+        ){
+
+          productIds.push(id);
+
+        }
+
+      }
+    );
+
+
+    if(!productIds.length){
       return;
     }
 
 
-    var ids =
-      normalProducts.map(
-        function(product){
-          return String(product.id);
-        }
-      );
-
-
+    /*
+     * Obtener únicamente reseñas aprobadas
+     * de estos productos.
+     */
     var result =
       await supabaseClient
         .from("ig_product_reviews")
@@ -34337,7 +34393,7 @@ if(
         )
         .in(
           "product_id",
-          ids
+          productIds
         )
         .eq(
           "approved",
@@ -34385,27 +34441,44 @@ if(
     );
 
 
+    /*
+     * Colocar las reseñas en cada tarjeta
+     * utilizando el ID real del producto.
+     */
     cards.forEach(
-      function(card,index){
+      function(card){
 
-        var product =
-          normalProducts[index];
+        var cartButton =
+          card.querySelector(
+            'button[onclick*="addToCart"]'
+          );
 
 
-        if(!product){
+        if(!cartButton){
+          return;
+        }
+
+
+        var onclick =
+          cartButton.getAttribute(
+            "onclick"
+          );
+
+
+        var match =
+          onclick &&
+          onclick.match(
+            /addToCart\(['"]([^'"]+)['"]\)/
+          );
+
+
+        if(!match || !match[1]){
           return;
         }
 
 
         var productId =
-          String(product.id);
-
-
-        var productStats =
-          stats[productId] || {
-            count:0,
-            sum:0
-          };
+          String(match[1]);
 
 
         var content =
@@ -34431,8 +34504,17 @@ if(
         }
 
 
+        var productStats =
+          stats[productId] || {
+            count:0,
+            sum:0
+          };
+
+
         var reviewBox =
-          document.createElement("div");
+          document.createElement(
+            "div"
+          );
 
 
         reviewBox.setAttribute(
@@ -34470,38 +34552,22 @@ if(
 
         reviewBox.innerHTML =
 
-          '<div>' +
+          "<div>" +
             reviewText +
-          '</div>' +
+          "</div>" +
 
           '<button ' +
           'type="button" ' +
           'class="button secondary" ' +
           'data-ig-normal-show-reviews>' +
-            '⭐ Ver reseñas' +
-          '</button>';
+            "⭐ Ver reseñas" +
+          "</button>";
 
 
-        var cartButton =
-          content.querySelector(
-            'button[onclick*="addToCart"]'
-          );
-
-
-        if(cartButton){
-
-          cartButton.insertAdjacentElement(
-            "beforebegin",
-            reviewBox
-          );
-
-        }else{
-
-          content.appendChild(
-            reviewBox
-          );
-
-        }
+        cartButton.insertAdjacentElement(
+          "beforebegin",
+          reviewBox
+        );
 
 
         var reviewButton =
@@ -34521,9 +34587,17 @@ if(
                 "function"
               ){
 
+                var title =
+                  card.querySelector(
+                    "h3"
+                  );
+
+
                 window.igPR_showReviewsPublic(
-                  product.id,
-                  product.name
+                  productId,
+                  title
+                    ? title.textContent.trim()
+                    : "Producto"
                 );
 
               }
@@ -34537,6 +34611,59 @@ if(
     );
 
   }
+
+
+  /*
+   * No modificamos renderProducts().
+   * Solo observamos el catálogo real.
+   */
+  function ejecutar(){
+
+    igNormalProductReviews();
+
+  }
+
+
+  setTimeout(ejecutar,300);
+  setTimeout(ejecutar,800);
+  setTimeout(ejecutar,1500);
+  setTimeout(ejecutar,3000);
+
+
+  var productsContainer =
+    document.getElementById(
+      "productsContainer"
+    );
+
+
+  if(productsContainer){
+
+    var observer =
+      new MutationObserver(
+        function(){
+
+          setTimeout(
+            igNormalProductReviews,
+            50
+          );
+
+        }
+      );
+
+
+    observer.observe(
+      productsContainer,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+})();
+</script>
 
 
   /*
