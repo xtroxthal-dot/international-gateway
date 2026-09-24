@@ -34324,44 +34324,112 @@ if(
     var productIds = [];
 
 
-    cards.forEach(
+        cards.forEach(
       function(card){
 
-        var cartButton =
-          card.querySelector(
-            'button[onclick*="addToCart"]'
-          );
+        var id = null;
 
 
-        if(!cartButton){
+        /*
+         * PRODUCTOS ESPECIALES
+         * Granja lo de Nico / Iberian Mediterránea
+         */
+        if(
+          card.dataset &&
+          card.dataset.igSpecialProductId
+        ){
+
+          id =
+            String(
+              card.dataset.igSpecialProductId
+            );
+
+        }
+
+
+        /*
+         * Segundo sistema de identificación
+         * de productos especiales.
+         */
+        if(!id){
+
+          var specialButton =
+            card.querySelector(
+              "button[data-ig-special-add]"
+            );
+
+
+          if(
+            specialButton &&
+            specialButton.dataset &&
+            specialButton.dataset.igSpecialAdd
+          ){
+
+            id =
+              String(
+                specialButton.dataset.igSpecialAdd
+              );
+
+          }
+
+        }
+
+
+        /*
+         * PRODUCTOS NORMALES
+         */
+        if(!id){
+
+          var cartButton =
+            card.querySelector(
+              'button[onclick*="addToCart"]'
+            );
+
+
+          if(cartButton){
+
+            var onclick =
+              cartButton.getAttribute(
+                "onclick"
+              ) || "";
+
+
+            var match =
+              onclick.match(
+                /addToCart\(['"]([^'"]+)['"]\)/
+              );
+
+
+            if(
+              match &&
+              match[1]
+            ){
+
+              id =
+                String(match[1]);
+
+            }
+
+          }
+
+        }
+
+
+        if(!id){
           return;
         }
 
 
-        var onclick =
-          cartButton.getAttribute(
-            "onclick"
-          );
+        if(
+          productIds.indexOf(id) === -1
+        ){
 
+          productIds.push(id);
 
-        if(!onclick){
-          return;
         }
 
-
-        var match =
-          onclick.match(
-            /addToCart\(['"]([^'"]+)['"]\)/
-          );
-
-
-        if(!match || !match[1]){
-          return;
-        }
-
-
-        var id =
-          String(match[1]);
+      }
+    );
 
 
         if(
