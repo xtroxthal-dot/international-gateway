@@ -25,8 +25,8 @@
    * La privada permanece exclusivamente en Supabase.
    */
   const VAPID_PUBLIC_KEY =
-    
-"BHrwnC3gl9Xzd94JcEp19rJOCyd-OuOYXiloFkby3UaZFuS12zeuIlglhkKT9ijSDRQFkXmCtMQ2Ygg8E3FnnXs";
+    "BHrwnC3gl9Xzd94JcEp19rJOCyd-OuOYXiloFkby3UaZFuS12zeuIlglhkKT9ijSDRQFkXmCtMQ2Ygg8E3FnnXs";
+
   function base64ToUint8Array(base64String) {
     const padding = "=".repeat(
       (4 - (base64String.length % 4)) % 4
@@ -51,23 +51,27 @@
       );
     }
 
-        if (subscription) {
-      return subscription;
+    return navigator.serviceWorker.register("./sw.js", {
+      scope: "./"
+    });
+  }
+
+  async function getPushSubscription(registration) {
+    if (!("PushManager" in window)) {
+      throw new Error(
+        "Este navegador no admite Web Push."
+      );
     }
 
-        let subscription =
+    let subscription =
       await registration.pushManager.getSubscription();
 
     /*
-     * Renovar la suscripción para utilizar
-     * la nueva pareja de claves VAPID.
+     * Si ya existe una suscripción válida,
+     * conservarla y no crear otra.
      */
     if (subscription) {
-      try {
-        await subscription.unsubscribe();
-      } catch (_) {}
-
-      subscription = null;
+      return subscription;
     }
 
     if (!("Notification" in window)) {
@@ -175,7 +179,7 @@
       result = await response.json();
     } catch (_) {}
 
-        if (
+    if (
       !response.ok ||
       !result ||
       result.ok !== true ||
@@ -187,8 +191,7 @@
       );
     }
 
-        return result;
-
+    return result;
   }
 
   async function enableAdminPush() {
