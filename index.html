@@ -33537,8 +33537,7 @@ async function igPR_loadAdmin(){
 
       }
     ).join("");
-
-
+  
   section.innerHTML =
 
     '<div class="card" ' +
@@ -33547,15 +33546,40 @@ async function igPR_loadAdmin(){
       '<h2>🎁 Ofertas y promociones</h2>' +
 
       '<p>' +
-        'Configurá las promociones sin modificar el funcionamiento del catálogo.' +
+        'Buscá un producto para gestionar su promoción.' +
       '</p>' +
+
+      '<input ' +
+      'type="search" ' +
+      'id="ig-admin-promo-search" ' +
+      'placeholder="🔎 Buscar producto por nombre..." ' +
+      'autocomplete="off" ' +
+      'style="' +
+        'width:100%;' +
+        'box-sizing:border-box;' +
+        'padding:12px;' +
+        'margin-top:10px;' +
+        'border-radius:10px;' +
+        'border:1px solid #ccc;' +
+        'font-size:16px;' +
+      '">' +
+
+      '<div ' +
+      'id="ig-admin-promo-search-status" ' +
+      'style="margin-top:10px;">' +
+        'Escribí el nombre del producto para buscar.' +
+      '</div>' +
 
     '</div>' +
 
-    (
-      productHTML ||
-      '<div class="empty">No hay productos.</div>'
-    ) +
+    '<div id="ig-admin-promo-products">' +
+
+      (
+        productHTML ||
+        '<div class="empty">No hay productos.</div>'
+      ) +
+
+    '</div>' +
 
     '<div class="card" ' +
     'style="margin:25px 0 15px;">' +
@@ -33563,16 +33587,194 @@ async function igPR_loadAdmin(){
       '<h2>⭐ Reseñas</h2>' +
 
       '<p>' +
-        'Aprobá u ocultá las reseñas recibidas.' +
+        'Las reseñas aparecen al buscar el producto correspondiente.' +
       '</p>' +
 
     '</div>' +
 
-    (
-      reviewHTML ||
-      '<div class="empty">No hay reseñas todavía.</div>'
+    '<div id="ig-admin-promo-reviews">' +
+
+      (
+        reviewHTML ||
+        '<div class="empty">No hay reseñas todavía.</div>'
+      ) +
+
+    '</div>';
+
+
+  var igPR_search =
+    section.querySelector(
+      "#ig-admin-promo-search"
     );
 
+  var igPR_status =
+    section.querySelector(
+      "#ig-admin-promo-search-status"
+    );
+
+  function igPR_filterAdmin(){
+
+    var query =
+      String(
+        igPR_search.value || ""
+      )
+      .trim()
+      .toLowerCase();
+
+    var productCards =
+      section.querySelectorAll(
+        "[data-ig-save-promo]"
+      );
+
+    var reviewCards =
+      section.querySelectorAll(
+        "#ig-admin-promo-reviews .card"
+      );
+
+    if(!query){
+
+      productCards.forEach(
+        function(button){
+
+          var card =
+            button.closest(".card");
+
+          if(card){
+
+            card.style.display =
+              "none";
+
+          }
+
+        }
+      );
+
+      reviewCards.forEach(
+        function(card){
+
+          card.style.display =
+            "none";
+
+        }
+      );
+
+      igPR_status.textContent =
+        "Escribí el nombre del producto para buscar.";
+
+      return;
+
+    }
+
+    var matchedIds = {};
+
+    products.forEach(
+      function(product){
+
+        var name =
+          String(
+            product.name || ""
+          )
+          .toLowerCase();
+
+        var id =
+          String(
+            product.id || ""
+          )
+          .toLowerCase();
+
+        if(
+          name.indexOf(query) !== -1 ||
+          id.indexOf(query) !== -1
+        ){
+
+          matchedIds[
+            String(product.id)
+          ] = true;
+
+        }
+
+      }
+    );
+
+    var matchCount =
+      Object.keys(
+        matchedIds
+      ).length;
+
+    productCards.forEach(
+      function(button){
+
+        var productId =
+          button.getAttribute(
+            "data-ig-save-promo"
+          );
+
+        var card =
+          button.closest(".card");
+
+        if(!card){
+
+          return;
+
+        }
+
+        card.style.display =
+          matchedIds[
+            String(productId)
+          ]
+            ? ""
+            : "none";
+
+      }
+    );
+
+    reviewCards.forEach(
+      function(card){
+
+        var visible =
+          Object.keys(
+            matchedIds
+          ).some(
+            function(productId){
+
+              return card.textContent.indexOf(
+                productId
+              ) !== -1;
+
+            }
+          );
+
+        card.style.display =
+          visible
+            ? ""
+            : "none";
+
+      }
+    );
+
+    igPR_status.textContent =
+      matchCount
+        ? (
+            matchCount === 1
+              ? "1 producto encontrado."
+              : matchCount +
+                " productos encontrados."
+          )
+        : "No se encontró ningún producto.";
+
+  }
+
+
+  if(igPR_search){
+
+    igPR_search.addEventListener(
+      "input",
+      igPR_filterAdmin
+    );
+
+  }
+
+  igPR_filterAdmin();
 
   products.forEach(
     function(product){
