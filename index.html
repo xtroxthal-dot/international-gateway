@@ -30021,7 +30021,9 @@ function start(){
 
         await window.IGPush.enable();
 
-        button.style.display = "none";
+        if (button) {
+  button.style.display = "none";
+}
 
         console.log(
           "[IG Push] Suscripción registrada."
