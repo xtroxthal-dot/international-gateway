@@ -29979,13 +29979,13 @@ function start(){
 
     if (!window.IGPush) return;
 
-    var panel = getPanel();
+        var panel = getPanel();
 
-    if (!isVisible(panel)) return;
+    var button = null;
 
-    var button = ensureButton(panel);
-
-    if (!button) return;
+    if (isVisible(panel)) {
+      button = ensureButton(panel);
+    }
 
     try {
 
