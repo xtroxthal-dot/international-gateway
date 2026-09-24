@@ -26866,26 +26866,31 @@ function start(){
           }
 
 
-          <div class="price">
+      <button
+  class="button full"
+  type="button"
+  data-ig-review-product-id="${esc(producto.id)}"
+  data-ig-review-product-name="${esc(producto.name)}"
+  onclick="igPR_showReviews(this.dataset.igReviewProductId, this.dataset.igReviewProductName)">
 
-            ${precioProducto(producto.price)}
+  ⭐ Ver reseñas
 
-          </div>
+</button>
 
 
-          <button
-            class="button full"
-            type="button"
-            data-ig-special-add="${esc(producto.id)}"
-            ${disponible ? "" : "disabled"}>
+<button
+  class="button full"
+  type="button"
+  data-ig-special-add="${esc(producto.id)}"
+  ${disponible ? "" : "disabled"}>
 
-            ${
-              disponible
-                ? "Agregar al carrito"
-                : "Agotado"
-            }
+  ${
+    disponible
+      ? "Agregar al carrito"
+      : "Agotado"
+  }
 
-          </button>
+</button>
 
 
           <button
