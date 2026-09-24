@@ -1648,12 +1648,14 @@ function renderProducts(){
           </div>
 
           <button
-            type="button"
-            class="button full"
-            onclick="igPR_showReviews('${product.id}', '${escapeHtml(product.name).replace(/'/g, "&#039;")}')">
+  type="button"
+  class="button full"
+  data-ig-review-product-id="${escapeHtml(product.id)}"
+  data-ig-review-product-name="${escapeHtml(product.name)}"
+  onclick="igPR_showReviews(this.dataset.igReviewProductId, this.dataset.igReviewProductName)">
 
-            ⭐ Ver reseñas
-          </button>
+  ⭐ Ver reseñas
+</button>
 
           <button
             class="button full"
