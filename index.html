@@ -24001,10 +24001,18 @@ function start(){
               }
 
               <div class="price">
-                ${money(product.price)}
-              </div>
-}
+  ${money(product.price)}
+</div>
 
+<button
+  type="button"
+  class="button full"
+  data-ig-review-product-id="${escapeHtml(product.id)}"
+  data-ig-review-product-name="${escapeHtml(product.name)}"
+  onclick="igPR_showReviews(this.dataset.igReviewProductId, this.dataset.igReviewProductName)">
+
+  ⭐ Ver reseñas
+</button>
               <div class="price">
                 ${money(product.price)}
               </div>
