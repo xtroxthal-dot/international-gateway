@@ -1643,9 +1643,17 @@ function renderProducts(){
               : ""
           }
 
-          <div class="price">
+                    <div class="price">
             ${money(product.price)}
           </div>
+
+          <button
+            type="button"
+            class="button full"
+            onclick="igPR_showReviews('${product.id}', '${escapeHtml(product.name).replace(/'/g, "&#039;")}')">
+
+            ⭐ Ver reseñas
+          </button>
 
           <button
             class="button full"
