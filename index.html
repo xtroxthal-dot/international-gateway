@@ -34513,40 +34513,112 @@ if(
      * Colocar las reseñas en cada tarjeta
      * utilizando el ID real del producto.
      */
-    cards.forEach(
+        cards.forEach(
       function(card){
 
-        var cartButton =
-          card.querySelector(
-            'button[onclick*="addToCart"]'
-          );
+        var productId = null;
 
 
+        /*
+         * PRODUCTOS ESPECIALES
+         */
+        if(
+          card.dataset &&
+          card.dataset.igSpecialProductId
+        ){
+
+          productId =
+            String(
+              card.dataset.igSpecialProductId
+            );
+
+        }
+
+
+        if(!productId){
+
+          var specialButton =
+            card.querySelector(
+              "button[data-ig-special-add]"
+            );
+
+
+          if(
+            specialButton &&
+            specialButton.dataset &&
+            specialButton.dataset.igSpecialAdd
+          ){
+
+            productId =
+              String(
+                specialButton.dataset.igSpecialAdd
+              );
+
+          }
+
+        }
+
+
+        /*
+         * PRODUCTOS NORMALES
+         */
+        var cartButton = null;
+
+
+        if(!productId){
+
+          cartButton =
+            card.querySelector(
+              'button[onclick*="addToCart"]'
+            );
+
+
+          if(cartButton){
+
+            var onclick =
+              cartButton.getAttribute(
+                "onclick"
+              ) || "";
+
+
+            var match =
+              onclick.match(
+                /addToCart\(['"]([^'"]+)['"]\)/
+              );
+
+
+            if(
+              match &&
+              match[1]
+            ){
+
+              productId =
+                String(match[1]);
+
+            }
+
+          }
+
+        }
+
+
+        /*
+         * Para insertar el botón de reseñas
+         * usamos el botón de compra correspondiente.
+         */
         if(!cartButton){
-          return;
+
+          cartButton =
+            card.querySelector(
+              "button[data-ig-special-add]"
+            );
+
         }
 
 
-        var onclick =
-          cartButton.getAttribute(
-            "onclick"
-          );
-
-
-        var match =
-          onclick &&
-          onclick.match(
-            /addToCart\(['"]([^'"]+)['"]\)/
-          );
-
-
-        if(!match || !match[1]){
+        if(!productId || !cartButton){
           return;
         }
-
-
-        var productId =
-          String(match[1]);
 
 
         var content =
