@@ -51,16 +51,8 @@
       );
     }
 
-    return navigator.serviceWorker.register("./sw.js", {
-      scope: "./"
-    });
-  }
-
-  async function getPushSubscription(registration) {
-    if (!("PushManager" in window)) {
-      throw new Error(
-        "Este navegador no admite Web Push."
-      );
+        if (subscription) {
+      return subscription;
     }
 
         let subscription =
