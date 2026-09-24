@@ -34277,6 +34277,85 @@ if(
 })();
 </script>
 
+<!-- =========================================================
+     INTERNATIONAL GATEWAY — ACTUALIZACIÓN PWA Y RESEÑAS
+     Fuerza la comprobación de una nueva versión del Service Worker
+     y recarga la página cuando el nuevo SW toma el control.
+     ========================================================= -->
+<script>
+(function () {
+  "use strict";
 
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  var recargando = false;
+
+  function recargarUnaVez() {
+    if (recargando) return;
+    recargando = true;
+
+    setTimeout(function () {
+      window.location.reload();
+    }, 150);
+  }
+
+  /* Si aparece un Service Worker nuevo, lo activa inmediatamente */
+  navigator.serviceWorker.addEventListener(
+    "updatefound",
+    function () {
+      var registro = navigator.serviceWorker.ready;
+
+      registro.then(function (registration) {
+        if (!registration) return;
+
+        var nuevo = registration.installing;
+
+        if (!nuevo) return;
+
+        nuevo.addEventListener("statechange", function () {
+          if (
+            nuevo.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            try {
+              nuevo.postMessage({
+                type: "SKIP_WAITING"
+              });
+            } catch (e) {}
+          }
+        });
+      }).catch(function () {});
+    }
+  );
+
+  /* Cuando el nuevo SW toma el control, recarga la página */
+  navigator.serviceWorker.addEventListener(
+    "controllerchange",
+    function () {
+      recargarUnaVez();
+    }
+  );
+
+  /* Comprueba periódicamente si existe una versión nueva */
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.ready.then(function (registration) {
+
+      try {
+        registration.update();
+      } catch (e) {}
+
+      setTimeout(function () {
+        try {
+          registration.update();
+        } catch (e) {}
+      }, 3000);
+
+    }).catch(function () {});
+  });
+
+})();
+</script>
 </body>
 </html>
