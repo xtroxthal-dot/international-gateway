@@ -3,7 +3,7 @@
    PWA + Web Push de pedidos
    ========================================================= */
 
-const CACHE_NAME = "international-gateway-v3";
+const CACHE_NAME = "international-gateway-v4";
 
 const APP_SHELL = [
   "./",
@@ -57,7 +57,20 @@ self.addEventListener("activate", function (event) {
   );
 
 });
+/* =========================================================
+   ACTUALIZACIÓN FORZADA DEL SERVICE WORKER
+   ========================================================= */
 
+self.addEventListener("message", function (event) {
+
+  if (
+    event.data &&
+    event.data.type === "SKIP_WAITING"
+  ) {
+    self.skipWaiting();
+  }
+
+});
 /* =========================================================
    CACHÉ / OFFLINE
    ========================================================= */
