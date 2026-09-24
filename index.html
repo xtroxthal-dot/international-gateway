@@ -5837,7 +5837,98 @@ function renderApp(){
 
         </section>
 
+        <!-- NOTIFICACIONES -->
 
+        <section
+          id="admin-notifications"
+          class="admin-section">
+
+          <h2>
+            🔔 Notificaciones
+          </h2>
+
+          <p>
+            Envía avisos directamente a los clientes desde el administrador.
+          </p>
+
+          <div class="card">
+
+            <label for="igAdminNotificationRecipient">
+              Destinatario
+            </label>
+
+            <select id="igAdminNotificationRecipient">
+              <option value="all">
+                👥 Todos los clientes
+              </option>
+            </select>
+
+            <br><br>
+
+            <label for="igAdminNotificationType">
+              Tipo de notificación
+            </label>
+
+            <select id="igAdminNotificationType">
+              <option value="info">ℹ️ Información</option>
+              <option value="order">📦 Pedido</option>
+              <option value="shipping">🚚 Envío</option>
+              <option value="promotion">🎁 Promoción</option>
+              <option value="important">⚠️ Importante</option>
+            </select>
+
+            <br><br>
+
+            <label for="igAdminNotificationTitle">
+              Título
+            </label>
+
+            <input
+              id="igAdminNotificationTitle"
+              type="text"
+              maxlength="120"
+              placeholder="Título de la notificación">
+
+            <br><br>
+
+            <label for="igAdminNotificationMessage">
+              Mensaje
+            </label>
+
+            <textarea
+              id="igAdminNotificationMessage"
+              rows="5"
+              maxlength="1000"
+              placeholder="Escribe el mensaje que recibirá el cliente..."></textarea>
+
+            <br><br>
+
+            <button
+              type="button"
+              onclick="igAdminSendCustomerNotification()">
+              🔔 Enviar notificación
+            </button>
+
+          </div>
+
+          <br>
+
+          <div class="card">
+
+            <h3>
+              📋 Historial de notificaciones enviadas
+            </h3>
+
+            <div id="igAdminNotificationHistory">
+              <p>
+                Cargando historial...
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+        
         <!-- CONFIGURACIÓN -->
 
         <section
