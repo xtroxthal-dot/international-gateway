@@ -38828,5 +38828,1730 @@ if(
 
 })();
 </script>
+
+  <!-- ============================================================
+     INTERNATIONAL GATEWAY
+     DOCUMENTACIÓN COMPLETA — MÁQUINA + PASAPORTE
+     CLIENTE + ADMINISTRADOR
+     Pegar inmediatamente antes de </body>
+     ============================================================ -->
+
+<style>
+/* ============================================================
+   DOCUMENTACIÓN GATEWAY
+   ============================================================ */
+
+.ig-docs-launcher{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:18px auto;
+  width:min(1180px,94%);
+}
+
+.ig-docs-btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  padding:12px 17px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:14px;
+  transition:.2s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+}
+
+.ig-docs-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+}
+
+.ig-docs-client-btn{
+  color:#fff;
+  background:linear-gradient(135deg,#111,#292929);
+}
+
+.ig-docs-admin-btn{
+  color:#fff;
+  background:linear-gradient(135deg,#6b0000,#d40000);
+}
+
+.ig-docs-modal{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,.82);
+  backdrop-filter:blur(8px);
+}
+
+.ig-docs-modal.ig-docs-open{
+  display:flex;
+}
+
+.ig-docs-window{
+  width:min(1050px,100%);
+  max-height:92vh;
+  overflow:hidden;
+  border-radius:20px;
+  background:#101010;
+  color:#eee;
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 100px rgba(0,0,0,.65);
+  display:flex;
+  flex-direction:column;
+}
+
+.ig-docs-header{
+  flex:0 0 auto;
+  padding:20px 22px;
+  background:linear-gradient(135deg,#151515,#242424);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+
+.ig-docs-title{
+  margin:0;
+  font-size:21px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+.ig-docs-subtitle{
+  margin:6px 0 0;
+  color:#aaa;
+  font-size:13px;
+}
+
+.ig-docs-close{
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:#2b2b2b;
+  color:#fff;
+  font-size:25px;
+  cursor:pointer;
+  flex:0 0 auto;
+}
+
+.ig-docs-close:hover{
+  background:#444;
+}
+
+.ig-docs-body{
+  overflow:auto;
+  padding:22px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.ig-docs-body h2{
+  margin:28px 0 12px;
+  color:#fff;
+  font-size:20px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  padding-bottom:9px;
+}
+
+.ig-docs-body h2:first-child{
+  margin-top:0;
+}
+
+.ig-docs-body h3{
+  margin:20px 0 8px;
+  color:#fff;
+  font-size:16px;
+}
+
+.ig-docs-body p{
+  margin:8px 0;
+  color:#d0d0d0;
+  line-height:1.65;
+}
+
+.ig-docs-body ul,
+.ig-docs-body ol{
+  margin:9px 0 15px 22px;
+  padding:0;
+}
+
+.ig-docs-body li{
+  margin:7px 0;
+  color:#d2d2d2;
+  line-height:1.55;
+}
+
+.ig-docs-card{
+  background:#181818;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:15px;
+  padding:17px;
+  margin:13px 0;
+}
+
+.ig-docs-card strong{
+  color:#fff;
+}
+
+.ig-docs-highlight{
+  border-left:4px solid #d40000;
+  background:linear-gradient(90deg,rgba(212,0,0,.13),rgba(255,255,255,.03));
+  padding:14px 16px;
+  border-radius:0 12px 12px 0;
+  margin:14px 0;
+}
+
+.ig-docs-success{
+  border-left-color:#00b86b;
+  background:linear-gradient(90deg,rgba(0,184,107,.12),rgba(255,255,255,.03));
+}
+
+.ig-docs-warning{
+  border-left-color:#e4a400;
+  background:linear-gradient(90deg,rgba(228,164,0,.12),rgba(255,255,255,.03));
+}
+
+.ig-docs-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.ig-docs-level{
+  background:#181818;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:13px;
+  padding:15px;
+}
+
+.ig-docs-level-number{
+  font-size:12px;
+  color:#aaa;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.ig-docs-level-name{
+  margin-top:4px;
+  font-size:17px;
+  font-weight:900;
+  color:#fff;
+}
+
+.ig-docs-table-wrap{
+  overflow:auto;
+  margin:14px 0;
+}
+
+.ig-docs-table{
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+.ig-docs-table th,
+.ig-docs-table td{
+  border:1px solid rgba(255,255,255,.1);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+}
+
+.ig-docs-table th{
+  background:#252525;
+  color:#fff;
+}
+
+.ig-docs-table td{
+  background:#151515;
+  color:#ccc;
+}
+
+.ig-docs-flow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin:15px 0;
+}
+
+.ig-docs-step{
+  background:#222;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:10px 12px;
+  font-weight:800;
+  font-size:13px;
+}
+
+.ig-docs-arrow{
+  color:#999;
+  font-weight:900;
+}
+
+@media(max-width:700px){
+  .ig-docs-window{
+    max-height:95vh;
+    border-radius:16px;
+  }
+
+  .ig-docs-header{
+    padding:16px;
+  }
+
+  .ig-docs-body{
+    padding:16px;
+  }
+
+  .ig-docs-grid{
+    grid-template-columns:1fr;
+  }
+
+  .ig-docs-title{
+    font-size:18px;
+  }
+
+  .ig-docs-btn{
+    width:100%;
+  }
+}
+</style>
+
+
+<!-- ============================================================
+     MODAL DEL CLIENTE
+     ============================================================ -->
+
+<div id="igGatewayClientDocs" class="ig-docs-modal" aria-hidden="true">
+
+  <div class="ig-docs-window">
+
+    <div class="ig-docs-header">
+
+      <div>
+        <h1 class="ig-docs-title">
+          📘 Guía completa — Máquina Gateway + Pasaporte Gateway
+        </h1>
+
+        <p class="ig-docs-subtitle">
+          Manual de uso para clientes de International Gateway
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="ig-docs-close"
+        onclick="igCloseDocs('client')"
+        aria-label="Cerrar">
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="ig-docs-body">
+
+      <div class="ig-docs-highlight ig-docs-success">
+
+        <strong>¿Qué es todo esto?</strong>
+
+        <p>
+          La Máquina Gateway y el Pasaporte Gateway forman parte del
+          sistema de beneficios de International Gateway.
+          Su finalidad es premiar la participación de nuestros clientes
+          mediante puntos, giros, niveles y promociones.
+        </p>
+
+      </div>
+
+
+      <h2>🎯 1. ¿Qué es la Máquina Gateway?</h2>
+
+      <p>
+        La Máquina Gateway es una experiencia interactiva de fidelización.
+        Dependiendo de las promociones activas y de las compras realizadas,
+        un cliente puede recibir giros para utilizar en la máquina.
+      </p>
+
+      <p>
+        Cada giro puede producir un resultado diferente según los premios
+        que estén activos en ese momento.
+      </p>
+
+      <div class="ig-docs-card">
+
+        <strong>La idea es muy sencilla:</strong>
+
+        <div class="ig-docs-flow">
+
+          <span class="ig-docs-step">JUGÁS</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">GANÁS</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">ACUMULÁS</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">SUBÍS DE NIVEL</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">DESBLOQUEÁS BENEFICIOS</span>
+
+        </div>
+
+      </div>
+
+
+      <h2>🎫 2. ¿Qué es el Pasaporte Gateway?</h2>
+
+      <p>
+        El Pasaporte Gateway representa la evolución del cliente dentro
+        del sistema de fidelización.
+      </p>
+
+      <p>
+        A medida que se acumulan puntos y actividad, el cliente puede
+        avanzar por diferentes niveles.
+      </p>
+
+      <div class="ig-docs-grid">
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">Nivel 01</div>
+          <div class="ig-docs-level-name">Explorador</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">Nivel 02</div>
+          <div class="ig-docs-level-name">Viajero</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">Nivel 03</div>
+          <div class="ig-docs-level-name">Aventurero</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">Nivel 04</div>
+          <div class="ig-docs-level-name">Descubridor</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">Nivel 05</div>
+          <div class="ig-docs-level-name">VIP Gateway</div>
+        </div>
+
+      </div>
+
+
+      <h2>🎰 3. ¿Cómo se obtienen los giros?</h2>
+
+      <p>
+        Los giros no se compran como una apuesta ni representan dinero.
+        Son beneficios promocionales otorgados por International Gateway
+        de acuerdo con las reglas y promociones activas.
+      </p>
+
+      <p>Entre las posibilidades configurables se encuentran:</p>
+
+      <ul>
+        <li>Giros de bienvenida.</li>
+        <li>Giros relacionados con compras.</li>
+        <li>Giros promocionales.</li>
+        <li>Giros diarios, cuando estén habilitados.</li>
+        <li>Giros adicionales obtenidos como premio.</li>
+      </ul>
+
+      <div class="ig-docs-highlight ig-docs-warning">
+
+        <strong>Importante:</strong>
+
+        <p>
+          La disponibilidad de giros, promociones y beneficios puede cambiar
+          porque el administrador puede activar, desactivar o modificar
+          las promociones desde el sistema.
+        </p>
+
+      </div>
+
+
+      <h2>▶️ 4. ¿Cómo utilizar la Máquina?</h2>
+
+      <ol>
+
+        <li>
+          Iniciá sesión en tu cuenta cuando sea necesario.
+        </li>
+
+        <li>
+          Comprobá que tengas giros disponibles.
+        </li>
+
+        <li>
+          Pulsá el botón de jugar/girar.
+        </li>
+
+        <li>
+          Esperá a que finalice la animación.
+        </li>
+
+        <li>
+          El sistema mostrará el resultado obtenido.
+        </li>
+
+        <li>
+          Si corresponde, el premio se acreditará automáticamente.
+        </li>
+
+      </ol>
+
+
+      <h2>🏆 5. ¿Qué tipos de premios pueden aparecer?</h2>
+
+      <p>
+        Los premios son configurables desde la administración.
+        Algunos ejemplos actualmente previstos para el sistema son:
+      </p>
+
+      <div class="ig-docs-grid">
+
+        <div class="ig-docs-card">
+          <strong>⭐ Puntos</strong>
+          <p>
+            Puntos que se incorporan al progreso del cliente.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🎰 Giro extra</strong>
+          <p>
+            Un nuevo giro promocional.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🎁 Premio sorpresa</strong>
+          <p>
+            Premio promocional definido por International Gateway.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🔄 Seguí jugando</strong>
+          <p>
+            Resultado sin premio adicional.
+          </p>
+        </div>
+
+      </div>
+
+
+      <h2>⭐ 6. Los puntos</h2>
+
+      <p>
+        Los puntos forman parte del progreso del Pasaporte Gateway.
+        Pueden obtenerse mediante las acciones promocionales configuradas
+        por International Gateway.
+      </p>
+
+      <p>
+        Los puntos no deben interpretarse automáticamente como dinero en
+        efectivo. Su utilización depende de las condiciones de cada
+        promoción.
+      </p>
+
+
+      <h2>🚀 7. Cómo funcionan los niveles</h2>
+
+      <p>
+        El sistema puede recalcular automáticamente el nivel del cliente
+        conforme aumenta su progreso.
+      </p>
+
+      <p>
+        El nivel permite representar la evolución del cliente dentro del
+        programa Gateway.
+      </p>
+
+
+      <h2>🧪 8. Giro de demostración</h2>
+
+      <div class="ig-docs-highlight">
+
+        <strong>IMPORTANTE — EL GIRO DE DEMOSTRACIÓN NO ES UN PREMIO REAL</strong>
+
+        <p>
+          El sistema dispone de una demostración para que una persona pueda
+          conocer cómo funciona la máquina antes de utilizar un giro real.
+        </p>
+
+      </div>
+
+      <p>La demostración:</p>
+
+      <ul>
+        <li>No acredita puntos.</li>
+        <li>No entrega giros reales.</li>
+        <li>No modifica el nivel.</li>
+        <li>No registra una jugada real.</li>
+        <li>No genera un premio válido.</li>
+        <li>Está pensada exclusivamente para conocer la experiencia.</li>
+      </ul>
+
+      <p>
+        En usuarios registrados, el sistema controla el uso de la
+        demostración. En usuarios no registrados, el navegador utiliza
+        un mecanismo local para evitar que la demostración se repita
+        indefinidamente en el mismo dispositivo.
+      </p>
+
+
+      <h2>🔐 9. ¿Por qué hay que iniciar sesión?</h2>
+
+      <p>
+        La cuenta permite asociar correctamente los beneficios al cliente.
+      </p>
+
+      <p>
+        De esta manera, los puntos, giros, nivel y actividad pueden
+        relacionarse con el usuario correspondiente.
+      </p>
+
+
+      <h2>📊 10. ¿Qué puede consultar el cliente?</h2>
+
+      <ul>
+        <li>Puntos disponibles.</li>
+        <li>Giros disponibles.</li>
+        <li>Nivel del Pasaporte.</li>
+        <li>Progreso acumulado.</li>
+        <li>Resultados de la experiencia.</li>
+        <li>Promociones que estén habilitadas.</li>
+      </ul>
+
+
+      <h2>🛡️ 11. Reglas importantes</h2>
+
+      <ul>
+
+        <li>
+          Los giros son beneficios promocionales y no deben considerarse
+          una apuesta.
+        </li>
+
+        <li>
+          No se venden giros directamente.
+        </li>
+
+        <li>
+          Los beneficios dependen de las promociones activas.
+        </li>
+
+        <li>
+          El administrador puede modificar las condiciones promocionales.
+        </li>
+
+        <li>
+          Una demostración no equivale a una jugada real.
+        </li>
+
+        <li>
+          Los resultados y beneficios deben respetar las condiciones
+          publicadas por International Gateway.
+        </li>
+
+      </ul>
+
+
+      <h2>❓ 12. Si la máquina no permite jugar</h2>
+
+      <p>
+        Puede deberse a diferentes motivos:
+      </p>
+
+      <ul>
+
+        <li>No hay giros disponibles.</li>
+
+        <li>La máquina está temporalmente desactivada.</li>
+
+        <li>No se inició sesión cuando es obligatorio hacerlo.</li>
+
+        <li>La promoción correspondiente terminó.</li>
+
+        <li>El administrador modificó las condiciones.</li>
+
+        <li>Puede existir una incidencia temporal del sistema.</li>
+
+      </ul>
+
+
+      <h2>🌐 13. Filosofía del sistema Gateway</h2>
+
+      <div class="ig-docs-card">
+
+        <p>
+          <strong>
+            JUGÁS → GANÁS → ACUMULÁS → SUBÍS → DESBLOQUEÁS
+          </strong>
+        </p>
+
+        <p>
+          El objetivo del sistema es convertir la relación con
+          International Gateway en una experiencia de fidelización
+          dinámica, donde las compras y promociones puedan generar
+          beneficios adicionales para los clientes.
+        </p>
+
+      </div>
+
+
+      <h2>📌 14. Resumen para el cliente</h2>
+
+      <div class="ig-docs-highlight ig-docs-success">
+
+        <p>
+          <strong>Máquina Gateway:</strong>
+          experiencia promocional donde utilizás los giros disponibles.
+        </p>
+
+        <p>
+          <strong>Pasaporte Gateway:</strong>
+          sistema que representa tu evolución mediante puntos y niveles.
+        </p>
+
+        <p>
+          <strong>Giro demo:</strong>
+          sirve para probar la experiencia y no entrega beneficios reales.
+        </p>
+
+        <p>
+          <strong>Premios:</strong>
+          dependen de las promociones configuradas.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================================
+     MODAL DEL ADMINISTRADOR
+     ============================================================ -->
+
+<div id="igGatewayAdminDocs" class="ig-docs-modal" aria-hidden="true">
+
+  <div class="ig-docs-window">
+
+    <div class="ig-docs-header">
+
+      <div>
+        <h1 class="ig-docs-title">
+          🛠️ Manual completo del administrador — Gateway
+        </h1>
+
+        <p class="ig-docs-subtitle">
+          Máquina Gateway · Pasaporte Gateway · Premios · Compras · Seguridad
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="ig-docs-close"
+        onclick="igCloseDocs('admin')"
+        aria-label="Cerrar">
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="ig-docs-body">
+
+      <div class="ig-docs-highlight">
+
+        <strong>OBJETIVO DEL MÓDULO</strong>
+
+        <p>
+          Este módulo permite administrar la experiencia de fidelización
+          Gateway desde el administrador existente de International Gateway,
+          sin necesidad de entrar manualmente a Supabase para realizar las
+          operaciones normales del sistema.
+        </p>
+
+      </div>
+
+
+      <h2>🏗️ 1. Arquitectura general</h2>
+
+      <p>
+        El sistema está dividido conceptualmente en varias partes:
+      </p>
+
+      <div class="ig-docs-grid">
+
+        <div class="ig-docs-card">
+          <strong>🎰 Máquina Gateway</strong>
+          <p>
+            Interfaz que permite utilizar los giros promocionales.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🎫 Pasaporte Gateway</strong>
+          <p>
+            Gestiona la progresión del cliente mediante puntos y niveles.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🎁 Premios</strong>
+          <p>
+            Define los resultados que puede entregar la máquina.
+          </p>
+        </div>
+
+        <div class="ig-docs-card">
+          <strong>🛡️ Seguridad</strong>
+          <p>
+            Las operaciones sensibles se procesan en el servidor mediante
+            funciones y políticas de seguridad.
+          </p>
+        </div>
+
+      </div>
+
+
+      <h2>⚙️ 2. Configuración general</h2>
+
+      <p>
+        Desde el apartado de configuración del administrador se pueden
+        controlar los principales parámetros del sistema.
+      </p>
+
+      <div class="ig-docs-table-wrap">
+
+        <table class="ig-docs-table">
+
+          <thead>
+            <tr>
+              <th>Configuración</th>
+              <th>Función</th>
+              <th>Qué afecta</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>Máquina activa</td>
+              <td>Activa o desactiva la experiencia.</td>
+              <td>Disponibilidad de la máquina.</td>
+            </tr>
+
+            <tr>
+              <td>Giros por compra</td>
+              <td>Define cuántos giros pueden generarse por compra.</td>
+              <td>Beneficios derivados de compras.</td>
+            </tr>
+
+            <tr>
+              <td>Compra mínima</td>
+              <td>Establece el importe mínimo para la promoción.</td>
+              <td>Condiciones de obtención.</td>
+            </tr>
+
+            <tr>
+              <td>Giros de bienvenida</td>
+              <td>Define los giros iniciales que correspondan.</td>
+              <td>Nuevos participantes.</td>
+            </tr>
+
+            <tr>
+              <td>Giros diarios</td>
+              <td>Controla posibles giros diarios.</td>
+              <td>Promociones recurrentes.</td>
+            </tr>
+
+            <tr>
+              <td>Puntos por compra</td>
+              <td>Define la cantidad de puntos relacionada con compras.</td>
+              <td>Progreso del Pasaporte.</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <h2>🎁 3. Administración de premios</h2>
+
+      <p>
+        El administrador puede gestionar los premios disponibles en la
+        máquina desde la sección correspondiente.
+      </p>
+
+      <p>
+        Cada premio puede tener características como:
+      </p>
+
+      <ul>
+
+        <li>Nombre.</li>
+
+        <li>Tipo.</li>
+
+        <li>Valor.</li>
+
+        <li>Peso/probabilidad relativa.</li>
+
+        <li>Estado activo o inactivo.</li>
+
+        <li>Orden o información adicional según la configuración.</li>
+
+      </ul>
+
+
+      <h3>⚖️ ¿Qué significa el peso?</h3>
+
+      <p>
+        El peso es un valor relativo utilizado por el sistema para realizar
+        la selección ponderada del premio.
+      </p>
+
+      <p>
+        Un premio con un peso mayor tendrá una mayor participación relativa
+        en la selección que uno con peso menor.
+      </p>
+
+      <div class="ig-docs-highlight ig-docs-warning">
+
+        <strong>IMPORTANTE:</strong>
+
+        <p>
+          El peso no debe interpretarse como una garantía matemática de que
+          un premio aparecerá exactamente una cantidad determinada de veces.
+          Es un valor utilizado por el algoritmo de selección ponderada.
+        </p>
+
+      </div>
+
+
+      <h2>🎰 4. Cómo funciona una tirada real</h2>
+
+      <p>
+        La tirada real no debe resolverse únicamente en JavaScript del
+        navegador.
+      </p>
+
+      <p>
+        La operación principal se realiza mediante la función segura del
+        servidor:
+      </p>
+
+      <div class="ig-docs-card">
+
+        <strong>ig_gateway_spin()</strong>
+
+        <p>
+          Esta operación controla el estado del jugador, comprueba sus giros,
+          selecciona el premio y actualiza los valores correspondientes.
+        </p>
+
+      </div>
+
+
+      <h3>Proceso general</h3>
+
+      <ol>
+
+        <li>El cliente solicita una tirada.</li>
+
+        <li>El servidor identifica al usuario.</li>
+
+        <li>Se comprueba el jugador.</li>
+
+        <li>Se comprueba la disponibilidad de giros.</li>
+
+        <li>Se selecciona el premio activo.</li>
+
+        <li>Se descuenta el giro correspondiente.</li>
+
+        <li>Se actualizan estadísticas.</li>
+
+        <li>Si corresponde, se acreditan puntos.</li>
+
+        <li>Si corresponde, se añade un giro extra.</li>
+
+        <li>Se recalcula el nivel.</li>
+
+        <li>Se registra la operación.</li>
+
+        <li>El resultado vuelve al cliente.</li>
+
+      </ol>
+
+
+      <h2>🛡️ 5. Protección cuando la máquina está desactivada</h2>
+
+      <p>
+        La interfaz comprueba si la máquina está activa antes de permitir
+        una tirada normal.
+      </p>
+
+      <p>
+        Además existe una protección adicional a nivel de base de datos
+        para impedir que una operación incremente el contador de tiradas
+        cuando la máquina está desactivada.
+      </p>
+
+      <div class="ig-docs-highlight ig-docs-success">
+
+        <strong>OBJETIVO:</strong>
+
+        <p>
+          La desactivación administrativa no debe depender exclusivamente
+          de ocultar un botón en la interfaz.
+        </p>
+
+      </div>
+
+
+      <h2>🎫 6. Administración del Pasaporte Gateway</h2>
+
+      <p>
+        El Pasaporte representa la progresión del cliente.
+      </p>
+
+      <p>
+        Los niveles previstos son:
+      </p>
+
+      <div class="ig-docs-grid">
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">01</div>
+          <div class="ig-docs-level-name">Explorador</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">02</div>
+          <div class="ig-docs-level-name">Viajero</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">03</div>
+          <div class="ig-docs-level-name">Aventurero</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">04</div>
+          <div class="ig-docs-level-name">Descubridor</div>
+        </div>
+
+        <div class="ig-docs-level">
+          <div class="ig-docs-level-number">05</div>
+          <div class="ig-docs-level-name">VIP Gateway</div>
+        </div>
+
+      </div>
+
+
+      <h2>🛒 7. Integración con compras</h2>
+
+      <p>
+        El sistema puede relacionar las compras pagadas con el programa
+        Gateway.
+      </p>
+
+      <p>
+        Cuando una compra pasa al estado correspondiente, el sistema puede
+        otorgar los beneficios definidos en la configuración.
+      </p>
+
+      <div class="ig-docs-card">
+
+        <strong>Proceso:</strong>
+
+        <div class="ig-docs-flow">
+
+          <span class="ig-docs-step">COMPRA</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">PAGO CONFIRMADO</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">GATEWAY</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">PUNTOS / GIROS</span>
+
+        </div>
+
+      </div>
+
+
+      <h2>🧾 8. Evitar duplicación de premios por compra</h2>
+
+      <p>
+        El sistema utiliza un registro específico para controlar los premios
+        asociados a pedidos.
+      </p>
+
+      <p>
+        Esto permite evitar que una misma compra sea procesada repetidamente
+        como si fuera una compra nueva.
+      </p>
+
+
+      <h2>🧪 9. Administración de la demostración</h2>
+
+      <p>
+        La demostración está diseñada para que un cliente pueda conocer la
+        experiencia sin recibir beneficios reales.
+      </p>
+
+      <p>La demostración:</p>
+
+      <ul>
+
+        <li>No acredita puntos.</li>
+
+        <li>No entrega giros reales.</li>
+
+        <li>No modifica el nivel.</li>
+
+        <li>No registra una jugada real.</li>
+
+        <li>No genera un premio válido.</li>
+
+      </ul>
+
+      <p>
+        El administrador dispone además de la posibilidad de restablecer
+        el estado de demostración desde el panel correspondiente.
+      </p>
+
+
+      <h2>📊 10. Estadísticas</h2>
+
+      <p>
+        El área administrativa permite consultar información relacionada
+        con la actividad del sistema.
+      </p>
+
+      <p>Entre los datos que pueden analizarse están:</p>
+
+      <ul>
+
+        <li>Número de jugadores.</li>
+
+        <li>Número de tiradas.</li>
+
+        <li>Premios entregados.</li>
+
+        <li>Puntos acumulados.</li>
+
+        <li>Giros utilizados.</li>
+
+        <li>Actividad relacionada con pedidos.</li>
+
+      </ul>
+
+
+      <h2>👤 11. Qué puede hacer el administrador</h2>
+
+      <ul>
+
+        <li>Activar o desactivar la máquina.</li>
+
+        <li>Modificar parámetros promocionales.</li>
+
+        <li>Administrar premios.</li>
+
+        <li>Activar o desactivar premios.</li>
+
+        <li>Modificar pesos relativos de premios.</li>
+
+        <li>Gestionar la configuración del Pasaporte.</li>
+
+        <li>Consultar estadísticas.</li>
+
+        <li>Consultar información de actividad.</li>
+
+        <li>Restablecer la demostración cuando sea necesario.</li>
+
+        <li>Controlar la experiencia desde el administrador existente.</li>
+
+      </ul>
+
+
+      <h2>🚫 12. Qué NO debe hacer el administrador</h2>
+
+      <div class="ig-docs-highlight ig-docs-warning">
+
+        <ul>
+
+          <li>
+            No debe modificar manualmente datos de clientes para conceder
+            premios sin un motivo administrativo válido.
+          </li>
+
+          <li>
+            No debe vender directamente giros como si fueran apuestas.
+          </li>
+
+          <li>
+            No debe utilizar la demostración para acreditar beneficios.
+          </li>
+
+          <li>
+            No debe modificar tablas de Supabase manualmente para realizar
+            operaciones normales del sistema.
+          </li>
+
+          <li>
+            No debe compartir credenciales administrativas.
+          </li>
+
+          <li>
+            No debe desactivar las protecciones de seguridad para resolver
+            problemas de interfaz.
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <h2>🔐 13. Seguridad</h2>
+
+      <p>
+        Las operaciones sensibles de Gateway están diseñadas para realizarse
+        mediante funciones del servidor y políticas de acceso.
+      </p>
+
+      <p>
+        El cliente no debería poder decidir por sí mismo cuántos puntos,
+        giros o premios recibe.
+      </p>
+
+      <div class="ig-docs-highlight ig-docs-success">
+
+        <strong>PRINCIPIO FUNDAMENTAL</strong>
+
+        <p>
+          La interfaz muestra y solicita operaciones; la lógica sensible
+          debe validarse en el servidor.
+        </p>
+
+      </div>
+
+
+      <h2>🧠 14. Flujo completo del sistema</h2>
+
+      <div class="ig-docs-card">
+
+        <div class="ig-docs-flow">
+
+          <span class="ig-docs-step">CLIENTE</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">CUENTA</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">GIROS</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">MÁQUINA</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">PREMIO</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">PUNTOS</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">PASAPORTE</span>
+          <span class="ig-docs-arrow">→</span>
+
+          <span class="ig-docs-step">NIVEL</span>
+
+        </div>
+
+      </div>
+
+
+      <h2>🛠️ 15. Procedimiento recomendado para administrar Gateway</h2>
+
+      <ol>
+
+        <li>
+          Entrar al administrador existente.
+        </li>
+
+        <li>
+          Abrir la sección Máquina Gateway.
+        </li>
+
+        <li>
+          Comprobar que la máquina esté correctamente configurada.
+        </li>
+
+        <li>
+          Revisar los premios activos.
+        </li>
+
+        <li>
+          Revisar sus valores y pesos.
+        </li>
+
+        <li>
+          Comprobar la configuración del Pasaporte.
+        </li>
+
+        <li>
+          Realizar una comprobación de la experiencia de demostración.
+        </li>
+
+        <li>
+          Verificar estadísticas cuando sea necesario.
+        </li>
+
+        <li>
+          Activar la promoción cuando todo esté preparado.
+        </li>
+
+      </ol>
+
+
+      <h2>🚨 16. Qué hacer si se detecta un problema</h2>
+
+      <ol>
+
+        <li>
+          No modificar directamente la base de datos sin conocer el origen
+          del problema.
+        </li>
+
+        <li>
+          Comprobar primero la configuración desde el administrador.
+        </li>
+
+        <li>
+          Comprobar si la máquina está activa.
+        </li>
+
+        <li>
+          Comprobar los premios activos.
+        </li>
+
+        <li>
+          Comprobar la sesión del usuario.
+        </li>
+
+        <li>
+          Comprobar si el problema afecta a un usuario o a todos.
+        </li>
+
+        <li>
+          Comprobar las estadísticas y registros disponibles.
+        </li>
+
+      </ol>
+
+
+      <h2>📋 17. Resumen de responsabilidades</h2>
+
+      <div class="ig-docs-table-wrap">
+
+        <table class="ig-docs-table">
+
+          <thead>
+
+            <tr>
+              <th>Área</th>
+              <th>Responsabilidad</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>Máquina</td>
+              <td>
+                Gestionar disponibilidad y experiencia de los giros.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Premios</td>
+              <td>
+                Mantener los premios y sus parámetros promocionales.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Pasaporte</td>
+              <td>
+                Mantener la progresión y niveles del programa.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Compras</td>
+              <td>
+                Controlar la relación entre compras pagadas y beneficios.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Demostración</td>
+              <td>
+                Permitir que los usuarios conozcan la experiencia sin
+                conceder beneficios reales.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Seguridad</td>
+              <td>
+                Mantener protegidas las operaciones sensibles.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Estadísticas</td>
+              <td>
+                Supervisar la actividad del sistema.
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <h2>🏁 18. Concepto final de Gateway</h2>
+
+      <div class="ig-docs-highlight">
+
+        <p>
+          <strong>
+            International Gateway no debe tratar la Máquina Gateway como
+            un sistema de apuestas.
+          </strong>
+        </p>
+
+        <p>
+          Es una herramienta de fidelización y promoción en la que el
+          administrador define las condiciones y los clientes pueden
+          obtener beneficios conforme a las reglas vigentes.
+        </p>
+
+        <p>
+          El objetivo es crear una experiencia clara, atractiva,
+          controlable y segura.
+        </p>
+
+      </div>
+
+
+      <h2>✅ 19. Checklist del administrador</h2>
+
+      <div class="ig-docs-card">
+
+        <p>☐ Máquina correctamente configurada</p>
+        <p>☐ Premios revisados</p>
+        <p>☐ Pesos revisados</p>
+        <p>☐ Premios inactivos correctamente controlados</p>
+        <p>☐ Pasaporte configurado</p>
+        <p>☐ Promociones comprobadas</p>
+        <p>☐ Demostración comprobada</p>
+        <p>☐ Estadísticas disponibles</p>
+        <p>☐ Máquina activada solamente cuando corresponda</p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+/* ============================================================
+   CONTROL DE DOCUMENTACIÓN GATEWAY
+   ============================================================ */
+
+(function(){
+
+  "use strict";
+
+  window.igOpenDocs = function(type){
+
+    const id =
+      type === "admin"
+        ? "igGatewayAdminDocs"
+        : "igGatewayClientDocs";
+
+    const modal = document.getElementById(id);
+
+    if(!modal) return;
+
+    modal.classList.add("ig-docs-open");
+    modal.setAttribute("aria-hidden","false");
+
+    document.body.style.overflow = "hidden";
+
+  };
+
+
+  window.igCloseDocs = function(type){
+
+    const id =
+      type === "admin"
+        ? "igGatewayAdminDocs"
+        : "igGatewayClientDocs";
+
+    const modal = document.getElementById(id);
+
+    if(!modal) return;
+
+    modal.classList.remove("ig-docs-open");
+    modal.setAttribute("aria-hidden","true");
+
+    if(
+      !document.querySelector(".ig-docs-modal.ig-docs-open")
+    ){
+      document.body.style.overflow = "";
+    }
+
+  };
+
+
+  function closeOnBackdrop(event){
+
+    if(event.target !== event.currentTarget) return;
+
+    event.currentTarget.classList.remove("ig-docs-open");
+    event.currentTarget.setAttribute("aria-hidden","true");
+
+    if(
+      !document.querySelector(".ig-docs-modal.ig-docs-open")
+    ){
+      document.body.style.overflow = "";
+    }
+
+  }
+
+
+  document.addEventListener("click",function(event){
+
+    const modal = event.target.closest(".ig-docs-modal");
+
+    if(modal && event.target === modal){
+      closeOnBackdrop({
+        target:modal,
+        currentTarget:modal
+      });
+    }
+
+  });
+
+
+  document.addEventListener("keydown",function(event){
+
+    if(event.key !== "Escape") return;
+
+    const opened =
+      document.querySelectorAll(
+        ".ig-docs-modal.ig-docs-open"
+      );
+
+    opened.forEach(function(modal){
+
+      modal.classList.remove("ig-docs-open");
+      modal.setAttribute("aria-hidden","true");
+
+    });
+
+    if(!document.querySelector(".ig-docs-modal.ig-docs-open")){
+      document.body.style.overflow = "";
+    }
+
+  });
+
+
+  function createClientButton(){
+
+    if(document.getElementById("igGatewayClientDocsButton")){
+      return true;
+    }
+
+    const machine =
+      document.getElementById("igGatewayExperience");
+
+    if(!machine){
+      return false;
+    }
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className =
+      "ig-docs-launcher";
+
+    wrapper.id =
+      "igGatewayClientDocsLauncher";
+
+    wrapper.innerHTML = `
+      <button
+        type="button"
+        id="igGatewayClientDocsButton"
+        class="ig-docs-btn ig-docs-client-btn"
+        onclick="igOpenDocs('client')">
+        📘 ¿Cómo funciona Máquina + Pasaporte?
+      </button>
+    `;
+
+    machine.parentNode.insertBefore(
+      wrapper,
+      machine.nextSibling
+    );
+
+    return true;
+
+  }
+
+
+  function createAdminButton(){
+
+    if(document.getElementById("igGatewayAdminDocsButton")){
+      return true;
+    }
+
+    const nav =
+      document.querySelector(".admin-nav");
+
+    if(!nav){
+      return false;
+    }
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+    button.id = "igGatewayAdminDocsButton";
+    button.className = "ig-docs-admin-btn";
+
+    button.textContent =
+      "📚 Manual completo Gateway";
+
+    button.onclick = function(){
+      window.igOpenDocs("admin");
+    };
+
+    nav.appendChild(button);
+
+    return true;
+
+  }
+
+
+  function install(){
+
+    createClientButton();
+    createAdminButton();
+
+  }
+
+
+  /*
+   * La aplicación puede construir dinámicamente
+   * la zona de cliente o el administrador.
+   *
+   * Por eso hacemos varios intentos sin modificar
+   * la lógica existente.
+   */
+
+  install();
+
+  let attempts = 0;
+
+  const timer =
+    setInterval(function(){
+
+      install();
+
+      attempts++;
+
+      if(attempts >= 40){
+        clearInterval(timer);
+      }
+
+    },500);
+
+
+  /*
+   * También observamos cambios dinámicos del DOM.
+   */
+
+  if(window.MutationObserver){
+
+    const observer =
+      new MutationObserver(function(){
+
+        createClientButton();
+        createAdminButton();
+
+      });
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+    /*
+     * El observer se desconecta después de un tiempo
+     * para evitar trabajo innecesario permanente.
+     */
+
+    setTimeout(function(){
+      try{
+        observer.disconnect();
+      }catch(e){}
+    },25000);
+
+  }
+
+})();
+</script>
+
+<!-- ============================================================
+     FIN DOCUMENTACIÓN GATEWAY
+     ============================================================ -->
 </body>
 </html>
