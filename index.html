@@ -40655,5 +40655,267 @@ header .cart-count{
 <!-- =========================================================
      FIN AJUSTE CABECERA
      ========================================================= -->
+
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     CRÉDITO + CAMPANITA — POSICIÓN RELATIVA AUTOMÁTICA
+     
+     Carrito
+     Crédito      🔔
+                    ↘ ligeramente más abajo
+     
+     La campanita queda a la derecha de Crédito y
+     aproximadamente media línea más abajo.
+     ========================================================= -->
+
+<style id="igCreditNotificationPositionFix">
+
+  /* ---------------------------------------------------------
+     CAMPANITA
+     --------------------------------------------------------- */
+  #igCustomerNotificationButton{
+    position:fixed !important;
+
+    width:46px !important;
+    height:46px !important;
+
+    top:auto !important;
+    bottom:auto !important;
+
+    z-index:1002 !important;
+
+    margin:0 !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     MÓVIL
+     --------------------------------------------------------- */
+  @media(max-width:600px){
+
+    #igCustomerNotificationButton{
+      width:44px !important;
+      height:44px !important;
+    }
+
+  }
+
+</style>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+  /*
+   * Coloca la campanita a la derecha del botón Crédito.
+   *
+   * La posición se calcula utilizando las dimensiones reales
+   * del botón, por lo que funciona aunque Crédito cambie
+   * de posición o tamaño.
+   */
+  function colocarCampanitaJuntoACredito(){
+
+    const credito =
+      document.getElementById(
+        "igExternalCreditSearch"
+      );
+
+    const campanita =
+      document.getElementById(
+        "igCustomerNotificationButton"
+      );
+
+    if(!credito || !campanita){
+      return;
+    }
+
+
+    const rectCredito =
+      credito.getBoundingClientRect();
+
+
+    /*
+     * Separación horizontal entre Crédito y campanita.
+     */
+    const separacionHorizontal =
+      8;
+
+
+    /*
+     * La campanita baja ligeramente respecto a Crédito.
+     *
+     * Al ser aproximadamente 46 px de alto, 10 px produce
+     * visualmente el efecto de "media línea más abajo".
+     */
+    const desplazamientoVertical =
+      10;
+
+
+    /*
+     * Posición horizontal:
+     *
+     * borde derecho de Crédito
+     * +
+     * separación
+     */
+    const left =
+      rectCredito.right +
+      separacionHorizontal;
+
+
+    /*
+     * Posición vertical:
+     *
+     * parte superior de Crédito
+     * +
+     * pequeño desplazamiento hacia abajo
+     */
+    const top =
+      rectCredito.top +
+      desplazamientoVertical;
+
+
+    campanita.style.setProperty(
+      "left",
+      Math.max(8, left) + "px",
+      "important"
+    );
+
+
+    campanita.style.setProperty(
+      "right",
+      "auto",
+      "important"
+    );
+
+
+    campanita.style.setProperty(
+      "top",
+      Math.max(8, top) + "px",
+      "important"
+    );
+
+
+    campanita.style.setProperty(
+      "bottom",
+      "auto",
+      "important"
+    );
+
+  }
+
+
+  /*
+   * Intentos iniciales.
+   * Los botones pueden aparecer dinámicamente.
+   */
+  function iniciarPosicionCampanita(){
+
+    colocarCampanitaJuntoACredito();
+
+    setTimeout(
+      colocarCampanitaJuntoACredito,
+      100
+    );
+
+    setTimeout(
+      colocarCampanitaJuntoACredito,
+      300
+    );
+
+    setTimeout(
+      colocarCampanitaJuntoACredito,
+      700
+    );
+
+    setTimeout(
+      colocarCampanitaJuntoACredito,
+      1200
+    );
+
+    setTimeout(
+      colocarCampanitaJuntoACredito,
+      2000
+    );
+
+  }
+
+
+  /*
+   * Cuando cambia el tamaño de pantalla.
+   */
+  window.addEventListener(
+    "resize",
+    colocarCampanitaJuntoACredito,
+    {passive:true}
+  );
+
+
+  /*
+   * Cuando cambia la posición del carrito/crédito
+   * durante el desplazamiento.
+   */
+  window.addEventListener(
+    "scroll",
+    colocarCampanitaJuntoACredito,
+    {passive:true}
+  );
+
+
+  /*
+   * Vigilar elementos dinámicos.
+   */
+  if(
+    document.body &&
+    typeof MutationObserver !== "undefined"
+  ){
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          colocarCampanitaJuntoACredito();
+
+        }
+      );
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+  /*
+   * Arranque.
+   */
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciarPosicionCampanita,
+      {once:true}
+    );
+
+  }else{
+
+    iniciarPosicionCampanita();
+
+  }
+
+})();
+</script>
+
+<!-- =========================================================
+     FIN CRÉDITO + CAMPANITA
+     ========================================================= -->
 </body>
 </html>
