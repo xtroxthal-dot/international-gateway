@@ -35196,5 +35196,3637 @@ if(
 
 })();
 </script>
+
+  <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     MÁQUINA GATEWAY + PASAPORTE + ADMINISTRACIÓN
+     VERSIÓN FINAL
+     ========================================================= -->
+
+<style>
+
+/* =========================================================
+   MÁQUINA GATEWAY
+   ========================================================= */
+
+#igGatewayExperience{
+  width:min(1180px,94%);
+  margin:45px auto;
+  position:relative;
+  color:#fff;
+  border-radius:30px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(255,255,255,.12),transparent 28%),
+    radial-gradient(circle at 15% 80%,rgba(90,130,255,.18),transparent 30%),
+    radial-gradient(circle at 85% 75%,rgba(255,80,180,.14),transparent 30%),
+    linear-gradient(145deg,#050505,#11131a 48%,#050505);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.35),
+    inset 0 0 80px rgba(255,255,255,.025);
+}
+
+#igGatewayExperience:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255,255,255,.05) 45%,
+      transparent 55%
+    );
+  animation:igGatewayLight 7s linear infinite;
+}
+
+@keyframes igGatewayLight{
+  from{transform:translateX(-120%)}
+  to{transform:translateX(120%)}
+}
+
+.ig-gw-inner{
+  position:relative;
+  z-index:2;
+  padding:30px;
+}
+
+.ig-gw-header{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.ig-gw-kicker{
+  font-size:12px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  opacity:.65;
+  margin-bottom:8px;
+}
+
+.ig-gw-title{
+  font-size:clamp(30px,6vw,62px);
+  font-weight:900;
+  letter-spacing:-2px;
+  margin:0;
+  background:
+    linear-gradient(
+      90deg,
+      #fff,
+      #d9e4ff,
+      #fff,
+      #ffc8e9,
+      #fff
+    );
+  background-size:250% auto;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  animation:igGatewayTitle 6s linear infinite;
+}
+
+@keyframes igGatewayTitle{
+  to{background-position:250% center}
+}
+
+.ig-gw-subtitle{
+  margin-top:8px;
+  color:rgba(255,255,255,.68);
+  font-size:15px;
+}
+
+.ig-gw-layout{
+  display:grid;
+  grid-template-columns:280px minmax(300px,1fr) 280px;
+  gap:22px;
+  align-items:center;
+}
+
+.ig-gw-panel{
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:22px;
+  padding:20px;
+  backdrop-filter:blur(18px);
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.22),
+    inset 0 1px rgba(255,255,255,.05);
+}
+
+.ig-gw-panel h3{
+  margin:0 0 15px;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+}
+
+.ig-gw-stat{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.ig-gw-stat:last-child{
+  border-bottom:0;
+}
+
+.ig-gw-stat small{
+  color:rgba(255,255,255,.55);
+}
+
+.ig-gw-stat strong{
+  font-size:20px;
+}
+
+.ig-gw-passport{
+  position:relative;
+}
+
+.ig-gw-passport-cover{
+  padding:18px;
+  border-radius:17px;
+  background:
+    linear-gradient(135deg,#191919,#282828);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px rgba(255,255,255,.08);
+  margin-bottom:15px;
+}
+
+.ig-gw-passport-cover strong{
+  display:block;
+  font-size:20px;
+}
+
+.ig-gw-passport-cover span{
+  display:block;
+  margin-top:4px;
+  color:#aaa;
+  font-size:12px;
+}
+
+.ig-gw-progress{
+  height:8px;
+  border-radius:20px;
+  background:rgba(255,255,255,.1);
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.ig-gw-progress span{
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:20px;
+  background:linear-gradient(90deg,#fff,#b7c9ff,#ffb7df);
+  transition:width .8s ease;
+}
+
+.ig-gw-levels{
+  display:grid;
+  gap:7px;
+}
+
+.ig-gw-level{
+  padding:8px 10px;
+  border-radius:9px;
+  background:rgba(255,255,255,.035);
+  color:#888;
+  font-size:12px;
+}
+
+.ig-gw-level.active{
+  background:rgba(255,255,255,.11);
+  color:#fff;
+}
+
+.ig-gw-machine{
+  position:relative;
+  min-height:560px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.ig-gw-machine-glow{
+  position:absolute;
+  width:380px;
+  height:380px;
+  border-radius:50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(160,190,255,.16),
+      rgba(255,120,220,.05) 45%,
+      transparent 70%
+    );
+  filter:blur(20px);
+  animation:igGwPulse 3s ease-in-out infinite;
+}
+
+@keyframes igGwPulse{
+  0%,100%{transform:scale(.9);opacity:.55}
+  50%{transform:scale(1.12);opacity:1}
+}
+
+.ig-gw-machine-body{
+  width:min(310px,80vw);
+  position:relative;
+  z-index:2;
+  padding:18px;
+  border-radius:34px;
+  background:
+    linear-gradient(145deg,#252525,#080808 55%,#202020);
+  border:2px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 35px 80px rgba(0,0,0,.7),
+    inset 0 2px rgba(255,255,255,.12);
+}
+
+.ig-gw-machine-top{
+  height:75px;
+  border-radius:24px 24px 15px 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    linear-gradient(135deg,#101010,#272727);
+  border:1px solid rgba(255,255,255,.08);
+  margin-bottom:15px;
+}
+
+.ig-gw-machine-top strong{
+  letter-spacing:3px;
+  font-size:13px;
+}
+
+.ig-gw-display{
+  padding:14px;
+  border-radius:20px;
+  background:#020202;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:
+    inset 0 0 30px rgba(100,130,255,.08);
+}
+
+.ig-gw-reels{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.ig-gw-reel{
+  height:105px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  background:
+    linear-gradient(180deg,#151515,#050505);
+  border:1px solid rgba(255,255,255,.1);
+  font-size:39px;
+  box-shadow:inset 0 0 25px rgba(255,255,255,.025);
+}
+
+.ig-gw-reel.spinning{
+  animation:igGwSpin .12s linear infinite;
+}
+
+@keyframes igGwSpin{
+  0%{transform:translateY(-3px)}
+  50%{transform:translateY(3px)}
+  100%{transform:translateY(-3px)}
+}
+
+.ig-gw-result-screen{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px;
+  color:#bbb;
+  font-size:13px;
+}
+
+.ig-gw-button{
+  width:100%;
+  margin-top:14px;
+  min-height:55px;
+  border-radius:17px;
+  font-weight:900;
+  color:#111;
+  background:
+    linear-gradient(
+      120deg,
+      #fff,
+      #dce6ff,
+      #fff,
+      #ffd8ef
+    );
+  background-size:250% auto;
+  animation:igGwButton 5s linear infinite;
+  box-shadow:
+    0 12px 35px rgba(255,255,255,.08);
+  transition:.2s;
+}
+
+@keyframes igGwButton{
+  to{background-position:250% center}
+}
+
+.ig-gw-button:hover{
+  transform:translateY(-2px);
+}
+
+.ig-gw-button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.ig-gw-demo{
+  background:
+    rgba(255,255,255,.06);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.14);
+  animation:none;
+  box-shadow:none;
+}
+
+.ig-gw-demo:hover{
+  background:rgba(255,255,255,.1);
+}
+
+.ig-gw-message{
+  min-height:24px;
+  text-align:center;
+  margin-top:12px;
+  color:#aaa;
+  font-size:12px;
+}
+
+.ig-gw-machine.rolling
+.ig-gw-machine-body{
+  animation:igGwMachineRoll .18s infinite alternate;
+}
+
+@keyframes igGwMachineRoll{
+  from{transform:translateY(-2px)}
+  to{transform:translateY(2px)}
+}
+
+.ig-gw-prize{
+  text-align:center;
+  padding:16px 0 4px;
+}
+
+.ig-gw-prize strong{
+  display:block;
+  font-size:20px;
+}
+
+.ig-gw-prize span{
+  display:block;
+  color:#aaa;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.ig-gw-demo-warning{
+  margin-top:12px;
+  padding:9px;
+  border-radius:10px;
+  background:rgba(255,190,80,.09);
+  border:1px solid rgba(255,190,80,.18);
+  color:#ffd58a;
+  font-size:11px;
+  text-align:center;
+}
+
+.ig-gw-login{
+  margin-top:15px;
+  padding:12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.05);
+  color:#bbb;
+  font-size:12px;
+  text-align:center;
+}
+
+.ig-gw-login button{
+  margin-top:8px;
+  background:transparent;
+  color:#fff;
+  text-decoration:underline;
+}
+
+.ig-gw-admin-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.ig-gw-admin-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:20px 0;
+}
+
+.ig-gw-admin-tabs button{
+  border:1px solid #ddd;
+  background:#fff;
+  border-radius:9px;
+  padding:9px 12px;
+}
+
+.ig-gw-admin-tabs button.active{
+  background:#111;
+  color:#fff;
+}
+
+.ig-gw-admin-tab{
+  display:none;
+}
+
+.ig-gw-admin-tab.active{
+  display:block;
+}
+
+.ig-gw-admin-card{
+  background:#fff;
+  border-radius:15px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  margin-bottom:15px;
+}
+
+.ig-gw-admin-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;
+}
+
+.ig-gw-admin-card label{
+  display:block;
+  font-size:13px;
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+.ig-gw-admin-card input,
+.ig-gw-admin-card select,
+.ig-gw-admin-card textarea{
+  width:100%;
+  border:1px solid #ddd;
+  border-radius:9px;
+  padding:10px;
+  background:#fff;
+  color:#111;
+}
+
+.ig-gw-admin-card textarea{
+  min-height:80px;
+}
+
+.ig-gw-prize-row{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:14px;
+  margin-top:10px;
+}
+
+.ig-gw-prize-row-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(130px,1fr));
+  gap:9px;
+}
+
+.ig-gw-admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.ig-gw-admin-actions button{
+  padding:9px 12px;
+  border-radius:9px;
+  background:#111;
+  color:#fff;
+}
+
+.ig-gw-admin-actions button.secondary{
+  background:#eee;
+  color:#111;
+}
+
+.ig-gw-admin-actions button.danger{
+  background:#b00020;
+}
+
+.ig-gw-status{
+  padding:11px 13px;
+  border-radius:10px;
+  background:#eee;
+  margin-bottom:15px;
+}
+
+.ig-gw-status.ok{
+  background:#e5f6eb;
+  color:#12622f;
+}
+
+.ig-gw-status.off{
+  background:#fde8ec;
+  color:#8c001a;
+}
+
+.ig-gw-stat-big{
+  background:#fff;
+  border-radius:14px;
+  padding:18px;
+  box-shadow:var(--shadow);
+}
+
+.ig-gw-stat-big small{
+  color:#777;
+}
+
+.ig-gw-stat-big strong{
+  display:block;
+  font-size:28px;
+  margin-top:5px;
+}
+
+@media(max-width:900px){
+
+  .ig-gw-layout{
+    grid-template-columns:1fr;
+  }
+
+  .ig-gw-machine{
+    min-height:500px;
+    order:-1;
+  }
+
+}
+
+@media(max-width:600px){
+
+  #igGatewayExperience{
+    width:96%;
+    margin:30px auto;
+    border-radius:22px;
+  }
+
+  .ig-gw-inner{
+    padding:18px;
+  }
+
+  .ig-gw-machine{
+    min-height:440px;
+  }
+
+  .ig-gw-machine-body{
+    width:270px;
+  }
+
+  .ig-gw-reel{
+    height:90px;
+    font-size:32px;
+  }
+
+  .ig-gw-panel{
+    padding:15px;
+  }
+
+}
+
+</style>
+
+
+<script>
+(function(){
+
+  "use strict";
+
+  if(window.__IG_GATEWAY_FINAL_LOADED){
+    return;
+  }
+
+  window.__IG_GATEWAY_FINAL_LOADED=true;
+
+
+  /* =======================================================
+     UTILIDADES
+     ======================================================= */
+
+  const esc =
+    window.escapeHtml ||
+    function(value){
+      return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+    };
+
+
+  function moneyGW(value){
+    return new Intl.NumberFormat(
+      "es-AR",
+      {
+        style:"currency",
+        currency:"ARS",
+        maximumFractionDigits:2
+      }
+    ).format(Number(value || 0));
+  }
+
+
+  const icons=[
+    "🎁",
+    "⭐",
+    "🌎",
+    "💎",
+    "🎟️",
+    "✨",
+    "🏆",
+    "🎨",
+    "🛍️"
+  ];
+
+
+  let gwConfig=null;
+  let gwPrizes=[];
+  let gwPlayer=null;
+  let gwSession=null;
+  let gwRolling=false;
+
+
+  /* =======================================================
+     HTML PÚBLICO
+     ======================================================= */
+
+  function createMachine(){
+
+    if(document.getElementById("igGatewayExperience")){
+      return;
+    }
+
+    const app=
+      document.createElement("section");
+
+    app.id="igGatewayExperience";
+
+    app.innerHTML=`
+
+      <div class="ig-gw-inner">
+
+        <div class="ig-gw-header">
+
+          <div class="ig-gw-kicker">
+            INTERNATIONAL GATEWAY
+          </div>
+
+          <h2 class="ig-gw-title">
+            🎰 MÁQUINA GATEWAY
+          </h2>
+
+          <div class="ig-gw-subtitle">
+            Jugá · Ganá · Acumulá · Subí de nivel
+          </div>
+
+        </div>
+
+
+        <div class="ig-gw-layout">
+
+
+          <!-- PASAPORTE -->
+
+          <aside class="ig-gw-panel ig-gw-passport">
+
+            <h3>
+              🛂 Pasaporte Gateway
+            </h3>
+
+            <div class="ig-gw-passport-cover">
+
+              <strong id="igGwLevelName">
+                Explorador
+              </strong>
+
+              <span id="igGwPoints">
+                0 puntos
+              </span>
+
+              <div class="ig-gw-progress">
+                <span id="igGwProgress">
+                </span>
+              </div>
+
+            </div>
+
+
+            <div class="ig-gw-levels">
+
+              <div
+                class="ig-gw-level"
+                data-level="1">
+                Nivel 1 · Explorador
+              </div>
+
+              <div
+                class="ig-gw-level"
+                data-level="2">
+                Nivel 2 · Viajero
+              </div>
+
+              <div
+                class="ig-gw-level"
+                data-level="3">
+                Nivel 3 · Aventurero
+              </div>
+
+              <div
+                class="ig-gw-level"
+                data-level="4">
+                Nivel 4 · Descubridor
+              </div>
+
+              <div
+                class="ig-gw-level"
+                data-level="5">
+                Nivel 5 · VIP Gateway
+              </div>
+
+            </div>
+
+          </aside>
+
+
+          <!-- MÁQUINA -->
+
+          <main class="ig-gw-machine" id="igGwMachine">
+
+            <div class="ig-gw-machine-glow">
+            </div>
+
+            <div class="ig-gw-machine-body">
+
+              <div class="ig-gw-machine-top">
+
+                <strong>
+                  INTERNATIONAL GATEWAY
+                </strong>
+
+              </div>
+
+
+              <div class="ig-gw-display">
+
+                <div class="ig-gw-reels">
+
+                  <div
+                    class="ig-gw-reel"
+                    id="igGwReel1">
+                    🎁
+                  </div>
+
+                  <div
+                    class="ig-gw-reel"
+                    id="igGwReel2">
+                    ⭐
+                  </div>
+
+                  <div
+                    class="ig-gw-reel"
+                    id="igGwReel3">
+                    🌎
+                  </div>
+
+                </div>
+
+
+                <div
+                  class="ig-gw-result-screen"
+                  id="igGwResult">
+                  Preparado para viajar
+                </div>
+
+              </div>
+
+
+              <button
+                id="igGwSpin"
+                class="ig-gw-button"
+                type="button">
+                🎰 GIRAR MÁQUINA
+              </button>
+
+
+              <button
+                id="igGwDemo"
+                class="ig-gw-button ig-gw-demo"
+                type="button">
+                👀 HACER TIRADA DE PRUEBA
+              </button>
+
+
+              <div
+                id="igGwMessage"
+                class="ig-gw-message">
+              </div>
+
+            </div>
+
+          </main>
+
+
+          <!-- ESTADO -->
+
+          <aside class="ig-gw-panel">
+
+            <h3>
+              🎟️ Tu Gateway
+            </h3>
+
+
+            <div class="ig-gw-stat">
+
+              <small>
+                Giros disponibles
+              </small>
+
+              <strong id="igGwSpins">
+                0
+              </strong>
+
+            </div>
+
+
+            <div class="ig-gw-stat">
+
+              <small>
+                Puntos
+              </small>
+
+              <strong id="igGwPointsSide">
+                0
+              </strong>
+
+            </div>
+
+
+            <div class="ig-gw-stat">
+
+              <small>
+                Giros realizados
+              </small>
+
+              <strong id="igGwTotalSpins">
+                0
+              </strong>
+
+            </div>
+
+
+            <div class="ig-gw-stat">
+
+              <small>
+                Premios obtenidos
+              </small>
+
+              <strong id="igGwWins">
+                0
+              </strong>
+
+            </div>
+
+
+            <div
+              id="igGwLoginBox"
+              class="ig-gw-login">
+
+              Iniciá sesión para utilizar
+              tus giros reales.
+
+              <br>
+
+              <button
+                id="igGwLogin"
+                type="button">
+                Iniciar sesión
+              </button>
+
+            </div>
+
+          </aside>
+
+
+        </div>
+
+      </div>
+    `;
+
+
+    const footer=document.querySelector("footer");
+
+    if(
+      footer &&
+      footer.parentNode
+    ){
+
+      footer.parentNode.insertBefore(
+        app,
+        footer
+      );
+
+    }else{
+
+      document.body.appendChild(app);
+
+    }
+
+
+    bindMachineEvents();
+
+  }
+
+
+  /* =======================================================
+     EVENTOS
+     ======================================================= */
+
+  function bindMachineEvents(){
+
+    const spin=
+      document.getElementById("igGwSpin");
+
+    const demo=
+      document.getElementById("igGwDemo");
+
+    const login=
+      document.getElementById("igGwLogin");
+
+
+    if(spin){
+
+      spin.addEventListener(
+        "click",
+        realSpin
+      );
+
+    }
+
+
+    if(demo){
+
+      demo.addEventListener(
+        "click",
+        demoSpin
+      );
+
+    }
+
+
+    if(login){
+
+      login.addEventListener(
+        "click",
+        function(){
+
+          if(
+            typeof window.openAccount==="function"
+          ){
+
+            window.openAccount();
+
+          }else{
+
+            const account=
+              document.querySelector(
+                "#igCustomerAccount"
+              );
+
+            if(account){
+
+              account.scrollIntoView({
+                behavior:"smooth"
+              });
+
+            }
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     SUPABASE
+     ======================================================= */
+
+  async function refreshSession(){
+
+    const result=
+      await supabaseClient
+        .auth
+        .getSession();
+
+    gwSession=
+      result.data?.session || null;
+
+    return gwSession;
+
+  }
+
+
+  async function loadGatewayConfig(){
+
+    const result=
+      await supabaseClient
+        .from("ig_gateway_machine_config")
+        .select("*")
+        .eq("id",1)
+        .maybeSingle();
+
+    if(result.error){
+
+      console.error(
+        "Gateway config:",
+        result.error
+      );
+
+      return;
+
+    }
+
+    gwConfig=result.data;
+
+  }
+
+
+  async function loadGatewayPrizes(){
+
+    const result=
+      await supabaseClient
+        .from("ig_gateway_machine_prizes")
+        .select("*")
+        .eq("active",true)
+        .gt("weight",0)
+        .order("sort_order")
+        .order("created_at");
+
+    if(result.error){
+
+      console.error(
+        "Gateway prizes:",
+        result.error
+      );
+
+      return;
+
+    }
+
+    gwPrizes=result.data || [];
+
+  }
+
+
+  async function preparePlayer(){
+
+    if(!gwSession){
+
+      gwPlayer=null;
+
+      renderPlayer();
+
+      return;
+
+    }
+
+
+    const result=
+      await supabaseClient.rpc(
+        "ig_gateway_prepare_player"
+      );
+
+
+    if(result.error){
+
+      console.error(
+        "Gateway player:",
+        result.error
+      );
+
+      return;
+
+    }
+
+
+    gwPlayer=result.data;
+
+    renderPlayer();
+
+  }
+
+
+  async function refreshPlayer(){
+
+    if(!gwSession){
+
+      gwPlayer=null;
+
+      renderPlayer();
+
+      return;
+
+    }
+
+
+    const result=
+      await supabaseClient
+        .from("ig_gateway_players")
+        .select("*")
+        .eq(
+          "user_id",
+          gwSession.user.id
+        )
+        .maybeSingle();
+
+
+    if(result.error){
+
+      console.error(
+        "Gateway player refresh:",
+        result.error
+      );
+
+      return;
+
+    }
+
+
+    gwPlayer=result.data;
+
+    renderPlayer();
+
+  }
+
+
+  /* =======================================================
+     PASAPORTE
+     ======================================================= */
+
+  function levelName(level){
+
+    const names={
+      1:"Explorador",
+      2:"Viajero",
+      3:"Aventurero",
+      4:"Descubridor",
+      5:"VIP Gateway"
+    };
+
+    return names[
+      Math.min(
+        5,
+        Math.max(1,Number(level || 1))
+      )
+    ];
+
+  }
+
+
+  function renderPlayer(){
+
+    const level=
+      Number(
+        gwPlayer?.level || 1
+      );
+
+    const points=
+      Number(
+        gwPlayer?.points || 0
+      );
+
+    const spins=
+      Number(
+        gwPlayer?.spins || 0
+      );
+
+    const totalSpins=
+      Number(
+        gwPlayer?.total_spins || 0
+      );
+
+    const wins=
+      Number(
+        gwPlayer?.total_wins || 0
+      );
+
+
+    const levelEl=
+      document.getElementById(
+        "igGwLevelName"
+      );
+
+    if(levelEl){
+
+      levelEl.textContent=
+        "Nivel "+level+
+        " · "+
+        levelName(level);
+
+    }
+
+
+    const pointsEl=
+      document.getElementById(
+        "igGwPoints"
+      );
+
+    if(pointsEl){
+
+      pointsEl.textContent=
+        points+
+        " puntos";
+
+    }
+
+
+    const pointsSide=
+      document.getElementById(
+        "igGwPointsSide"
+      );
+
+    if(pointsSide){
+
+      pointsSide.textContent=
+        Math.floor(points);
+
+    }
+
+
+    const spinsEl=
+      document.getElementById(
+        "igGwSpins"
+      );
+
+    if(spinsEl){
+
+      spinsEl.textContent=
+        spins;
+
+    }
+
+
+    const totalEl=
+      document.getElementById(
+        "igGwTotalSpins"
+      );
+
+    if(totalEl){
+
+      totalEl.textContent=
+        totalSpins;
+
+    }
+
+
+    const winsEl=
+      document.getElementById(
+        "igGwWins"
+      );
+
+    if(winsEl){
+
+      winsEl.textContent=
+        wins;
+
+    }
+
+
+    const progress=
+      document.getElementById(
+        "igGwProgress"
+      );
+
+    if(progress){
+
+      const levelBase=
+        (level-1)*100;
+
+      const percent=
+        Math.max(
+          0,
+          Math.min(
+            100,
+            (
+              (points-levelBase)/
+              100
+            )*100
+          )
+        );
+
+      progress.style.width=
+        percent+"%";
+
+    }
+
+
+    document
+      .querySelectorAll(
+        "#igGatewayExperience .ig-gw-level"
+      )
+      .forEach(el=>{
+
+        el.classList.toggle(
+          "active",
+          Number(el.dataset.level)===level
+        );
+
+      });
+
+
+    const loginBox=
+      document.getElementById(
+        "igGwLoginBox"
+      );
+
+    if(loginBox){
+
+      loginBox.style.display=
+        gwSession
+          ? "none"
+          : "block";
+
+    }
+
+
+    const spin=
+      document.getElementById(
+        "igGwSpin"
+      );
+
+    if(spin){
+
+      spin.disabled=
+        !gwSession ||
+        !gwConfig?.enabled ||
+        !gwPlayer ||
+        Number(gwPlayer.spins || 0)<=0;
+
+      if(!gwSession){
+
+        spin.textContent=
+          "🔐 INICIÁ SESIÓN PARA JUGAR";
+
+      }else if(!gwConfig?.enabled){
+
+        spin.textContent=
+          "⏸️ MÁQUINA TEMPORALMENTE INACTIVA";
+
+      }else{
+
+        spin.textContent=
+          "🎰 GIRAR MÁQUINA";
+
+      }
+
+    }
+
+  }
+
+
+  /* =======================================================
+     ANIMACIÓN
+     ======================================================= */
+
+  async function animateMachine(){
+
+    if(gwRolling){
+      return;
+    }
+
+    gwRolling=true;
+
+
+    const machine=
+      document.getElementById(
+        "igGwMachine"
+      );
+
+    machine?.classList.add(
+      "rolling"
+    );
+
+
+    const reels=[
+      document.getElementById("igGwReel1"),
+      document.getElementById("igGwReel2"),
+      document.getElementById("igGwReel3")
+    ];
+
+
+    reels.forEach(el=>{
+      el?.classList.add("spinning");
+    });
+
+
+    const started=
+      Date.now();
+
+
+    while(
+      Date.now()-started<
+      1900
+    ){
+
+      reels.forEach(
+        (el,index)=>{
+
+          if(!el)return;
+
+          el.textContent=
+            icons[
+              Math.floor(
+                Math.random()*icons.length
+              )
+            ];
+
+        }
+      );
+
+      await new Promise(
+        resolve=>setTimeout(
+          resolve,
+          110
+        )
+      );
+
+    }
+
+
+    reels.forEach(el=>{
+      el?.classList.remove("spinning");
+    });
+
+
+    machine?.classList.remove(
+      "rolling"
+    );
+
+    gwRolling=false;
+
+  }
+
+
+  function showPrize(result,isDemo){
+
+    const type=
+      result?.prize_type || "none";
+
+    const name=
+      result?.prize_name ||
+      "Seguí jugando";
+
+    const value=
+      Number(
+        result?.prize_value || 0
+      );
+
+
+    const icon=
+      type==="points"
+        ? "⭐"
+        : type==="spin"
+          ? "🎰"
+          : type==="coupon"
+            ? "🎟️"
+            : type==="vip"
+              ? "💎"
+              : type==="surprise"
+                ? "🎁"
+                : "✨";
+
+
+    const reels=[
+      document.getElementById("igGwReel1"),
+      document.getElementById("igGwReel2"),
+      document.getElementById("igGwReel3")
+    ];
+
+
+    reels.forEach(
+      el=>{
+        if(el)el.textContent=icon;
+      }
+    );
+
+
+    const resultBox=
+      document.getElementById(
+        "igGwResult"
+      );
+
+
+    if(resultBox){
+
+      resultBox.innerHTML=`
+
+        <div class="ig-gw-prize">
+
+          <strong>
+            ${esc(icon+" "+name)}
+          </strong>
+
+          <span>
+            ${
+              value>0
+                ? esc(
+                    type==="points"
+                      ? "+"+value+" puntos"
+                      : type==="spin"
+                        ? "+"+value+" giro(s)"
+                        : result.description || ""
+                  )
+                : esc(
+                    result.description ||
+                    "Resultado Gateway"
+                  )
+            }
+          </span>
+
+          ${
+            isDemo
+              ? `
+                <div class="ig-gw-demo-warning">
+                  ⚠️ TIRADA DE DEMOSTRACIÓN
+                  · PREMIO NO VÁLIDO
+                  · NO SE ACREDITA NADA
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+
+  /* =======================================================
+     TIRADA REAL
+     ======================================================= */
+
+  async function realSpin(){
+
+    if(gwRolling){
+      return;
+    }
+
+
+    await refreshSession();
+
+
+    if(!gwSession){
+
+      showMessage(
+        "Tenés que iniciar sesión para utilizar una tirada real."
+      );
+
+      return;
+
+    }
+
+
+    if(
+      !gwConfig?.enabled
+    ){
+
+      showMessage(
+        "La Máquina Gateway está temporalmente desactivada."
+      );
+
+      return;
+
+    }
+
+
+    if(
+      !gwPlayer ||
+      Number(gwPlayer.spins || 0)<=0
+    ){
+
+      showMessage(
+        "No tenés giros disponibles."
+      );
+
+      return;
+
+    }
+
+
+    const button=
+      document.getElementById(
+        "igGwSpin"
+      );
+
+    button.disabled=true;
+
+
+    try{
+
+      showMessage(
+        "La máquina está girando..."
+      );
+
+
+      const animation=
+        animateMachine();
+
+
+      const result=
+        await supabaseClient.rpc(
+          "ig_gateway_spin"
+        );
+
+
+      await animation;
+
+
+      if(result.error){
+
+        throw result.error;
+
+      }
+
+
+      showPrize(
+        result.data,
+        false
+      );
+
+
+      showMessage(
+        "🎉 Resultado acreditado correctamente."
+      );
+
+
+      await refreshPlayer();
+
+    }catch(error){
+
+      console.error(
+        "Gateway spin:",
+        error
+      );
+
+      showMessage(
+        error?.message ||
+        "No se pudo realizar la tirada."
+      );
+
+    }finally{
+
+      renderPlayer();
+
+    }
+
+  }
+
+
+  /* =======================================================
+     TIRADA DEMO
+     ======================================================= */
+
+  async function demoSpin(){
+
+    if(gwRolling){
+      return;
+    }
+
+
+    const key=
+      "ig_gateway_demo_used_v2";
+
+
+    /*
+     * Si el cliente está autenticado,
+     * la seguridad real está en Supabase.
+     * Para visitantes sin cuenta usamos
+     * además una marca local.
+     */
+
+    await refreshSession();
+
+
+    if(
+      !gwSession &&
+      localStorage.getItem(key)==="1"
+    ){
+
+      showMessage(
+        "La tirada de prueba ya fue utilizada en este dispositivo."
+      );
+
+      return;
+
+    }
+
+
+    const button=
+      document.getElementById(
+        "igGwDemo"
+      );
+
+    button.disabled=true;
+
+
+    try{
+
+      showMessage(
+        "Tirada de prueba: preparando demostración..."
+      );
+
+
+      const animation=
+        animateMachine();
+
+
+      const result=
+        await supabaseClient.rpc(
+          "ig_gateway_demo_spin"
+        );
+
+
+      await animation;
+
+
+      if(result.error){
+
+        /*
+         * Si el visitante ya consumió la
+         * demo localmente, se respeta.
+         */
+        throw result.error;
+
+      }
+
+
+      if(!gwSession){
+
+        localStorage.setItem(
+          key,
+          "1"
+        );
+
+      }
+
+
+      showPrize(
+        result.data,
+        true
+      );
+
+
+      showMessage(
+        "Demostración finalizada. Este premio no tiene valor real."
+      );
+
+    }catch(error){
+
+      console.error(
+        "Gateway demo:",
+        error
+      );
+
+      showMessage(
+        error?.message ||
+        "La tirada de prueba ya fue utilizada."
+      );
+
+    }finally{
+
+      button.disabled=false;
+
+    }
+
+  }
+
+
+  function showMessage(message){
+
+    const el=
+      document.getElementById(
+        "igGwMessage"
+      );
+
+    if(el){
+
+      el.textContent=
+        message || "";
+
+    }
+
+  }
+
+
+  /* =======================================================
+     ADMINISTRACIÓN
+     ======================================================= */
+
+  function installAdmin(){
+
+    const panel=
+      document.getElementById(
+        "adminPanel"
+      );
+
+    if(!panel){
+      return;
+    }
+
+
+    const nav=
+      panel.querySelector(
+        ".admin-nav"
+      );
+
+    if(!nav){
+      return;
+    }
+
+
+    if(
+      nav.querySelector(
+        '[data-section="gateway"]'
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const button=
+      document.createElement(
+        "button"
+      );
+
+    button.type="button";
+
+    button.dataset.section=
+      "gateway";
+
+    button.textContent=
+      "🎰 Máquina Gateway";
+
+    button.addEventListener(
+      "click",
+      function(){
+
+        window.showAdminSection(
+          "gateway"
+        );
+
+      }
+    );
+
+
+    nav.appendChild(button);
+
+
+    const section=
+      document.createElement(
+        "section"
+      );
+
+    section.id=
+      "admin-gateway";
+
+    section.className=
+      "admin-section";
+
+
+    section.innerHTML=`
+
+      <div class="ig-gw-admin-title">
+
+        <div>
+
+          <h2>
+            🎰 Máquina Gateway
+          </h2>
+
+          <small>
+            Control completo desde el administrador.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="igGwAdminStatus"
+        class="ig-gw-status">
+        Cargando...
+      </div>
+
+
+      <div class="ig-gw-admin-tabs">
+
+        <button
+          type="button"
+          data-gw-tab="general"
+          class="active">
+          ⚙️ General
+        </button>
+
+        <button
+          type="button"
+          data-gw-tab="prizes">
+          🏆 Premios
+        </button>
+
+        <button
+          type="button"
+          data-gw-tab="passport">
+          🛂 Pasaporte
+        </button>
+
+        <button
+          type="button"
+          data-gw-tab="stats">
+          📊 Estadísticas
+        </button>
+
+      </div>
+
+
+      <!-- GENERAL -->
+
+      <div
+        class="ig-gw-admin-tab active"
+        data-gw-panel="general">
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            Configuración de la máquina
+          </h3>
+
+          <br>
+
+          <div class="ig-gw-admin-grid">
+
+            <div>
+
+              <label>
+                Máquina activa
+              </label>
+
+              <select id="igGwAdminEnabled">
+
+                <option value="true">
+                  Sí
+                </option>
+
+                <option value="false">
+                  No
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Giros por compra
+              </label>
+
+              <input
+                id="igGwAdminSpinsPurchase"
+                type="number"
+                min="0">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Compra mínima
+              </label>
+
+              <input
+                id="igGwAdminMinimum"
+                type="number"
+                min="0"
+                step="0.01">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Giros de bienvenida
+              </label>
+
+              <input
+                id="igGwAdminWelcome"
+                type="number"
+                min="0">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Giros diarios
+              </label>
+
+              <input
+                id="igGwAdminDaily"
+                type="number"
+                min="0">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Puntos por $1 de compra
+              </label>
+
+              <input
+                id="igGwAdminPoints"
+                type="number"
+                min="0"
+                step="0.01">
+
+            </div>
+
+          </div>
+
+
+          <div class="ig-gw-admin-actions">
+
+            <button
+              type="button"
+              id="igGwAdminSaveConfig">
+              💾 Guardar configuración
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            🎁 Tirada de demostración
+          </h3>
+
+          <p>
+            La demostración nunca acredita premios ni puntos.
+            Para clientes autenticados se controla además desde
+            Supabase para impedir una segunda demo de la misma cuenta.
+          </p>
+
+          <div class="ig-gw-admin-actions">
+
+            <button
+              type="button"
+              class="secondary"
+              id="igGwAdminResetDemo">
+              🔄 Permitir nuevamente la demo
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- PREMIOS -->
+
+      <div
+        class="ig-gw-admin-tab"
+        data-gw-panel="prizes">
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            🏆 Premios de la máquina
+          </h3>
+
+          <div
+            id="igGwPrizeList">
+          </div>
+
+        </div>
+
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            ➕ Nuevo premio
+          </h3>
+
+          <br>
+
+          <div class="ig-gw-admin-grid">
+
+            <div>
+
+              <label>
+                Nombre
+              </label>
+
+              <input
+                id="igGwNewPrizeName"
+                type="text">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Tipo
+              </label>
+
+              <select id="igGwNewPrizeType">
+
+                <option value="none">
+                  Sin premio
+                </option>
+
+                <option value="points">
+                  Puntos
+                </option>
+
+                <option value="spin">
+                  Giro extra
+                </option>
+
+                <option value="coupon">
+                  Cupón
+                </option>
+
+                <option value="surprise">
+                  Sorpresa
+                </option>
+
+                <option value="vip">
+                  VIP
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Valor
+              </label>
+
+              <input
+                id="igGwNewPrizeValue"
+                type="number"
+                min="0"
+                step="1"
+                value="0">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Peso
+              </label>
+
+              <input
+                id="igGwNewPrizeWeight"
+                type="number"
+                min="0"
+                value="1">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Código de cupón
+              </label>
+
+              <input
+                id="igGwNewPrizeCoupon"
+                type="text">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Orden
+              </label>
+
+              <input
+                id="igGwNewPrizeOrder"
+                type="number"
+                value="0">
+
+            </div>
+
+          </div>
+
+
+          <br>
+
+          <label>
+            Descripción
+          </label>
+
+          <textarea
+            id="igGwNewPrizeDescription">
+          </textarea>
+
+
+          <div class="ig-gw-admin-actions">
+
+            <button
+              type="button"
+              id="igGwAdminAddPrize">
+              ➕ Crear premio
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- PASAPORTE -->
+
+      <div
+        class="ig-gw-admin-tab"
+        data-gw-panel="passport">
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            🛂 Pasaporte Gateway
+          </h3>
+
+          <p>
+            La progresión se calcula automáticamente a partir
+            de los puntos reales del cliente.
+          </p>
+
+          <br>
+
+          <div class="ig-gw-admin-grid">
+
+            <div class="ig-gw-stat-big">
+              <small>
+                Nivel 1
+              </small>
+              <strong>
+                Explorador
+              </strong>
+              <span>
+                0–99 puntos
+              </span>
+            </div>
+
+            <div class="ig-gw-stat-big">
+              <small>
+                Nivel 2
+              </small>
+              <strong>
+                Viajero
+              </strong>
+              <span>
+                100–199 puntos
+              </span>
+            </div>
+
+            <div class="ig-gw-stat-big">
+              <small>
+                Nivel 3
+              </small>
+              <strong>
+                Aventurero
+              </strong>
+              <span>
+                200–299 puntos
+              </span>
+            </div>
+
+            <div class="ig-gw-stat-big">
+              <small>
+                Nivel 4
+              </small>
+              <strong>
+                Descubridor
+              </strong>
+              <span>
+                300–399 puntos
+              </span>
+            </div>
+
+            <div class="ig-gw-stat-big">
+              <small>
+                Nivel 5
+              </small>
+              <strong>
+                VIP Gateway
+              </strong>
+              <span>
+                400+ puntos
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ESTADÍSTICAS -->
+
+      <div
+        class="ig-gw-admin-tab"
+        data-gw-panel="stats">
+
+        <div
+          id="igGwAdminStats"
+          class="ig-gw-admin-grid">
+        </div>
+
+
+        <div class="ig-gw-admin-card">
+
+          <h3>
+            👥 Jugadores
+          </h3>
+
+          <div
+            id="igGwAdminPlayers">
+            Cargando...
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+
+    const main=
+      panel.querySelector(
+        ".admin-main"
+      );
+
+    if(main){
+
+      main.appendChild(section);
+
+    }
+
+
+    section
+      .querySelectorAll(
+        "[data-gw-tab]"
+      )
+      .forEach(button=>{
+
+        button.addEventListener(
+          "click",
+          function(){
+
+            section
+              .querySelectorAll(
+                "[data-gw-tab]"
+              )
+              .forEach(x=>
+                x.classList.remove(
+                  "active"
+                )
+              );
+
+            section
+              .querySelectorAll(
+                "[data-gw-panel]"
+              )
+              .forEach(x=>
+                x.classList.remove(
+                  "active"
+                )
+              );
+
+            button.classList.add(
+              "active"
+            );
+
+            const target=
+              section.querySelector(
+                `[data-gw-panel="${button.dataset.gwTab}"]`
+              );
+
+            if(target){
+
+              target.classList.add(
+                "active"
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+
+    document
+      .getElementById(
+        "igGwAdminSaveConfig"
+      )
+      .addEventListener(
+        "click",
+        saveAdminConfig
+      );
+
+
+    document
+      .getElementById(
+        "igGwAdminAddPrize"
+      )
+      .addEventListener(
+        "click",
+        addAdminPrize
+      );
+
+
+    document
+      .getElementById(
+        "igGwAdminResetDemo"
+      )
+      .addEventListener(
+        "click",
+        resetDemo
+      );
+
+  }
+
+
+  /* =======================================================
+     ADMIN CONFIG
+     ======================================================= */
+
+  async function loadAdminGateway(){
+
+    const status=
+      document.getElementById(
+        "igGwAdminStatus"
+      );
+
+    try{
+
+      await loadGatewayConfig();
+
+      await loadGatewayPrizes();
+
+
+      if(gwConfig){
+
+        document.getElementById(
+          "igGwAdminEnabled"
+        ).value=
+          String(
+            !!gwConfig.enabled
+          );
+
+        document.getElementById(
+          "igGwAdminSpinsPurchase"
+        ).value=
+          gwConfig.spins_per_purchase;
+
+        document.getElementById(
+          "igGwAdminMinimum"
+        ).value=
+          gwConfig.minimum_purchase;
+
+        document.getElementById(
+          "igGwAdminWelcome"
+        ).value=
+          gwConfig.welcome_spins;
+
+        document.getElementById(
+          "igGwAdminDaily"
+        ).value=
+          gwConfig.daily_spins;
+
+        document.getElementById(
+          "igGwAdminPoints"
+        ).value=
+          gwConfig.points_per_purchase;
+
+
+        status.className=
+          "ig-gw-status "+
+          (
+            gwConfig.enabled
+              ? "ok"
+              : "off"
+          );
+
+        status.textContent=
+          gwConfig.enabled
+            ? "🟢 Máquina activa"
+            : "🔴 Máquina desactivada";
+
+      }
+
+
+      renderAdminPrizes();
+
+      await loadAdminStats();
+
+    }catch(error){
+
+      console.error(
+        "Gateway admin:",
+        error
+      );
+
+      status.className=
+        "ig-gw-status off";
+
+      status.textContent=
+        "No se pudo cargar la configuración.";
+
+    }
+
+  }
+
+
+  async function saveAdminConfig(){
+
+    const payload={
+      enabled:
+        document.getElementById(
+          "igGwAdminEnabled"
+        ).value==="true",
+
+      spins_per_purchase:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwAdminSpinsPurchase"
+            ).value || 0
+          )
+        ),
+
+      minimum_purchase:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwAdminMinimum"
+            ).value || 0
+          )
+        ),
+
+      welcome_spins:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwAdminWelcome"
+            ).value || 0
+          )
+        ),
+
+      daily_spins:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwAdminDaily"
+            ).value || 0
+          )
+        ),
+
+      points_per_purchase:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwAdminPoints"
+            ).value || 0
+          )
+        ),
+
+      updated_at:
+        new Date().toISOString()
+
+    };
+
+
+    const result=
+      await supabaseClient
+        .from(
+          "ig_gateway_machine_config"
+        )
+        .update(payload)
+        .eq("id",1);
+
+
+    if(result.error){
+
+      alert(
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    await loadGatewayConfig();
+
+    renderPlayer();
+
+    document.getElementById(
+      "igGwAdminStatus"
+    ).textContent=
+      "🟢 Configuración guardada correctamente.";
+
+  }
+
+
+  /* =======================================================
+     ADMIN PREMIOS
+     ======================================================= */
+
+  function renderAdminPrizes(){
+
+    const box=
+      document.getElementById(
+        "igGwPrizeList"
+      );
+
+    if(!box){
+      return;
+    }
+
+
+    if(!gwPrizes.length){
+
+      box.innerHTML=
+        `<div class="notice">
+          No hay premios activos.
+        </div>`;
+
+      return;
+
+    }
+
+
+    box.innerHTML=
+      gwPrizes.map(
+        (p,index)=>`
+
+          <div
+            class="ig-gw-prize-row"
+            data-prize="${p.id}">
+
+            <div
+              class="ig-gw-prize-row-grid">
+
+              <div>
+
+                <label>
+                  Nombre
+                </label>
+
+                <input
+                  data-field="name"
+                  value="${esc(p.name)}">
+
+              </div>
+
+
+              <div>
+
+                <label>
+                  Tipo
+                </label>
+
+                <select data-field="prize_type">
+
+                  ${[
+                    ["none","Sin premio"],
+                    ["points","Puntos"],
+                    ["spin","Giro extra"],
+                    ["coupon","Cupón"],
+                    ["surprise","Sorpresa"],
+                    ["vip","VIP"]
+                  ].map(
+                    x=>
+                      `<option
+                        value="${x[0]}"
+                        ${
+                          p.prize_type===x[0]
+                            ? "selected"
+                            : ""
+                        }>
+                        ${x[1]}
+                      </option>`
+                  ).join("")}
+
+                </select>
+
+              </div>
+
+
+              <div>
+
+                <label>
+                  Valor
+                </label>
+
+                <input
+                  data-field="prize_value"
+                  type="number"
+                  min="0"
+                  value="${Number(p.prize_value || 0)}">
+
+              </div>
+
+
+              <div>
+
+                <label>
+                  Peso
+                </label>
+
+                <input
+                  data-field="weight"
+                  type="number"
+                  min="0"
+                  value="${Number(p.weight || 0)}">
+
+              </div>
+
+
+              <div>
+
+                <label>
+                  Cupón
+                </label>
+
+                <input
+                  data-field="coupon_code"
+                  value="${esc(p.coupon_code || "")}">
+
+              </div>
+
+
+              <div>
+
+                <label>
+                  Orden
+                </label>
+
+                <input
+                  data-field="sort_order"
+                  type="number"
+                  value="${Number(p.sort_order || 0)}">
+
+              </div>
+
+            </div>
+
+
+            <br>
+
+
+            <label>
+              Descripción
+            </label>
+
+            <textarea data-field="description">${esc(
+              p.description || ""
+            )}</textarea>
+
+
+            <div class="ig-gw-admin-actions">
+
+              <button
+                type="button"
+                data-save>
+                💾 Guardar
+              </button>
+
+              <button
+                type="button"
+                class="danger"
+                data-delete>
+                🗑️ Desactivar
+              </button>
+
+            </div>
+
+          </div>
+        `
+      ).join("");
+
+
+    box
+      .querySelectorAll(
+        "[data-save]"
+      )
+      .forEach(button=>{
+
+        button.addEventListener(
+          "click",
+          async function(){
+
+            const row=
+              button.closest(
+                ".ig-gw-prize-row"
+              );
+
+            await savePrizeRow(
+              row
+            );
+
+          }
+        );
+
+      });
+
+
+    box
+      .querySelectorAll(
+        "[data-delete]"
+      )
+      .forEach(button=>{
+
+        button.addEventListener(
+          "click",
+          async function(){
+
+            const row=
+              button.closest(
+                ".ig-gw-prize-row"
+              );
+
+            await deactivatePrize(
+              row
+            );
+
+          }
+        );
+
+      });
+
+  }
+
+
+  function readPrizeRow(row){
+
+    function field(name){
+
+      return row.querySelector(
+        `[data-field="${name}"]`
+      );
+
+    }
+
+
+    return {
+
+      name:
+        field("name").value.trim(),
+
+      prize_type:
+        field("prize_type").value,
+
+      prize_value:
+        Math.max(
+          0,
+          Number(
+            field("prize_value").value || 0
+          )
+        ),
+
+      weight:
+        Math.max(
+          0,
+          Math.floor(
+            Number(
+              field("weight").value || 0
+            )
+          )
+        ),
+
+      coupon_code:
+        field("coupon_code").value.trim() ||
+        null,
+
+      sort_order:
+        Math.floor(
+          Number(
+            field("sort_order").value || 0
+          )
+        ),
+
+      description:
+        field("description").value.trim(),
+
+      updated_at:
+        new Date().toISOString()
+
+    };
+
+  }
+
+
+  async function savePrizeRow(row){
+
+    const id=
+      row.dataset.prize;
+
+    const payload=
+      readPrizeRow(row);
+
+
+    if(!payload.name){
+
+      alert(
+        "El premio necesita un nombre."
+      );
+
+      return;
+
+    }
+
+
+    const result=
+      await supabaseClient
+        .from(
+          "ig_gateway_machine_prizes"
+        )
+        .update(payload)
+        .eq("id",id);
+
+
+    if(result.error){
+
+      alert(
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    await loadGatewayPrizes();
+
+    renderAdminPrizes();
+
+    showMessage(
+      "Premio actualizado correctamente."
+    );
+
+  }
+
+
+  async function deactivatePrize(row){
+
+    const id=
+      row.dataset.prize;
+
+
+    if(
+      !confirm(
+        "¿Desactivar este premio?"
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const result=
+      await supabaseClient
+        .from(
+          "ig_gateway_machine_prizes"
+        )
+        .update({
+          active:false,
+          updated_at:
+            new Date().toISOString()
+        })
+        .eq("id",id);
+
+
+    if(result.error){
+
+      alert(
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    await loadGatewayPrizes();
+
+    renderAdminPrizes();
+
+  }
+
+
+  async function addAdminPrize(){
+
+    const name=
+      document.getElementById(
+        "igGwNewPrizeName"
+      ).value.trim();
+
+
+    if(!name){
+
+      alert(
+        "Escribí el nombre del premio."
+      );
+
+      return;
+
+    }
+
+
+    const payload={
+
+      name:name,
+
+      description:
+        document.getElementById(
+          "igGwNewPrizeDescription"
+        ).value.trim(),
+
+      prize_type:
+        document.getElementById(
+          "igGwNewPrizeType"
+        ).value,
+
+      prize_value:
+        Math.max(
+          0,
+          Number(
+            document.getElementById(
+              "igGwNewPrizeValue"
+            ).value || 0
+          )
+        ),
+
+      coupon_code:
+        document.getElementById(
+          "igGwNewPrizeCoupon"
+        ).value.trim() ||
+        null,
+
+      weight:
+        Math.max(
+          0,
+          Math.floor(
+            Number(
+              document.getElementById(
+                "igGwNewPrizeWeight"
+              ).value || 0
+            )
+          )
+        ),
+
+      active:true,
+
+      sort_order:
+        Math.floor(
+          Number(
+            document.getElementById(
+              "igGwNewPrizeOrder"
+            ).value || 0
+          )
+        )
+
+    };
+
+
+    const result=
+      await supabaseClient
+        .from(
+          "ig_gateway_machine_prizes"
+        )
+        .insert(payload);
+
+
+    if(result.error){
+
+      alert(
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    [
+      "igGwNewPrizeName",
+      "igGwNewPrizeDescription",
+      "igGwNewPrizeCoupon"
+    ].forEach(id=>{
+
+      const el=
+        document.getElementById(id);
+
+      if(el)el.value="";
+
+    });
+
+
+    await loadGatewayPrizes();
+
+    renderAdminPrizes();
+
+  }
+
+
+  /* =======================================================
+     ADMIN DEMO
+     ======================================================= */
+
+  async function resetDemo(){
+
+    if(
+      !confirm(
+        "Esto permitirá nuevamente la tirada de demostración de todas las cuentas. ¿Continuar?"
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const result=
+      await supabaseClient
+        .from(
+          "ig_gateway_players"
+        )
+        .update({
+          demo_used:false,
+          updated_at:
+            new Date().toISOString()
+        })
+        .neq(
+          "user_id",
+          "00000000-0000-0000-0000-000000000000"
+        );
+
+
+    if(result.error){
+
+      alert(
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    localStorage.removeItem(
+      "ig_gateway_demo_used_v2"
+    );
+
+
+    alert(
+      "La demostración fue restablecida."
+    );
+
+  }
+
+
+  /* =======================================================
+     ESTADÍSTICAS ADMIN
+     ======================================================= */
+
+  async function loadAdminStats(){
+
+    const statsBox=
+      document.getElementById(
+        "igGwAdminStats"
+      );
+
+    const playersBox=
+      document.getElementById(
+        "igGwAdminPlayers"
+      );
+
+
+    if(
+      !statsBox ||
+      !playersBox
+    ){
+
+      return;
+
+    }
+
+
+    const [
+      playsResult,
+      playersResult,
+      awardsResult
+    ]=
+      await Promise.all([
+
+        supabaseClient
+          .from("ig_gateway_plays")
+          .select(
+            "id,prize_name,prize_type,prize_value,created_at"
+          ),
+
+        supabaseClient
+          .from("ig_gateway_players")
+          .select(
+            "user_id,points,spins,total_spins,total_wins,level,demo_used,updated_at"
+          ),
+
+        supabaseClient
+          .from("ig_gateway_order_awards")
+          .select(
+            "spins_awarded,points_awarded"
+          )
+
+      ]);
+
+
+    if(playsResult.error){
+
+      console.error(
+        playsResult.error
+      );
+
+    }
+
+
+    if(playersResult.error){
+
+      console.error(
+        playersResult.error
+      );
+
+    }
+
+
+    const plays=
+      playsResult.data || [];
+
+    const players=
+      playersResult.data || [];
+
+    const awards=
+      awardsResult.data || [];
+
+
+    const points=
+      awards.reduce(
+        (sum,x)=>
+          sum+
+          Number(
+            x.points_awarded || 0
+          ),
+        0
+      );
+
+
+    const purchaseSpins=
+      awards.reduce(
+        (sum,x)=>
+          sum+
+          Number(
+            x.spins_awarded || 0
+          ),
+        0
+      );
+
+
+    statsBox.innerHTML=`
+
+      <div class="ig-gw-stat-big">
+
+        <small>
+          Jugadores
+        </small>
+
+        <strong>
+          ${players.length}
+        </strong>
+
+      </div>
+
+
+      <div class="ig-gw-stat-big">
+
+        <small>
+          Tiradas reales
+        </small>
+
+        <strong>
+          ${plays.length}
+        </strong>
+
+      </div>
+
+
+      <div class="ig-gw-stat-big">
+
+        <small>
+          Premios ganados
+        </small>
+
+        <strong>
+          ${
+            plays.filter(
+              x=>x.prize_type!=="none"
+            ).length
+          }
+        </strong>
+
+      </div>
+
+
+      <div class="ig-gw-stat-big">
+
+        <small>
+          Puntos generados por compras
+        </small>
+
+        <strong>
+          ${Math.floor(points)}
+        </strong>
+
+      </div>
+
+
+      <div class="ig-gw-stat-big">
+
+        <small>
+          Giros generados por compras
+        </small>
+
+        <strong>
+          ${purchaseSpins}
+        </strong>
+
+      </div>
+
+    `;
+
+
+    playersBox.innerHTML=
+      players.length
+        ? players
+            .slice()
+            .sort(
+              (a,b)=>
+                Number(b.points || 0)-
+                Number(a.points || 0)
+            )
+            .slice(0,30)
+            .map(
+              p=>`
+
+                <div
+                  class="ig-gw-prize-row">
+
+                  <strong>
+                    Nivel ${Number(p.level || 1)}
+                  </strong>
+
+                  <div>
+                    ${Math.floor(
+                      Number(p.points || 0)
+                    )} puntos ·
+                    ${Number(p.spins || 0)} giros ·
+                    ${Number(p.total_wins || 0)} premios
+                  </div>
+
+                  <small>
+                    Demo:
+                    ${
+                      p.demo_used
+                        ? "utilizada"
+                        : "disponible"
+                    }
+                  </small>
+
+                </div>
+
+              `
+            )
+            .join("")
+        : "<p>No hay jugadores todavía.</p>";
+
+  }
+
+
+  /* =======================================================
+     INTEGRACIÓN CON EL ADMIN EXISTENTE
+     ======================================================= */
+
+  function patchAdmin(){
+
+    if(
+      typeof window.showAdminSection!=="function"
+    ){
+
+      return;
+
+    }
+
+
+    if(
+      window.__IG_GATEWAY_ADMIN_PATCHED
+    ){
+
+      return;
+
+    }
+
+
+    window.__IG_GATEWAY_ADMIN_PATCHED=true;
+
+
+    const original=
+      window.showAdminSection;
+
+
+    window.showAdminSection=
+      function(section){
+
+        original(section);
+
+
+        if(section==="gateway"){
+
+          loadAdminGateway();
+
+        }
+
+      };
+
+  }
+
+
+  /* =======================================================
+     ARRANQUE
+     ======================================================= */
+
+  async function start(){
+
+    createMachine();
+
+    installAdmin();
+
+    patchAdmin();
+
+
+    try{
+
+      await refreshSession();
+
+      await loadGatewayConfig();
+
+      await loadGatewayPrizes();
+
+      await preparePlayer();
+
+      renderPlayer();
+
+
+      supabaseClient
+        .auth
+        .onAuthStateChange(
+          async function(){
+
+            await refreshSession();
+
+            if(gwSession){
+
+              await preparePlayer();
+
+            }else{
+
+              gwPlayer=null;
+
+              renderPlayer();
+
+            }
+
+          }
+        );
+
+    }catch(error){
+
+      console.error(
+        "International Gateway Gateway:",
+        error
+      );
+
+    }
+
+  }
+
+
+  if(
+    document.readyState==="loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      start,
+      {once:true}
+    );
+
+  }else{
+
+    start();
+
+  }
+
+
+  window.IGGateway={
+    reload:async function(){
+
+      await loadGatewayConfig();
+      await loadGatewayPrizes();
+      await refreshSession();
+      await preparePlayer();
+
+    }
+  };
+
+
+})();
+</script>
 </body>
 </html>
