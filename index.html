@@ -42162,7 +42162,8 @@ async function startGPS(){
   }
 
 
-  navigator.geolocation.watchPosition(
+  igdWatchId =
+    navigator.geolocation.watchPosition(
 
     async function(position){
 
