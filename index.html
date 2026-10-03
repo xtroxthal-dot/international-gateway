@@ -40919,17 +40919,19 @@ header .cart-count{
      ========================================================= -->
 <!-- =========================================================
      INTERNATIONAL GATEWAY
-     🚚 SISTEMA SIMPLE DE ENVÍOS + GPS
+     🚚 MÓDULO COMPLETO DE ENVÍOS + GPS
+     VERSIÓN NUEVA Y ÚNICA
      ========================================================= -->
 
 <style>
 #igDeliveryFloat{
   position:fixed;
-  right:14px;
+  left:8px;
   bottom:14px;
   z-index:99990;
   display:flex;
-  flex-direction:row-reverse;
+  flex-direction:column;
+  align-items:flex-start;
   gap:8px;
 }
 
@@ -40945,24 +40947,10 @@ header .cart-count{
   color:#fff;
 }
 
-.ig-delivery-btn.green{
-  background:#16833b;
-}
+.ig-delivery-btn.green{background:#16833b}
+.ig-delivery-btn.blue{background:#1267b1}
+.ig-delivery-btn.red{background:#b3261e}
 
-.ig-delivery-btn.blue{
-  background:#1267b1;
-}
-
-.ig-delivery-btn.red{
-  background:#b3261e;
-}
-  
-#igCustomerTrackingButton{
-  position:fixed;
-  left:8px;
-  bottom:14px;
-  z-index:99991;
-}
 #igDeliveryModal{
   display:none;
   position:fixed;
@@ -40989,6 +40977,17 @@ header .cart-count{
 
 #igDeliveryBox h2{
   margin-top:0;
+}
+
+.ig-d-close{
+  float:right;
+  border:0;
+  background:#eee;
+  border-radius:50%;
+  width:34px;
+  height:34px;
+  font-size:18px;
+  cursor:pointer;
 }
 
 .ig-d-field{
@@ -41041,15 +41040,19 @@ header .cart-count{
   cursor:pointer;
 }
 
-.ig-d-close{
-  float:right;
-  border:0;
-  background:#eee;
-  border-radius:50%;
-  width:34px;
-  height:34px;
-  font-size:18px;
-  cursor:pointer;
+.ig-d-error{
+  color:#b3261e;
+  font-weight:700;
+}
+
+.ig-d-ok{
+  color:#16833b;
+  font-weight:700;
+}
+
+.ig-d-muted{
+  color:#666;
+  font-size:13px;
 }
 
 #igDeliveryMap{
@@ -41060,22 +41063,8 @@ header .cart-count{
   background:#ddd;
 }
 
-.ig-d-ok{
-  color:#16833b;
-  font-weight:700;
-}
-
-.ig-d-error{
-  color:#b3261e;
-  font-weight:700;
-}
-
-.ig-d-muted{
-  color:#666;
-  font-size:13px;
-}
-
 @media(max-width:600px){
+
   .ig-d-row{
     grid-template-columns:1fr;
   }
@@ -41092,28 +41081,42 @@ header .cart-count{
   #igDeliveryFloat{
     left:8px;
     bottom:8px;
+    max-width:calc(100vw - 16px);
   }
 }
 </style>
 
+
+<!-- =========================================================
+     BOTONES
+     🚚 CONDUCTOR ARRIBA
+     📍 SEGUIR MI PEDIDO ABAJO
+     AMBOS A LA IZQUIERDA
+     ========================================================= -->
 
 <div id="igDeliveryFloat">
 
   <button
     id="igDriverButton"
     class="ig-delivery-btn"
-    style="display:none">
+    style="display:none"
+    type="button">
     🚚 Conductor
   </button>
 
   <button
     id="igCustomerTrackingButton"
-    class="ig-delivery-btn blue">
+    class="ig-delivery-btn blue"
+    type="button">
     📍 Seguir mi pedido
   </button>
 
 </div>
 
+
+<!-- =========================================================
+     MODAL
+     ========================================================= -->
 
 <div id="igDeliveryModal">
 
@@ -41121,6 +41124,7 @@ header .cart-count{
 
     <button
       class="ig-d-close"
+      type="button"
       onclick="IGD.close()">
       ×
     </button>
@@ -41133,6 +41137,7 @@ header .cart-count{
 
 
 <script>
+
 (function(){
 
 "use strict";
@@ -41142,16 +41147,32 @@ header .cart-count{
    CONFIGURACIÓN
    ========================================================= */
 
-const IGD_SUPABASE =
-  window.supabaseClient ||
-  window.supabase;
+const supabaseClient =
+  window.supabaseClient || window.supabase;
+
+const DRIVER_PASSWORD_FUNCTION =
+  "https://hxtzlrsmjwrpqgjgbzyl.supabase.co/functions/v1/ig-admin-driver-password";
+
+
+/* =========================================================
+   VARIABLES
+   ========================================================= */
 
 let igdMap = null;
+
 let igdDriverMarker = null;
+
 let igdRouteLayer = null;
+
 let igdWatchId = null;
+
 let igdLastPosition = null;
+
 let igdCurrentOrder = null;
+
+let igdCustomerChannel = null;
+
+let igdAdminChannel = null;
 
 
 /* =========================================================
@@ -41178,36 +41199,49 @@ function money(value){
       style:"currency",
       currency:"ARS"
     }
-  ).format(Number(value || 0));
+  ).format(
+    Number(value || 0)
+  );
 
 }
 
 
 function modal(html){
 
-  document.getElementById(
-    "igDeliveryContent"
-  ).innerHTML = html;
+  const content =
+    document.getElementById(
+      "igDeliveryContent"
+    );
 
-  document.getElementById(
-    "igDeliveryModal"
-  ).classList.add("open");
+  const box =
+    document.getElementById(
+      "igDeliveryModal"
+    );
+
+  if(!content || !box)return;
+
+  content.innerHTML = html;
+
+  box.classList.add("open");
 
 }
 
 
 function close(){
 
-  document.getElementById(
-    "igDeliveryModal"
-  ).classList.remove("open");
+  document
+    .getElementById(
+      "igDeliveryModal"
+    )
+    ?.classList.remove("open");
 
 }
 
 
-window.IGD = {
-  close
-};
+window.IGD = {};
+
+window.IGD.close =
+  close;
 
 
 /* =========================================================
@@ -41216,69 +41250,160 @@ window.IGD = {
 
 function loadLeaflet(){
 
-  return new Promise(function(resolve,reject){
+  return new Promise(
+    function(resolve,reject){
 
-    if(window.L){
-      resolve();
-      return;
+      if(window.L){
+
+        resolve();
+
+        return;
+
+      }
+
+
+      if(
+        document.getElementById(
+          "igLeafletScript"
+        )
+      ){
+
+        const timer =
+          setInterval(
+            function(){
+
+              if(window.L){
+
+                clearInterval(timer);
+
+                resolve();
+
+              }
+
+            },
+            100
+          );
+
+
+        setTimeout(
+          function(){
+
+            clearInterval(timer);
+
+            if(!window.L){
+
+              reject(
+                new Error(
+                  "No se pudo cargar el mapa."
+                )
+              );
+
+            }
+
+          },
+          15000
+        );
+
+        return;
+
+      }
+
+
+      const css =
+        document.createElement(
+          "link"
+        );
+
+      css.rel =
+        "stylesheet";
+
+      css.href =
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+
+      document.head.appendChild(css);
+
+
+      const js =
+        document.createElement(
+          "script"
+        );
+
+      js.id =
+        "igLeafletScript";
+
+      js.src =
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+
+      js.onload =
+        resolve;
+
+      js.onerror =
+        function(){
+
+          reject(
+            new Error(
+              "No se pudo cargar el mapa."
+            )
+          );
+
+        };
+
+      document.head.appendChild(js);
+
     }
-
-    const css =
-      document.createElement("link");
-
-    css.rel="stylesheet";
-
-    css.href=
-      "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-
-    document.head.appendChild(css);
-
-
-    const js =
-      document.createElement("script");
-
-    js.src=
-      "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-
-    js.onload=resolve;
-    js.onerror=reject;
-
-    document.head.appendChild(js);
-
-  });
+  );
 
 }
 
 
 /* =========================================================
-   GEOCODIFICAR DIRECCIÓN
+   GEOCODIFICACIÓN
    ========================================================= */
 
 async function geocode(address){
 
-  if(!address) return null;
+  if(!address)return null;
 
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+
-    encodeURIComponent(address);
 
   const response =
-    await fetch(url,{
-      headers:{
-        "Accept":"application/json"
+    await fetch(
+      "https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+
+      encodeURIComponent(address),
+      {
+        headers:{
+          "Accept":
+            "application/json"
+        }
       }
-    });
+    );
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "No se pudo consultar la dirección."
+    );
+
+  }
+
 
   const data =
     await response.json();
 
-  if(!data || !data.length){
-    return null;
-  }
+
+  if(!data?.length)return null;
+
 
   return {
-    lat:Number(data[0].lat),
-    lng:Number(data[0].lon)
+
+    lat:Number(
+      data[0].lat
+    ),
+
+    lng:Number(
+      data[0].lon
+    )
+
   };
 
 }
@@ -41295,26 +41420,36 @@ async function getRoute(
   deliveryLng
 ){
 
-  const url =
-    "https://router.project-osrm.org/route/v1/driving/"+
-    pickupLng+","+pickupLat+";"+
-    deliveryLng+","+deliveryLat+
-    "?overview=full&geometries=geojson";
-
   const response =
-    await fetch(url);
+    await fetch(
+      "https://router.project-osrm.org/route/v1/driving/"+
+      pickupLng+","+pickupLat+";"+
+      deliveryLng+","+deliveryLat+
+      "?overview=full&geometries=geojson"
+    );
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "No se pudo calcular la ruta."
+    );
+
+  }
+
 
   const data =
     await response.json();
 
-  if(
-    !data.routes ||
-    !data.routes.length
-  ){
+
+  if(!data.routes?.length){
+
     throw new Error(
       "No se pudo calcular la ruta."
     );
+
   }
+
 
   return data.routes[0];
 
@@ -41333,17 +41468,29 @@ async function showMap(
 
   await loadLeaflet();
 
+
   const mapElement =
     document.getElementById(
       "igDeliveryMap"
     );
 
-  if(!mapElement) return;
+
+  if(!mapElement)return;
+
 
   if(igdMap){
+
     igdMap.remove();
-    igdMap=null;
+
+    igdMap = null;
+
   }
+
+
+  igdDriverMarker = null;
+
+  igdRouteLayer = null;
+
 
   igdMap =
     L.map(
@@ -41361,25 +41508,36 @@ async function showMap(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       maxZoom:19,
-      attribution:"© OpenStreetMap"
+      attribution:
+        "© OpenStreetMap"
     }
-  ).addTo(igdMap);
+  ).addTo(
+    igdMap
+  );
 
 
-  L.marker([
-    pickup.lat,
-    pickup.lng
-  ])
+  L.marker(
+    [
+      pickup.lat,
+      pickup.lng
+    ]
+  )
   .addTo(igdMap)
-  .bindPopup("📦 Retiro");
+  .bindPopup(
+    "📦 Retiro"
+  );
 
 
-  L.marker([
-    delivery.lat,
-    delivery.lng
-  ])
+  L.marker(
+    [
+      delivery.lat,
+      delivery.lng
+    ]
+  )
   .addTo(igdMap)
-  .bindPopup("🏠 Entrega");
+  .bindPopup(
+    "🏠 Entrega"
+  );
 
 
   try{
@@ -41392,27 +41550,21 @@ async function showMap(
         delivery.lng
       );
 
+
     igdRouteLayer =
       L.geoJSON(
         route.geometry
-      ).addTo(igdMap);
+      ).addTo(
+        igdMap
+      );
 
 
     const km =
-      Number(
-        route.distance / 1000
+      (
+        Number(
+          route.distance
+        ) / 1000
       ).toFixed(2);
-
-
-    const bounds =
-      igdRouteLayer.getBounds();
-
-    igdMap.fitBounds(
-      bounds,
-      {
-        padding:[25,25]
-      }
-    );
 
 
     const kmElement =
@@ -41420,63 +41572,91 @@ async function showMap(
         "igDeliveryKm"
       );
 
+
     if(kmElement){
+
       kmElement.textContent =
         km+" km";
+
     }
 
-    return km;
+
+    igdMap.fitBounds(
+      igdRouteLayer.getBounds(),
+      {
+        padding:[
+          25,
+          25
+        ]
+      }
+    );
+
 
   }catch(error){
 
-    console.error(error);
+    console.warn(
+      "Ruta:",
+      error
+    );
 
-    return null;
+  }
+
+
+  if(
+    current?.lat &&
+    current?.lng
+  ){
+
+    updateDriverMarker(
+      current.lat,
+      current.lng
+    );
 
   }
 
 }
 
-
-/* =========================================================
-   POSICIÓN DEL CONDUCTOR
-   ========================================================= */
 
 function updateDriverMarker(
   lat,
   lng
 ){
 
-  if(!igdMap || !window.L){
-    return;
-  }
+  if(
+    !igdMap ||
+    !window.L
+  )return;
+
 
   if(!igdDriverMarker){
 
     igdDriverMarker =
       L.marker(
-        [lat,lng]
+        [
+          lat,
+          lng
+        ]
       )
-      .addTo(igdMap)
+      .addTo(
+        igdMap
+      )
       .bindPopup(
         "🚚 Conductor"
       );
 
   }else{
 
-    igdDriverMarker.setLatLng([
-      lat,
-      lng
-    ]);
+    igdDriverMarker.setLatLng(
+      [
+        lat,
+        lng
+      ]
+    );
 
   }
 
 }
 
-
-/* =========================================================
-   DISTANCIA GPS
-   ========================================================= */
 
 function distanceKm(
   lat1,
@@ -41485,30 +41665,56 @@ function distanceKm(
   lon2
 ){
 
-  const R=6371;
+  const R =
+    6371;
+
 
   const dLat =
-    (lat2-lat1)*
-    Math.PI/180;
+    (
+      lat2-lat1
+    ) *
+    Math.PI /
+    180;
+
 
   const dLon =
-    (lon2-lon1)*
-    Math.PI/180;
+    (
+      lon2-lon1
+    ) *
+    Math.PI /
+    180;
+
 
   const a =
-    Math.sin(dLat/2)*
-    Math.sin(dLat/2)+
-    Math.cos(lat1*Math.PI/180)*
-    Math.cos(lat2*Math.PI/180)*
-    Math.sin(dLon/2)*
-    Math.sin(dLon/2);
+    Math.sin(
+      dLat/2
+    ) ** 2 +
 
-  return R*
-    2*
+    Math.cos(
+      lat1 *
+      Math.PI /
+      180
+    ) *
+
+    Math.cos(
+      lat2 *
+      Math.PI /
+      180
+    ) *
+
+    Math.sin(
+      dLon/2
+    ) ** 2;
+
+
+  return (
+    R *
+    2 *
     Math.atan2(
       Math.sqrt(a),
       Math.sqrt(1-a)
-    );
+    )
+  );
 
 }
 
@@ -41521,32 +41727,53 @@ async function driverLogin(){
 
   modal(`
 
-    <h2>🚚 Acceso del conductor</h2>
+    <h2>
+      🚚 Acceso del conductor
+    </h2>
+
 
     <div class="ig-d-field">
-      <label>Correo</label>
+
+      <label>
+        Correo
+      </label>
+
       <input
         id="igdDriverEmail"
         type="email"
         autocomplete="username">
+
     </div>
 
+
     <div class="ig-d-field">
-      <label>Contraseña</label>
+
+      <label>
+        Contraseña
+      </label>
+
       <input
         id="igdDriverPassword"
         type="password"
         autocomplete="current-password">
+
     </div>
 
-    <div id="igdDriverLoginMessage"></div>
+
+    <div
+      id="igdDriverLoginMessage">
+    </div>
+
 
     <div class="ig-d-actions">
 
       <button
         class="ig-delivery-btn"
+        type="button"
         onclick="IGD.driverSignIn()">
+
         🚚 Entrar
+
       </button>
 
     </div>
@@ -41563,15 +41790,17 @@ async function driverSignIn(){
       .getElementById(
         "igdDriverEmail"
       )
-      .value
-      .trim();
+      ?.value
+      .trim()
+      .toLowerCase();
+
 
   const password =
     document
       .getElementById(
         "igdDriverPassword"
       )
-      .value;
+      ?.value || "";
 
 
   const message =
@@ -41580,23 +41809,55 @@ async function driverSignIn(){
     );
 
 
-  message.textContent =
-    "Ingresando...";
+  if(
+    !email ||
+    !password
+  ){
+
+    if(message){
+
+      message.innerHTML =
+        '<p class="ig-d-error">'+
+        'Introduce correo y contraseña.'+
+        '</p>';
+
+    }
+
+    return;
+
+  }
+
+
+  if(message){
+
+    message.textContent =
+      "Ingresando...";
+
+  }
 
 
   const result =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+    await supabaseClient.auth
+      .signInWithPassword({
+
+        email,
+        password
+
+      });
 
 
   if(result.error){
 
-    message.innerHTML =
-      '<p class="ig-d-error">'+
-      esc(result.error.message)+
-      '</p>';
+    if(message){
+
+      message.innerHTML =
+        '<p class="ig-d-error">'+
+        esc(
+          result.error.message
+        )+
+        '</p>';
+
+    }
 
     return;
 
@@ -41607,27 +41868,49 @@ async function driverSignIn(){
     result.data.user;
 
 
-  const configResult =
+  const config =
     await supabaseClient
-      .from("ig_driver_config")
+      .from(
+        "ig_driver_config"
+      )
       .select("*")
-      .eq("id",1)
+      .eq(
+        "id",
+        1
+      )
       .maybeSingle();
 
 
   if(
-    configResult.error ||
-    !configResult.data ||
-    !configResult.data.enabled ||
-    configResult.data.driver_email !== user.email
+
+    config.error ||
+
+    !config.data ||
+
+    !config.data.enabled ||
+
+    String(
+      config.data.driver_email || ""
+    ).toLowerCase() !==
+
+    String(
+      user.email || ""
+    ).toLowerCase()
+
   ){
 
-    await supabaseClient.auth.signOut();
+    await supabaseClient.auth
+      .signOut();
 
-    message.innerHTML =
-      '<p class="ig-d-error">'+
-      'El acceso del conductor está desactivado por el administrador.'+
-      '</p>';
+
+    if(message){
+
+      message.innerHTML =
+        '<p class="ig-d-error">'+
+        'El acceso del conductor está desactivado o el correo no coincide.'+
+        '</p>';
+
+    }
 
     return;
 
@@ -41644,18 +41927,17 @@ window.IGD.driverSignIn =
 
 
 /* =========================================================
-   CONDUCTOR
+   ABRIR CONDUCTOR
    ========================================================= */
 
 async function openDriver(){
 
-  const {
-    data
-  } =
-    await supabaseClient.auth.getSession();
+  const session =
+    await supabaseClient.auth
+      .getSession();
 
 
-  if(!data.session){
+  if(!session.data.session){
 
     await driverLogin();
 
@@ -41665,27 +41947,42 @@ async function openDriver(){
 
 
   const user =
-    data.session.user;
+    session.data.session.user;
 
 
-  const configResult =
+  const config =
     await supabaseClient
-      .from("ig_driver_config")
+      .from(
+        "ig_driver_config"
+      )
       .select("*")
-      .eq("id",1)
+      .eq(
+        "id",
+        1
+      )
       .maybeSingle();
 
 
   if(
-    configResult.error ||
-    !configResult.data ||
-    !configResult.data.enabled ||
-    configResult.data.driver_email !== user.email
+
+    config.error ||
+
+    !config.data?.enabled ||
+
+    String(
+      config.data.driver_email || ""
+    ).toLowerCase() !==
+
+    String(
+      user.email || ""
+    ).toLowerCase()
+
   ){
 
-    await supabaseClient.auth.signOut();
+    await supabaseClient.auth
+      .signOut();
 
-    driverLogin();
+    await driverLogin();
 
     return;
 
@@ -41694,7 +41991,9 @@ async function openDriver(){
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .select(`
         *,
         ig_orders(
@@ -41713,6 +42012,10 @@ async function openDriver(){
         "driver_enabled",
         true
       )
+      .neq(
+        "status",
+        "delivered"
+      )
       .order(
         "updated_at",
         {
@@ -41726,10 +42029,17 @@ async function openDriver(){
   if(result.error){
 
     modal(`
-      <h2>🚚 Conductor</h2>
+
+      <h2>
+        🚚 Conductor
+      </h2>
+
       <p class="ig-d-error">
-        ${esc(result.error.message)}
+        ${esc(
+          result.error.message
+        )}
       </p>
+
     `);
 
     return;
@@ -41741,23 +42051,32 @@ async function openDriver(){
 
     modal(`
 
-      <h2>🚚 Conductor</h2>
+      <h2>
+        🚚 Conductor
+      </h2>
 
       <p>
-        No tienes ningún envío asignado actualmente.
+        No tienes ningún envío
+        asignado actualmente.
       </p>
+
 
       <div class="ig-d-actions">
 
         <button
           class="ig-delivery-btn"
+          type="button"
           onclick="IGD.driverLogout()">
-          Salir
+
+          🔐 Salir
+
         </button>
 
       </div>
 
+
       <hr>
+
 
       ${driverInstructions()}
 
@@ -41787,7 +42106,9 @@ window.IGD.openDriver =
    PANTALLA CONDUCTOR
    ========================================================= */
 
-function renderDriver(data){
+function renderDriver(
+  data
+){
 
   const order =
     data.ig_orders || {};
@@ -41795,50 +42116,91 @@ function renderDriver(data){
 
   modal(`
 
-    <h2>🚚 Conductor</h2>
+    <h2>
+      🚚 Conductor
+    </h2>
+
 
     <div class="ig-d-card">
 
-      <strong>Pedido:</strong>
-      #${esc(order.order_number)}
+      <strong>
+        Pedido:
+      </strong>
+
+      #${esc(
+        order.order_number
+      )}
 
       <br>
 
-      <strong>Cliente:</strong>
-      ${esc(order.customer_name)}
+
+      <strong>
+        Cliente:
+      </strong>
+
+      ${esc(
+        order.customer_name
+      )}
 
       <br>
 
-      <strong>Teléfono:</strong>
-      ${esc(order.customer_phone)}
+
+      <strong>
+        Teléfono:
+      </strong>
+
+      ${esc(
+        order.customer_phone
+      )}
 
     </div>
 
 
     <div class="ig-d-card">
 
-      <strong>📦 Retiro</strong>
+      <strong>
+        📦 Retiro
+      </strong>
 
       <p>
-        ${esc(data.pickup_address)}
+        ${esc(
+          data.pickup_address
+        )}
       </p>
 
-      <strong>🏠 Entrega</strong>
+
+      <strong>
+        🏠 Entrega
+      </strong>
 
       <p>
-        ${esc(data.delivery_address)}
+        ${esc(
+          data.delivery_address
+        )}
       </p>
 
-      <strong>↔️ Entrecalles</strong>
+
+      <strong>
+        ↔️ Entrecalles
+      </strong>
 
       <p>
-        ${esc(data.cross_streets || "No indicado")}
+        ${esc(
+          data.cross_streets ||
+          "No indicado"
+        )}
       </p>
 
-      <strong>📝 Referencia</strong>
+
+      <strong>
+        📝 Referencia
+      </strong>
 
       <p>
-        ${esc(data.reference_note || "Sin referencia")}
+        ${esc(
+          data.reference_note ||
+          "Sin referencia"
+        )}
       </p>
 
     </div>
@@ -41846,25 +42208,59 @@ function renderDriver(data){
 
     <div class="ig-d-card">
 
-      <strong>🗺️ Ruta</strong>
+      <strong>
+        🗺️ Ruta
+      </strong>
+
 
       <p>
+
         Distancia aproximada:
+
         <strong id="igDeliveryKm">
-          ${data.estimated_km
-            ? Number(data.estimated_km).toFixed(2)+" km"
-            : "calculando..."}
+
+          ${
+            data.estimated_km
+
+            ? Number(
+                data.estimated_km
+              ).toFixed(2)+" km"
+
+            : "calculando..."
+
+          }
+
         </strong>
+
       </p>
 
-      <div id="igDeliveryMap"></div>
+
+      <div class="ig-d-actions">
+
+        <button
+          class="ig-delivery-btn blue"
+          type="button"
+          onclick="IGD.driverRoute()">
+
+          🗺️ Ver ruta
+
+        </button>
+
+      </div>
+
+
+      <div id="igDeliveryMap">
+      </div>
 
     </div>
 
 
     <div class="ig-d-card">
 
-      <strong>💰 Precio del envío</strong>
+      <strong>
+        💰 Precio del envío
+      </strong>
+
 
       <div class="ig-d-field">
 
@@ -41873,33 +42269,47 @@ function renderDriver(data){
           type="number"
           min="0"
           step="0.01"
-          value="${
+          value="${esc(
             data.driver_price || ""
-          }"
+          )}"
           placeholder="Precio del envío">
 
       </div>
 
+
       <button
         class="ig-delivery-btn blue"
+        type="button"
         onclick="IGD.sendDriverPrice()">
+
         📤 Enviar precio
+
       </button>
+
 
       ${
         data.admin_price
-          ? "<p>Precio administrador: "+
-            money(data.admin_price)+
-            "</p>"
-          : ""
+
+        ? "<p>Precio administrador: "+
+          money(
+            data.admin_price
+          )+
+          "</p>"
+
+        : ""
       }
+
 
       ${
         data.accepted_price
-          ? "<p><strong>Precio aceptado: "+
-            money(data.accepted_price)+
-            "</strong></p>"
-          : ""
+
+        ? "<p><strong>Precio aceptado: "+
+          money(
+            data.accepted_price
+          )+
+          "</strong></p>"
+
+        : ""
       }
 
     </div>
@@ -41907,51 +42317,110 @@ function renderDriver(data){
 
     <div class="ig-d-card">
 
-      <strong>Estado:</strong>
-      ${esc(data.status)}
+      <strong>
+        Estado:
+      </strong>
+
+      ${esc(
+        data.status
+      )}
+
 
       <div class="ig-d-actions">
+
 
         ${
           data.status === "pending" ||
           data.status === "price_proposed"
-          ? `
-            <button
-              class="ig-delivery-btn green"
-              onclick="IGD.acceptShipment()">
-              ✅ Aceptar envío
-            </button>
+
+          ?
+
           `
-          : ""
+
+          <button
+            class="ig-delivery-btn green"
+            type="button"
+            onclick="IGD.acceptShipment()">
+
+            ✅ Aceptar envío
+
+          </button>
+
+          `
+
+          :
+
+          ""
+
         }
 
 
         ${
           data.status === "accepted"
-          ? `
-            <button
-              class="ig-delivery-btn green"
-              onclick="IGD.startGPS()">
-              ▶️ Iniciar seguimiento GPS
-            </button>
+
+          ?
+
           `
-          : ""
+
+          <button
+            class="ig-delivery-btn green"
+            type="button"
+            onclick="IGD.startGPS()">
+
+            ▶️ Iniciar seguimiento
+
+          </button>
+
+          `
+
+          :
+
+          ""
+
         }
 
 
         ${
           data.status === "tracking"
-          ? `
-            <button
-              class="ig-delivery-btn red"
-              onclick="IGD.finishDelivery()">
-              ⏹️ Finalizar entrega
-            </button>
+
+          ?
+
           `
-          : ""
+
+          <button
+            class="ig-delivery-btn red"
+            type="button"
+            onclick="IGD.finishDelivery()">
+
+            ⏹️ Finalizar entrega
+
+          </button>
+
+          `
+
+          :
+
+          ""
+
         }
 
       </div>
+
+
+      ${
+        data.tracking_active
+
+        ?
+
+        '<p class="ig-d-ok">'+
+        '📍 Seguimiento GPS activo.'+
+        '</p>'
+
+        :
+
+        ""
+
+      }
 
     </div>
 
@@ -41960,14 +42429,18 @@ function renderDriver(data){
 
       <button
         class="ig-delivery-btn"
+        type="button"
         onclick="IGD.driverLogout()">
+
         🔐 Salir
+
       </button>
 
     </div>
 
 
     <hr>
+
 
     ${driverInstructions()}
 
@@ -41980,19 +42453,142 @@ function renderDriver(data){
   ){
 
     showMap(
+
       {
-        lat:Number(data.pickup_lat),
-        lng:Number(data.pickup_lng)
+        lat:Number(
+          data.pickup_lat
+        ),
+        lng:Number(
+          data.pickup_lng
+        )
       },
+
       {
-        lat:Number(data.delivery_lat),
-        lng:Number(data.delivery_lng)
+        lat:Number(
+          data.delivery_lat
+        ),
+        lng:Number(
+          data.delivery_lng
+        )
+      },
+
+      data.current_lat
+
+      ?
+
+      {
+        lat:Number(
+          data.current_lat
+        ),
+        lng:Number(
+          data.current_lng
+        )
       }
+
+      :
+
+      null
+
     );
 
   }
 
 }
+
+
+async function driverRoute(){
+
+  if(!igdCurrentOrder)return;
+
+
+  modal(`
+
+    <h2>
+      🗺️ Ver ruta
+    </h2>
+
+
+    <p>
+
+      Distancia prevista:
+
+      <strong id="igDeliveryKm">
+
+        ${Number(
+          igdCurrentOrder.estimated_km ||
+          0
+        ).toFixed(2)}
+        km
+
+      </strong>
+
+    </p>
+
+
+    <div id="igDeliveryMap">
+    </div>
+
+
+    <div class="ig-d-actions">
+
+      <button
+        class="ig-delivery-btn"
+        type="button"
+        onclick="IGD.openDriver()">
+
+        ← Volver al envío
+
+      </button>
+
+    </div>
+
+  `);
+
+
+  await showMap(
+
+    {
+      lat:Number(
+        igdCurrentOrder.pickup_lat
+      ),
+      lng:Number(
+        igdCurrentOrder.pickup_lng
+      )
+    },
+
+    {
+      lat:Number(
+        igdCurrentOrder.delivery_lat
+      ),
+      lng:Number(
+        igdCurrentOrder.delivery_lng
+      )
+    },
+
+    igdCurrentOrder.current_lat
+
+    ?
+
+    {
+      lat:Number(
+        igdCurrentOrder.current_lat
+      ),
+      lng:Number(
+        igdCurrentOrder.current_lng
+      )
+    }
+
+    :
+
+    null
+
+  );
+
+}
+
+
+window.IGD.driverRoute =
+  driverRoute;
 
 
 /* =========================================================
@@ -42010,11 +42606,15 @@ async function sendDriverPrice(){
         .getElementById(
           "igdDriverPrice"
         )
-        .value
+        ?.value ||
+      0
     );
 
 
-  if(!price || price<=0){
+  if(
+    !price ||
+    price <= 0
+  ){
 
     alert(
       "Introduce un precio válido."
@@ -42027,10 +42627,20 @@ async function sendDriverPrice(){
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .update({
-        driver_price:price,
-        status:"price_proposed"
+
+        driver_price:
+          price,
+
+        status:
+          "price_proposed",
+
+        updated_at:
+          new Date().toISOString()
+
       })
       .eq(
         "order_id",
@@ -42040,7 +42650,9 @@ async function sendDriverPrice(){
 
   if(result.error){
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
 
@@ -42065,7 +42677,7 @@ async function acceptShipment(){
   if(!igdCurrentOrder)return;
 
 
-  let acceptedPrice =
+  const acceptedPrice =
     Number(
       igdCurrentOrder.admin_price ||
       igdCurrentOrder.driver_price ||
@@ -42086,10 +42698,20 @@ async function acceptShipment(){
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .update({
-        accepted_price:acceptedPrice,
-        status:"accepted"
+
+        accepted_price:
+          acceptedPrice,
+
+        status:
+          "accepted",
+
+        updated_at:
+          new Date().toISOString()
+
       })
       .eq(
         "order_id",
@@ -42099,7 +42721,9 @@ async function acceptShipment(){
 
   if(result.error){
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
 
@@ -42117,11 +42741,14 @@ window.IGD.acceptShipment =
 
 /* =========================================================
    GPS
+   SOLO SE ACTIVA AL PULSAR EL BOTÓN
    ========================================================= */
 
 async function startGPS(){
 
-  if(!navigator.geolocation){
+  if(
+    !navigator.geolocation
+  ){
 
     alert(
       "Este dispositivo no dispone de GPS."
@@ -42135,23 +42762,57 @@ async function startGPS(){
   if(!igdCurrentOrder)return;
 
 
-  const permission =
-    confirm(
-      "Se activará el GPS y el cliente podrá ver tu ubicación durante el reparto. ¿Continuar?"
-    );
+  if(
+
+    !confirm(
+      "Se activará el seguimiento GPS y el cliente podrá ver tu ubicación aproximada durante el reparto. ¿Continuar?"
+    )
+
+  ){
+
+    return;
+
+  }
 
 
-  if(!permission)return;
+  if(
+    igdWatchId !== null
+  ){
+
+    navigator.geolocation
+      .clearWatch(
+        igdWatchId
+      );
+
+    igdWatchId =
+      null;
+
+  }
+
+
+  igdLastPosition =
+    null;
 
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .update({
-        status:"tracking",
-        tracking_active:true,
+
+        status:
+          "tracking",
+
+        tracking_active:
+          true,
+
         tracking_started_at:
+          new Date().toISOString(),
+
+        updated_at:
           new Date().toISOString()
+
       })
       .eq(
         "order_id",
@@ -42161,7 +42822,9 @@ async function startGPS(){
 
   if(result.error){
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
 
@@ -42169,106 +42832,171 @@ async function startGPS(){
 
 
   igdWatchId =
-    navigator.geolocation.watchPosition(
+    navigator.geolocation
+      .watchPosition(
 
-    async function(position){
+        async function(
+          position
+        ){
 
-      const lat =
-        position.coords.latitude;
+          const lat =
+            position.coords.latitude;
 
-      const lng =
-        position.coords.longitude;
-
-
-      let addedKm = 0;
+          const lng =
+            position.coords.longitude;
 
 
-      if(igdLastPosition){
+          let addedKm =
+            0;
 
-        addedKm =
-          distanceKm(
-            igdLastPosition.lat,
-            igdLastPosition.lng,
+
+          if(
+            igdLastPosition
+          ){
+
+            addedKm =
+              distanceKm(
+
+                igdLastPosition.lat,
+                igdLastPosition.lng,
+
+                lat,
+                lng
+
+              );
+
+          }
+
+
+          igdLastPosition = {
+            lat,
+            lng
+          };
+
+
+          const currentKm =
+            Number(
+              igdCurrentOrder.driven_km ||
+              0
+            ) +
+            addedKm;
+
+
+          const points =
+
+            Array.isArray(
+              igdCurrentOrder.route_points
+            )
+
+            ?
+
+            [
+              ...igdCurrentOrder.route_points
+            ]
+
+            :
+
+            [];
+
+
+          points.push({
+
+            lat,
+            lng,
+
+            time:
+              new Date().toISOString()
+
+          });
+
+
+          igdCurrentOrder.driven_km =
+            currentKm;
+
+
+          igdCurrentOrder.route_points =
+            points;
+
+
+          igdCurrentOrder.current_lat =
+            lat;
+
+
+          igdCurrentOrder.current_lng =
+            lng;
+
+
+          updateDriverMarker(
             lat,
             lng
           );
 
-      }
+
+          const update =
+            await supabaseClient
+              .from(
+                "ig_delivery_tracking"
+              )
+              .update({
+
+                current_lat:
+                  lat,
+
+                current_lng:
+                  lng,
+
+                driven_km:
+                  currentKm,
+
+                route_points:
+                  points,
+
+                updated_at:
+                  new Date().toISOString()
+
+              })
+              .eq(
+                "order_id",
+                igdCurrentOrder.order_id
+              );
 
 
-      igdLastPosition = {
-        lat,
-        lng
-      };
+          if(update.error){
+
+            console.warn(
+              "GPS:",
+              update.error.message
+            );
+
+          }
+
+        },
 
 
-      const currentKm =
-        Number(
-          igdCurrentOrder.driven_km || 0
-        ) + addedKm;
+        function(error){
+
+          console.warn(
+            "GPS:",
+            error
+          );
+
+        },
 
 
-      const points =
-        Array.isArray(
-          igdCurrentOrder.route_points
-        )
-        ? igdCurrentOrder.route_points
-        : [];
+        {
 
+          enableHighAccuracy:
+            true,
 
-      points.push({
-        lat,
-        lng,
-        time:new Date().toISOString()
-      });
+          maximumAge:
+            5000,
 
+          timeout:
+            10000
 
-      igdCurrentOrder.driven_km =
-        currentKm;
+        }
 
-      igdCurrentOrder.route_points =
-        points;
-
-
-      updateDriverMarker(
-        lat,
-        lng
       );
-
-
-      await supabaseClient
-        .from("ig_delivery_tracking")
-        .update({
-          current_lat:lat,
-          current_lng:lng,
-          driven_km:currentKm,
-          route_points:points,
-          updated_at:
-            new Date().toISOString()
-        })
-        .eq(
-          "order_id",
-          igdCurrentOrder.order_id
-        );
-
-    },
-
-    function(error){
-
-      console.error(
-        "GPS:",
-        error
-      );
-
-    },
-
-    {
-      enableHighAccuracy:true,
-      maximumAge:5000,
-      timeout:10000
-    }
-
-  );
 
 
   await openDriver();
@@ -42290,33 +43018,52 @@ async function finishDelivery(){
 
 
   if(
+
     !confirm(
       "¿Confirmas que el pedido fue entregado?"
     )
+
   ){
+
     return;
+
   }
 
 
-  if(igdWatchId !== null){
+  if(
+    igdWatchId !== null
+  ){
 
-    navigator.geolocation.clearWatch(
-      igdWatchId
-    );
+    navigator.geolocation
+      .clearWatch(
+        igdWatchId
+      );
 
-    igdWatchId=null;
+    igdWatchId =
+      null;
 
   }
 
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .update({
-        status:"delivered",
-        tracking_active:false,
+
+        status:
+          "delivered",
+
+        tracking_active:
+          false,
+
         tracking_finished_at:
+          new Date().toISOString(),
+
+        updated_at:
           new Date().toISOString()
+
       })
       .eq(
         "order_id",
@@ -42326,7 +43073,9 @@ async function finishDelivery(){
 
   if(result.error){
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
 
@@ -42334,9 +43083,14 @@ async function finishDelivery(){
 
 
   await supabaseClient
-    .from("ig_orders")
+    .from(
+      "ig_orders"
+    )
     .update({
-      order_status:"delivered"
+
+      order_status:
+        "delivered"
+
     })
     .eq(
       "id",
@@ -42359,23 +43113,29 @@ window.IGD.finishDelivery =
 
 
 /* =========================================================
-   SALIR CONDUCTOR
+   SALIR
    ========================================================= */
 
 async function driverLogout(){
 
-  if(igdWatchId !== null){
+  if(
+    igdWatchId !== null
+  ){
 
-    navigator.geolocation.clearWatch(
-      igdWatchId
-    );
+    navigator.geolocation
+      .clearWatch(
+        igdWatchId
+      );
 
-    igdWatchId=null;
+    igdWatchId =
+      null;
 
   }
 
 
-  await supabaseClient.auth.signOut();
+  await supabaseClient.auth
+    .signOut();
+
 
   close();
 
@@ -42387,37 +43147,51 @@ window.IGD.driverLogout =
 
 
 /* =========================================================
-   SEGUIMIENTO CLIENTE
+   CLIENTE
    ========================================================= */
 
 async function customerTracking(){
 
   modal(`
 
-    <h2>📍 Seguir mi pedido</h2>
+    <h2>
+      📍 Seguir mi pedido
+    </h2>
+
 
     <p>
-      Introduce el número de pedido.
+      Introduce el número de pedido
+      para consultar su estado.
     </p>
+
 
     <div class="ig-d-field">
 
-      <label>Número de pedido</label>
+      <label>
+        Número de pedido
+      </label>
 
       <input
         id="igdCustomerOrder"
         inputmode="numeric"
-        placeholder="Ejemplo: 1750000000000">
+        placeholder="Número de pedido">
 
     </div>
 
+
     <button
       class="ig-delivery-btn blue"
+      type="button"
       onclick="IGD.findCustomerOrder()">
+
       🔎 Buscar pedido
+
     </button>
 
-    <div id="igdCustomerResult"></div>
+
+    <div
+      id="igdCustomerResult">
+    </div>
 
   `);
 
@@ -42435,8 +43209,14 @@ async function findCustomerOrder(){
       .getElementById(
         "igdCustomerOrder"
       )
-      .value
+      ?.value
       .trim();
+
+
+  const box =
+    document.getElementById(
+      "igdCustomerResult"
+    );
 
 
   if(!orderNumber){
@@ -42450,60 +43230,110 @@ async function findCustomerOrder(){
   }
 
 
-  const result =
+  if(!box)return;
+
+
+  box.innerHTML =
+    "<p>Buscando...</p>";
+
+
+  const order =
     await supabaseClient
-      .from("ig_delivery_tracking")
-      .select(`
-        *,
-        ig_orders(
-          order_number,
-          customer_name
-        )
-      `)
+      .from(
+        "ig_orders"
+      )
+      .select(
+        "id,order_number,customer_name"
+      )
       .eq(
-        "ig_orders.order_number",
+        "order_number",
         orderNumber
       )
       .maybeSingle();
 
 
-  const box =
-    document.getElementById(
-      "igdCustomerResult"
-    );
-
-
-  if(result.error){
+  if(order.error){
 
     box.innerHTML =
       '<p class="ig-d-error">'+
-      esc(result.error.message)+
-      '</p>';
+      esc(
+        order.error.message
+      )+
+      "</p>";
 
     return;
 
   }
 
 
-  if(!result.data){
+  if(!order.data){
 
     box.innerHTML =
       '<p class="ig-d-error">'+
-      'No encontramos un seguimiento activo para ese pedido.'+
-      '</p>';
+      "No encontramos ese pedido."+
+      "</p>";
 
     return;
 
   }
+
+
+  const tracking =
+    await supabaseClient
+      .from(
+        "ig_delivery_tracking"
+      )
+      .select("*")
+      .eq(
+        "order_id",
+        order.data.id
+      )
+      .maybeSingle();
+
+
+  if(tracking.error){
+
+    box.innerHTML =
+      '<p class="ig-d-error">'+
+      esc(
+        tracking.error.message
+      )+
+      "</p>";
+
+    return;
+
+  }
+
+
+  if(!tracking.data){
+
+    box.innerHTML =
+      '<p class="ig-d-error">'+
+      "Ese pedido todavía no tiene un seguimiento preparado."+
+      "</p>";
+
+    return;
+
+  }
+
+
+  const data = {
+
+    ...tracking.data,
+
+    ig_orders:
+      order.data
+
+  };
 
 
   renderCustomerTracking(
-    result.data
+    data
   );
 
 
   subscribeCustomer(
-    result.data.order_id
+    data.order_id
   );
 
 }
@@ -42513,9 +43343,38 @@ window.IGD.findCustomerOrder =
   findCustomerOrder;
 
 
-/* =========================================================
-   CLIENTE
-   ========================================================= */
+function customerStatusText(
+  status
+){
+
+  const map = {
+
+    pending:
+      "Preparando envío",
+
+    price_proposed:
+      "Precio propuesto",
+
+    accepted:
+      "Envío aceptado",
+
+    tracking:
+      "En reparto",
+
+    delivered:
+      "Entrega finalizada"
+
+  };
+
+
+  return (
+    map[status] ||
+    status ||
+    "Sin estado"
+  );
+
+}
+
 
 function renderCustomerTracking(
   data
@@ -42526,6 +43385,7 @@ function renderCustomerTracking(
       "igdCustomerResult"
     );
 
+
   if(!box)return;
 
 
@@ -42533,27 +43393,78 @@ function renderCustomerTracking(
 
     <div class="ig-d-card">
 
-      <strong>Pedido:</strong>
+      <strong>
+        Pedido:
+      </strong>
+
       #${esc(
         data.ig_orders?.order_number
       )}
 
       <br>
 
-      <strong>Estado:</strong>
-      ${esc(data.status)}
+
+      <strong>
+        Estado:
+      </strong>
+
+      ${esc(
+        customerStatusText(
+          data.status
+        )
+      )}
 
       <br>
 
-      <strong>Distancia del recorrido:</strong>
+
+      <strong>
+        Ruta aproximada:
+      </strong>
+
       ${Number(
         data.estimated_km || 0
       ).toFixed(2)}
       km
 
+
+      ${
+        data.tracking_active &&
+        data.current_lat
+
+        ?
+
+        '<p class="ig-d-ok">'+
+        '📍 El conductor está realizando el seguimiento GPS.'+
+        '</p>'
+
+        :
+
+        ""
+
+      }
+
+
+      ${
+        data.status ===
+        "delivered"
+
+        ?
+
+        '<p class="ig-d-ok">'+
+        '✅ Pedido entregado.'+
+        '</p>'
+
+        :
+
+        ""
+
+      }
+
     </div>
 
-    <div id="igDeliveryMap"></div>
+
+    <div id="igDeliveryMap">
+    </div>
 
   `;
 
@@ -42564,20 +43475,51 @@ function renderCustomerTracking(
   ){
 
     showMap(
+
       {
-        lat:Number(data.pickup_lat),
-        lng:Number(data.pickup_lng)
+
+        lat:Number(
+          data.pickup_lat
+        ),
+
+        lng:Number(
+          data.pickup_lng
+        )
+
       },
+
       {
-        lat:Number(data.delivery_lat),
-        lng:Number(data.delivery_lng)
+
+        lat:Number(
+          data.delivery_lat
+        ),
+
+        lng:Number(
+          data.delivery_lng
+        )
+
       },
+
       data.current_lat
-        ? {
-            lat:Number(data.current_lat),
-            lng:Number(data.current_lng)
-          }
-        : null
+
+      ?
+
+      {
+
+        lat:Number(
+          data.current_lat
+        ),
+
+        lng:Number(
+          data.current_lng
+        )
+
+      }
+
+      :
+
+      null
+
     );
 
   }
@@ -42585,42 +43527,69 @@ function renderCustomerTracking(
 }
 
 
-/* =========================================================
-   REALTIME CLIENTE
-   ========================================================= */
-
 function subscribeCustomer(
   orderId
 ){
 
-  supabaseClient
-    .channel(
-      "ig-tracking-"+orderId
-    )
-    .on(
-      "postgres_changes",
-      {
-        event:"UPDATE",
-        schema:"public",
-        table:"ig_delivery_tracking",
-        filter:
-          "order_id=eq."+orderId
-      },
-      function(payload){
+  if(
+    igdCustomerChannel
+  ){
 
-        renderCustomerTracking(
-          payload.new
-        );
+    supabaseClient
+      .removeChannel(
+        igdCustomerChannel
+      );
 
-      }
-    )
-    .subscribe();
+    igdCustomerChannel =
+      null;
+
+  }
+
+
+  igdCustomerChannel =
+    supabaseClient
+      .channel(
+        "ig-customer-tracking-"+
+        orderId+
+        "-"+
+        Date.now()
+      )
+      .on(
+
+        "postgres_changes",
+
+        {
+
+          event:
+            "UPDATE",
+
+          schema:
+            "public",
+
+          table:
+            "ig_delivery_tracking",
+
+          filter:
+            "order_id=eq."+orderId
+
+        },
+
+        function(payload){
+
+          renderCustomerTracking(
+            payload.new
+          );
+
+        }
+
+      )
+      .subscribe();
 
 }
 
 
 /* =========================================================
-   INSTRUCCIONES CONDUCTOR
+   INSTRUCCIONES
    ========================================================= */
 
 function driverInstructions(){
@@ -42629,55 +43598,93 @@ function driverInstructions(){
 
     <div class="ig-d-card">
 
-      <h3>📖 Instrucciones para el conductor</h3>
+      <h3>
+        📖 Instrucciones para el conductor
+      </h3>
+
 
       <ol>
 
         <li>
-          Entra en <strong>🚚 Conductor</strong>
+          Entra en
+          <strong>
+            🚚 Conductor
+          </strong>
           con tu correo y contraseña.
         </li>
 
+
         <li>
-          Revisa el cliente, dirección,
+          Revisa cliente,
+          teléfono,
+          retiro,
+          entrega,
           entrecalles y referencia.
         </li>
 
-        <li>
-          Pulsa <strong>🗺️ Ver ruta</strong>
-          para revisar el recorrido y los kilómetros.
-        </li>
 
         <li>
-          Antes de aceptar puedes consultar
-          la distancia y preparar el envío.
+          Pulsa
+          <strong>
+            🗺️ Ver ruta
+          </strong>
+          para revisar el recorrido
+          antes de aceptar.
         </li>
 
-        <li>
-          Introduce el
-          <strong>💰 Precio del envío</strong>
-          y pulsa <strong>📤 Enviar precio</strong>.
-        </li>
 
         <li>
-          Cuando el envío esté aceptado,
-          pulsa <strong>▶️ Iniciar seguimiento GPS</strong>.
+          Introduce
+          <strong>
+            💰 Precio del envío
+          </strong>
+          y pulsa
+          <strong>
+            📤 Enviar precio
+          </strong>.
         </li>
 
-        <li>
-          El cliente podrá ver tu posición
-          mientras el GPS esté activo.
-        </li>
 
         <li>
-          Al entregar el pedido,
-          pulsa <strong>⏹️ Finalizar entrega</strong>.
+          Cuando corresponda,
+          pulsa
+          <strong>
+            ✅ Aceptar envío
+          </strong>.
         </li>
 
+
         <li>
-          Si falla el GPS o Internet,
-          avisa al administrador antes de
-          finalizar la entrega.
+          El GPS real
+          <strong>
+            NO empieza automáticamente
+          </strong>.
+        </li>
+
+
+        <li>
+          Cuando estés listo,
+          pulsa
+          <strong>
+            ▶️ Iniciar seguimiento
+          </strong>.
+        </li>
+
+
+        <li>
+          Mientras el seguimiento
+          esté activo,
+          el cliente podrá ver
+          tu ubicación aproximada.
+        </li>
+
+
+        <li>
+          Al terminar,
+          pulsa
+          <strong>
+            ⏹️ Finalizar entrega
+          </strong>.
         </li>
 
       </ol>
@@ -42690,36 +43697,37 @@ function driverInstructions(){
 
 
 /* =========================================================
-   ADMINISTRACIÓN
+   COMPROBAR ADMIN
    ========================================================= */
 
-async function openAdminDelivery(){
+async function isAdmin(){
 
-  const {
-    data
-  } =
-    await supabaseClient.auth.getSession();
+  const session =
+    await supabaseClient.auth
+      .getSession();
 
 
-  if(!data.session){
+  if(
+    !session.data.session
+  ){
 
-    alert(
-      "Debes iniciar sesión como administrador."
-    );
-
-    return;
+    return false;
 
   }
 
 
   const user =
-    data.session.user;
+    session.data.session.user;
 
 
-  const admin =
+  const result =
     await supabaseClient
-      .from("ig_admins")
-      .select("user_id")
+      .from(
+        "ig_admins"
+      )
+      .select(
+        "user_id"
+      )
       .eq(
         "user_id",
         user.id
@@ -42727,9 +43735,19 @@ async function openAdminDelivery(){
       .maybeSingle();
 
 
+  return !!result.data;
+
+}
+
+
+/* =========================================================
+   ADMINISTRACIÓN
+   ========================================================= */
+
+async function openAdminDelivery(){
+
   if(
-    admin.error ||
-    !admin.data
+    !(await isAdmin())
   ){
 
     alert(
@@ -42743,15 +43761,22 @@ async function openAdminDelivery(){
 
   const config =
     await supabaseClient
-      .from("ig_driver_config")
+      .from(
+        "ig_driver_config"
+      )
       .select("*")
-      .eq("id",1)
+      .eq(
+        "id",
+        1
+      )
       .maybeSingle();
 
 
   const orders =
     await supabaseClient
-      .from("ig_orders")
+      .from(
+        "ig_orders"
+      )
       .select(`
         id,
         order_number,
@@ -42770,24 +43795,50 @@ async function openAdminDelivery(){
 
   modal(`
 
-    <h2>🚚 Envíos</h2>
+    <h2>
+      🚚 Envíos
+    </h2>
+
 
     <div class="ig-d-card">
 
-      <h3>🚚 Permiso del conductor</h3>
+      <h3>
+        🚚 Conductor
+      </h3>
+
 
       <div class="ig-d-field">
 
-        <label>Correo del conductor</label>
+        <label>
+          Correo del conductor
+        </label>
 
         <input
           id="igdAdminDriverEmail"
           type="email"
           value="${esc(
-            config.data?.driver_email || ""
-          )}">
+            config.data?.driver_email ||
+            ""
+          )}"
+          autocomplete="username">
 
       </div>
+
+
+      <div class="ig-d-field">
+
+        <label>
+          Nueva contraseña del conductor
+        </label>
+
+        <input
+          id="igdAdminDriverPassword"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Mínimo 6 caracteres">
+
+      </div>
+
 
       <label>
 
@@ -42796,61 +43847,90 @@ async function openAdminDelivery(){
           type="checkbox"
           ${
             config.data?.enabled
-              ? "checked"
-              : ""
+            ? "checked"
+            : ""
           }>
 
         Conductor habilitado
 
       </label>
 
+
       <div class="ig-d-actions">
 
         <button
           class="ig-delivery-btn green"
+          type="button"
           onclick="IGD.saveDriverConfig()">
-          💾 Guardar conductor
-        </button>
 
-        <button
-          class="ig-delivery-btn"
-          onclick="IGD.sendDriverPasswordReset()">
-          🔑 Cambiar contraseña
+          💾 Guardar conductor
+
         </button>
 
       </div>
+
+
+      <p class="ig-d-muted">
+
+        La contraseña se gestiona
+        directamente desde el Administrador.
+        No se utiliza ningún enlace
+        de recuperación.
+
+      </p>
 
     </div>
 
 
     <div class="ig-d-card">
 
-      <h3>📦 Preparar envío</h3>
+      <h3>
+        📦 Preparar envío
+      </h3>
+
 
       <div class="ig-d-field">
 
-        <label>Pedido</label>
+        <label>
+          Pedido
+        </label>
 
-        <select id="igdAdminOrder">
+        <select
+          id="igdAdminOrder">
 
           <option value="">
             Seleccionar pedido
           </option>
 
           ${
-            (orders.data || [])
-              .map(function(order){
+            (
+              orders.data || []
+            )
+            .map(
+              function(order){
 
                 return `
-                  <option value="${esc(order.id)}">
-                    #${esc(order.order_number)}
+
+                  <option
+                    value="${esc(
+                      order.id
+                    )}">
+
+                    #${esc(
+                      order.order_number
+                    )}
                     —
-                    ${esc(order.customer_name)}
+                    ${esc(
+                      order.customer_name
+                    )}
+
                   </option>
+
                 `;
 
-              })
-              .join("")
+              }
+            )
+            .join("")
           }
 
         </select>
@@ -42860,66 +43940,81 @@ async function openAdminDelivery(){
 
       <div class="ig-d-field">
 
-        <label>Dirección de retiro</label>
+        <label>
+          Dirección exacta de retiro
+        </label>
 
         <input
           id="igdAdminPickup"
-          placeholder="Dirección exacta de retiro">
+          placeholder="Calle, número y localidad">
 
       </div>
 
 
       <div class="ig-d-field">
 
-        <label>Dirección de entrega</label>
+        <label>
+          Dirección exacta de entrega
+        </label>
 
         <input
           id="igdAdminDelivery"
-          placeholder="Calle y número, localidad">
+          placeholder="Calle, número y localidad">
 
       </div>
 
 
       <div class="ig-d-field">
 
-        <label>Entrecalles</label>
+        <label>
+          Entrecalles
+        </label>
 
         <input
           id="igdAdminCross"
-          placeholder="Ejemplo: entre Calle A y Calle B">
+          placeholder="Entre Calle A y Calle B">
 
       </div>
 
 
       <div class="ig-d-field">
 
-        <label>Referencia</label>
+        <label>
+          Referencia / nota
+        </label>
 
         <textarea
           id="igdAdminReference"
           rows="3"
-          placeholder="Casa, portón, piso, local, etc."></textarea>
+          placeholder="Casa, portón, piso, local, etc.">
+        </textarea>
 
       </div>
 
 
       <div class="ig-d-field">
 
-        <label>Precio administrador</label>
+        <label>
+          Precio del administrador
+        </label>
 
         <input
           id="igdAdminPrice"
           type="number"
           min="0"
-          step="0.01">
+          step="0.01"
+          placeholder="Opcional">
 
       </div>
 
 
       <button
         class="ig-delivery-btn green"
+        type="button"
         onclick="IGD.saveShipment()">
-        📦 Guardar envío
+
+        📦 Guardar y asignar envío
+
       </button>
 
     </div>
@@ -42927,7 +44022,9 @@ async function openAdminDelivery(){
 
     <div class="ig-d-card">
 
-      <h3>📋 Envío actual</h3>
+      <h3>
+        📋 Envío actual
+      </h3>
 
       <div id="igdAdminCurrent">
         Cargando...
@@ -42948,7 +44045,7 @@ window.IGD.openAdminDelivery =
 
 
 /* =========================================================
-   GUARDAR CONFIGURACIÓN CONDUCTOR
+   GUARDAR CONDUCTOR + CONTRASEÑA
    ========================================================= */
 
 async function saveDriverConfig(){
@@ -42958,8 +44055,18 @@ async function saveDriverConfig(){
       .getElementById(
         "igdAdminDriverEmail"
       )
-      .value
-      .trim();
+      ?.value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById(
+        "igdAdminDriverPassword"
+      )
+      ?.value ||
+      "";
 
 
   const enabled =
@@ -42967,95 +44074,177 @@ async function saveDriverConfig(){
       .getElementById(
         "igdAdminDriverEnabled"
       )
-      .checked;
+      ?.checked;
 
 
-  const result =
-    await supabaseClient
-      .from("ig_driver_config")
-      .upsert({
-        id:1,
-        enabled,
-        driver_email:email,
-        updated_at:
-          new Date().toISOString()
-      });
+  if(!email){
 
-
-  if(result.error){
-
-    alert(result.error.message);
+    alert(
+      "Indica el correo del conductor."
+    );
 
     return;
 
   }
 
 
+  if(
+    password &&
+    password.length < 6
+  ){
+
+    alert(
+      "La contraseña debe tener al menos 6 caracteres."
+    );
+
+    return;
+
+  }
+
+
+  const config =
+    await supabaseClient
+      .from(
+        "ig_driver_config"
+      )
+      .upsert({
+
+        id:1,
+
+        enabled:
+          !!enabled,
+
+        driver_email:
+          email,
+
+        updated_at:
+          new Date().toISOString()
+
+      });
+
+
+  if(config.error){
+
+    alert(
+      config.error.message
+    );
+
+    return;
+
+  }
+
+
+  if(password){
+
+    const session =
+      await supabaseClient.auth
+        .getSession();
+
+
+    const token =
+      session.data.session
+        ?.access_token;
+
+
+    if(!token){
+
+      alert(
+        "La sesión del administrador no está activa."
+      );
+
+      return;
+
+    }
+
+
+    const response =
+      await fetch(
+
+        DRIVER_PASSWORD_FUNCTION,
+
+        {
+
+          method:
+            "POST",
+
+          headers:{
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              "Bearer "+
+              token
+
+          },
+
+          body:
+            JSON.stringify({
+
+              email:
+                email,
+
+              password:
+                password
+
+            })
+
+        }
+
+      );
+
+
+    let data = {};
+
+
+    try{
+
+      data =
+        await response.json();
+
+    }catch(error){}
+
+
+    if(!response.ok){
+
+      alert(
+        data.error ||
+        "No se pudo guardar la contraseña."
+      );
+
+      return;
+
+    }
+
+
+    const passwordInput =
+      document.getElementById(
+        "igdAdminDriverPassword"
+      );
+
+
+    if(passwordInput){
+
+      passwordInput.value =
+        "";
+
+    }
+
+  }
+
+
   alert(
-    "✅ Configuración del conductor guardada."
+    "✅ Conductor guardado correctamente."
   );
+
+
+  await checkDriverButton();
 
 }
 
 
 window.IGD.saveDriverConfig =
   saveDriverConfig;
-
-
-/* =========================================================
-   CAMBIO DE CONTRASEÑA
-   ========================================================= */
-
-async function sendDriverPasswordReset(){
-
-  const email =
-    document
-      .getElementById(
-        "igdAdminDriverEmail"
-      )
-      .value
-      .trim();
-
-
-  if(!email){
-
-    alert(
-      "Primero indica el correo del conductor."
-    );
-
-    return;
-
-  }
-
-
-  const result =
-    await supabaseClient.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo:
-          window.location.origin
-      }
-    );
-
-
-  if(result.error){
-
-    alert(result.error.message);
-
-    return;
-
-  }
-
-
-  alert(
-    "✅ Se envió al conductor un enlace seguro para cambiar su contraseña."
-  );
-
-}
-
-
-window.IGD.sendDriverPasswordReset =
-  sendDriverPasswordReset;
 
 
 /* =========================================================
@@ -43069,7 +44258,54 @@ async function saveShipment(){
       .getElementById(
         "igdAdminOrder"
       )
-      .value;
+      ?.value;
+
+
+  const pickup =
+    document
+      .getElementById(
+        "igdAdminPickup"
+      )
+      ?.value
+      .trim();
+
+
+  const delivery =
+    document
+      .getElementById(
+        "igdAdminDelivery"
+      )
+      ?.value
+      .trim();
+
+
+  const cross =
+    document
+      .getElementById(
+        "igdAdminCross"
+      )
+      ?.value
+      .trim();
+
+
+  const reference =
+    document
+      .getElementById(
+        "igdAdminReference"
+      )
+      ?.value
+      .trim();
+
+
+  const adminPrice =
+    Number(
+      document
+        .getElementById(
+          "igdAdminPrice"
+        )
+        ?.value ||
+      0
+    );
 
 
   if(!orderId){
@@ -43083,56 +44319,13 @@ async function saveShipment(){
   }
 
 
-  const pickup =
-    document
-      .getElementById(
-        "igdAdminPickup"
-      )
-      .value
-      .trim();
-
-
-  const delivery =
-    document
-      .getElementById(
-        "igdAdminDelivery"
-      )
-      .value
-      .trim();
-
-
-  const cross =
-    document
-      .getElementById(
-        "igdAdminCross"
-      )
-      .value
-      .trim();
-
-
-  const reference =
-    document
-      .getElementById(
-        "igdAdminReference"
-      )
-      .value
-      .trim();
-
-
-  const adminPrice =
-    Number(
-      document
-        .getElementById(
-          "igdAdminPrice"
-        )
-        .value || 0
-    );
-
-
-  if(!pickup || !delivery){
+  if(
+    !pickup ||
+    !delivery
+  ){
 
     alert(
-      "Indica las direcciones de retiro y entrega."
+      "Indica las direcciones exactas de retiro y entrega."
     );
 
     return;
@@ -43142,9 +44335,16 @@ async function saveShipment(){
 
   const driverConfig =
     await supabaseClient
-      .from("ig_driver_config")
-      .select("driver_email,enabled")
-      .eq("id",1)
+      .from(
+        "ig_driver_config"
+      )
+      .select(
+        "driver_email,enabled"
+      )
+      .eq(
+        "id",
+        1
+      )
       .maybeSingle();
 
 
@@ -43187,37 +44387,50 @@ async function saveShipment(){
   }
 
 
-  let estimatedKm = null;
+  let estimatedKm =
+    null;
 
 
   try{
 
     const route =
       await getRoute(
+
         pickupGeo.lat,
         pickupGeo.lng,
+
         deliveryGeo.lat,
         deliveryGeo.lng
+
       );
+
 
     estimatedKm =
       Number(
-        route.distance/1000
+        route.distance /
+        1000
       ).toFixed(2);
+
 
   }catch(error){
 
-    console.warn(error);
+    console.warn(
+      "Ruta:",
+      error
+    );
 
   }
 
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .upsert({
 
-        order_id:orderId,
+        order_id:
+          orderId,
 
         driver_email:
           driverConfig.data.driver_email,
@@ -43255,10 +44468,36 @@ async function saveShipment(){
         estimated_km:
           estimatedKm,
 
-        admin_price:
-          adminPrice || null,
+        driver_price:
+          null,
 
-        tracking_active:false,
+        accepted_price:
+          null,
+
+        tracking_active:
+          false,
+
+        current_lat:
+          null,
+
+        current_lng:
+          null,
+
+        driven_km:
+          0,
+
+        route_points:
+          [],
+
+        tracking_started_at:
+          null,
+
+        tracking_finished_at:
+          null,
+
+        admin_price:
+          adminPrice ||
+          null,
 
         updated_at:
           new Date().toISOString()
@@ -43268,7 +44507,9 @@ async function saveShipment(){
 
   if(result.error){
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
 
@@ -43290,7 +44531,7 @@ window.IGD.saveShipment =
 
 
 /* =========================================================
-   MOSTRAR ENVÍO ADMIN
+   ADMIN - ENVÍO ACTUAL
    ========================================================= */
 
 async function loadAdminShipment(){
@@ -43300,12 +44541,15 @@ async function loadAdminShipment(){
       "igdAdminCurrent"
     );
 
+
   if(!box)return;
 
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .select(`
         *,
         ig_orders(
@@ -43328,8 +44572,10 @@ async function loadAdminShipment(){
 
     box.innerHTML =
       '<p class="ig-d-error">'+
-      esc(result.error.message)+
-      '</p>';
+      esc(
+        result.error.message
+      )+
+      "</p>";
 
     return;
 
@@ -43358,6 +44604,7 @@ async function loadAdminShipment(){
       )}
     </strong>
 
+
     <p>
       Cliente:
       ${esc(
@@ -43365,56 +44612,137 @@ async function loadAdminShipment(){
       )}
     </p>
 
+
     <p>
       Estado:
-      <strong>${esc(data.status)}</strong>
+      <strong>
+        ${esc(
+          customerStatusText(
+            data.status
+          )
+        )}
+      </strong>
     </p>
+
 
     <p>
       Precio conductor:
-      ${money(data.driver_price)}
+      ${money(
+        data.driver_price
+      )}
     </p>
+
 
     <p>
       Precio administrador:
-      ${money(data.admin_price)}
+      ${money(
+        data.admin_price
+      )}
     </p>
 
+
     <p>
-      Kilómetros previstos:
+      Precio aceptado:
+      ${money(
+        data.accepted_price
+      )}
+    </p>
+
+
+    <p>
+      Ruta prevista:
       ${Number(
-        data.estimated_km || 0
+        data.estimated_km ||
+        0
       ).toFixed(2)}
       km
     </p>
 
+
+    ${
+      data.tracking_active
+
+      ?
+
+      '<p class="ig-d-ok">'+
+      '📍 GPS activo ahora.'+
+      '</p>'
+
+      :
+
+      ""
+
+    }
+
+
     ${
       data.current_lat
-      ? `
-        <p class="ig-d-ok">
-          📍 GPS activo
-        </p>
-      `
-      : ""
+
+      ?
+
+      '<p class="ig-d-ok">'+
+      '📍 Hay una última posición GPS registrada.'+
+      '</p>'
+
+      :
+
+      ""
+
     }
+
 
     <div class="ig-d-actions">
 
       <button
         class="ig-delivery-btn blue"
+        type="button"
         onclick="IGD.adminRoute()">
+
         🗺️ Ver ruta
+
       </button>
 
-      <button
-        class="ig-delivery-btn red"
-        onclick="IGD.deleteShipment('${esc(data.order_id)}')">
-        🗑️ BORRAR ENVÍO COMPLETAMENTE
-      </button>
+
+      ${
+        data.status === "delivered"
+
+        ?
+
+        `
+
+        <button
+          class="ig-delivery-btn red"
+          type="button"
+          onclick="IGD.deleteShipment('${esc(
+            data.order_id
+          )}')">
+
+          🗑️ BORRAR ENVÍO COMPLETAMENTE
+
+        </button>
+
+        `
+
+        :
+
+        ""
+
+      }
 
     </div>
 
   `;
+
+
+  if(
+    data.tracking_active
+  ){
+
+    subscribeAdminTracking(
+      data.order_id
+    );
+
+  }
 
 }
 
@@ -43431,7 +44759,9 @@ async function adminRoute(){
 
   const result =
     await supabaseClient
-      .from("ig_delivery_tracking")
+      .from(
+        "ig_delivery_tracking"
+      )
       .select("*")
       .order(
         "updated_at",
@@ -43463,93 +44793,195 @@ async function adminRoute(){
 
   modal(`
 
-    <h2>🗺️ Ruta del envío</h2>
+    <h2>
+      🗺️ Ruta del envío
+    </h2>
+
 
     <p>
+
       Distancia prevista:
+
       <strong id="igDeliveryKm">
+
         ${Number(
-          data.estimated_km || 0
+          data.estimated_km ||
+          0
         ).toFixed(2)}
         km
+
       </strong>
+
     </p>
 
-    <div id="igDeliveryMap"></div>
+
+    ${
+      data.tracking_active
+
+      ?
+
+      '<p class="ig-d-ok">'+
+      '📍 GPS del conductor activo.'+
+      '</p>'
+
+      :
+
+      '<p class="ig-d-muted">'+
+      'El GPS se mostrará cuando el conductor inicie el seguimiento.'+
+      '</p>'
+
+    }
+
+
+    <div id="igDeliveryMap">
+    </div>
+
+
+    <div class="ig-d-actions">
+
+      <button
+        class="ig-delivery-btn"
+        type="button"
+        onclick="IGD.openAdminDelivery()">
+
+        ← Volver
+
+      </button>
+
+    </div>
 
   `);
 
 
-  showMap(
+  await showMap(
+
     {
-      lat:Number(data.pickup_lat),
-      lng:Number(data.pickup_lng)
+      lat:Number(
+        data.pickup_lat
+      ),
+      lng:Number(
+        data.pickup_lng
+      )
     },
+
     {
-      lat:Number(data.delivery_lat),
-      lng:Number(data.delivery_lng)
+      lat:Number(
+        data.delivery_lat
+      ),
+      lng:Number(
+        data.delivery_lng
+      )
     },
+
     data.current_lat
-      ? {
-          lat:Number(data.current_lat),
-          lng:Number(data.current_lng)
-        }
-      : null
+
+    ?
+
+    {
+      lat:Number(
+        data.current_lat
+      ),
+      lng:Number(
+        data.current_lng
+      )
+    }
+
+    :
+
+    null
+
   );
 
 
-  if(
-    data.tracking_active
-  ){
-
-    updateDriverMarker(
-      Number(data.current_lat),
-      Number(data.current_lng)
-    );
-
-  }
-
-
-  supabaseClient
-    .channel(
-      "ig-admin-tracking"
-    )
-    .on(
-      "postgres_changes",
-      {
-        event:"UPDATE",
-        schema:"public",
-        table:"ig_delivery_tracking",
-        filter:
-          "order_id=eq."+data.order_id
-      },
-      function(payload){
-
-        if(
-          payload.new.current_lat &&
-          payload.new.current_lng
-        ){
-
-          updateDriverMarker(
-            Number(
-              payload.new.current_lat
-            ),
-            Number(
-              payload.new.current_lng
-            )
-          );
-
-        }
-
-      }
-    )
-    .subscribe();
+  subscribeAdminTracking(
+    data.order_id
+  );
 
 }
 
 
 window.IGD.adminRoute =
   adminRoute;
+
+
+function subscribeAdminTracking(
+  orderId
+){
+
+  if(
+    igdAdminChannel
+  ){
+
+    supabaseClient
+      .removeChannel(
+        igdAdminChannel
+      );
+
+    igdAdminChannel =
+      null;
+
+  }
+
+
+  igdAdminChannel =
+    supabaseClient
+      .channel(
+        "ig-admin-tracking-"+
+        orderId+
+        "-"+
+        Date.now()
+      )
+      .on(
+
+        "postgres_changes",
+
+        {
+
+          event:
+            "UPDATE",
+
+          schema:
+            "public",
+
+          table:
+            "ig_delivery_tracking",
+
+          filter:
+            "order_id=eq."+orderId
+
+        },
+
+        function(payload){
+
+          const data =
+            payload.new;
+
+
+          if(
+            data.current_lat &&
+            data.current_lng
+          ){
+
+            updateDriverMarker(
+
+              Number(
+                data.current_lat
+              ),
+
+              Number(
+                data.current_lng
+              )
+
+            );
+
+          }
+
+        }
+
+      )
+      .subscribe();
+
+}
 
 
 /* =========================================================
@@ -43561,28 +44993,11 @@ async function deleteShipment(
 ){
 
   if(
-    !confirm(
-      "¿Borrar completamente este envío? Esta acción eliminará los datos del pedido, seguimiento GPS y recorrido. No se puede deshacer."
-    )
+    !(await isAdmin())
   ){
-    return;
-  }
-
-
-  const result =
-    await supabaseClient
-      .from("ig_delivery_tracking")
-      .delete()
-      .eq(
-        "order_id",
-        orderId
-      );
-
-
-  if(result.error){
 
     alert(
-      result.error.message
+      "No tienes permisos de administrador."
     );
 
     return;
@@ -43590,9 +45005,47 @@ async function deleteShipment(
   }
 
 
-  const orderDelete =
+  if(
+
+    !confirm(
+      "¿Borrar COMPLETAMENTE este envío y el pedido asociado? Esta acción no se puede deshacer."
+    )
+
+  ){
+
+    return;
+
+  }
+
+
+  const tracking =
     await supabaseClient
-      .from("ig_orders")
+      .from(
+        "ig_delivery_tracking"
+      )
+      .delete()
+      .eq(
+        "order_id",
+        orderId
+      );
+
+
+  if(tracking.error){
+
+    alert(
+      tracking.error.message
+    );
+
+    return;
+
+  }
+
+
+  const order =
+    await supabaseClient
+      .from(
+        "ig_orders"
+      )
       .delete()
       .eq(
         "id",
@@ -43600,11 +45053,11 @@ async function deleteShipment(
       );
 
 
-  if(orderDelete.error){
+  if(order.error){
 
     alert(
-      "El seguimiento GPS fue borrado, pero el pedido no pudo eliminarse: "+
-      orderDelete.error.message
+      "El seguimiento fue borrado, pero el pedido no pudo eliminarse: "+
+      order.error.message
     );
 
     return;
@@ -43613,7 +45066,7 @@ async function deleteShipment(
 
 
   alert(
-    "✅ Envío eliminado completamente."
+    "✅ Envío y pedido eliminados completamente."
   );
 
 
@@ -43627,112 +45080,7 @@ window.IGD.deleteShipment =
 
 
 /* =========================================================
-   BOTONES
-   ========================================================= */
-
-document.addEventListener(
-  "click",
-  function(event){
-
-    const driver =
-      event.target.closest(
-        "#igDriverButton"
-      );
-
-    if(driver){
-
-      openDriver();
-
-      return;
-
-    }
-
-
-    const customer =
-      event.target.closest(
-        "#igCustomerTrackingButton"
-      );
-
-    if(customer){
-
-      customerTracking();
-
-      return;
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   BOTÓN CONDUCTOR
-   ========================================================= */
-
-async function checkDriverButton(){
-
-  const button =
-    document.getElementById(
-      "igDriverButton"
-    );
-
-  if(!button)return;
-
-
-  const session =
-    await supabaseClient.auth.getSession();
-
-
-  if(!session.data.session){
-
-    const config =
-      await supabaseClient
-        .from("ig_driver_config")
-        .select("enabled")
-        .eq("id",1)
-        .maybeSingle();
-
-
-    button.style.display =
-      config.data?.enabled
-        ? "block"
-        : "none";
-
-    return;
-
-  }
-
-
-  const email =
-    session.data.session.user.email;
-
-
-  const config =
-    await supabaseClient
-      .from("ig_driver_config")
-      .select("*")
-      .eq("id",1)
-      .maybeSingle();
-
-
-  if(
-    config.data?.enabled &&
-    config.data?.driver_email === email
-  ){
-
-    button.style.display =
-      "block";
-
-  }
-
-}
-
-
-checkDriverButton();
-
-
-/* =========================================================
-   BOTÓN ADMINISTRADOR
+   BOTÓN ADMIN
    ========================================================= */
 
 function createAdminDeliveryButton(){
@@ -43742,7 +45090,9 @@ function createAdminDeliveryButton(){
       "igAdminDeliveryButton"
     )
   ){
+
     return;
+
   }
 
 
@@ -43751,17 +45101,22 @@ function createAdminDeliveryButton(){
       "button"
     );
 
+
   button.id =
     "igAdminDeliveryButton";
+
 
   button.className =
     "button";
 
+
   button.type =
     "button";
 
+
   button.textContent =
     "🚚 Envíos";
+
 
   button.onclick =
     function(){
@@ -43795,18 +45150,23 @@ function createAdminDeliveryButton(){
 }
 
 
-let adminButtonAttempts=0;
+let adminButtonAttempts =
+  0;
+
 
 const adminButtonTimer =
   setInterval(
+
     function(){
 
       createAdminDeliveryButton();
 
       adminButtonAttempts++;
 
+
       if(
-        adminButtonAttempts>=30
+        adminButtonAttempts >=
+        30
       ){
 
         clearInterval(
@@ -43816,303 +45176,167 @@ const adminButtonTimer =
       }
 
     },
+
     1000
+
   );
 
 
 /* =========================================================
-   RECARGAR CONDUCTOR SI CAMBIA SESIÓN
+   VISIBILIDAD CONDUCTOR
    ========================================================= */
 
-supabaseClient.auth.onAuthStateChange(
-  function(){
+async function checkDriverButton(){
 
-    setTimeout(
-      checkDriverButton,
-      300
+  const button =
+    document.getElementById(
+      "igDriverButton"
     );
+
+
+  if(!button)return;
+
+
+  button.style.display =
+    "none";
+
+
+  const session =
+    await supabaseClient.auth
+      .getSession();
+
+
+  const config =
+    await supabaseClient
+      .from(
+        "ig_driver_config"
+      )
+      .select(
+        "enabled,driver_email"
+      )
+      .eq(
+        "id",
+        1
+      )
+      .maybeSingle();
+
+
+  if(
+    !config.data?.enabled
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !session.data.session
+  ){
+
+    button.style.display =
+      "block";
+
+    return;
+
+  }
+
+
+  const email =
+    session.data.session
+      .user
+      .email;
+
+
+  if(
+
+    String(
+      config.data.driver_email ||
+      ""
+    ).toLowerCase() ===
+
+    String(
+      email ||
+      ""
+    ).toLowerCase()
+
+  ){
+
+    button.style.display =
+      "block";
+
+  }
+
+}
+
+
+checkDriverButton();
+
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+
+document.addEventListener(
+  "click",
+  function(event){
+
+    const driver =
+      event.target.closest(
+        "#igDriverButton"
+      );
+
+
+    if(driver){
+
+      openDriver();
+
+      return;
+
+    }
+
+
+    const customer =
+      event.target.closest(
+        "#igCustomerTrackingButton"
+      );
+
+
+    if(customer){
+
+      customerTracking();
+
+      return;
+
+    }
 
   }
 );
+
+
+/* =========================================================
+   CAMBIO DE SESIÓN
+   ========================================================= */
+
+supabaseClient.auth
+  .onAuthStateChange(
+    function(){
+
+      setTimeout(
+        checkDriverButton,
+        300
+      );
+
+    }
+  );
 
 
 })();
 </script>
 
 <!-- =========================================================
-     FIN SISTEMA SIMPLE DE ENVÍOS + GPS
+     FIN MÓDULO COMPLETO DE ENVÍOS + GPS
      ========================================================= -->
-  <!-- =========================================================
-     REPARACIÓN: CONTRASEÑA DEL CONDUCTOR DESDE ADMIN
-     ========================================================= -->
-<script>
-(function(){
 
-  const FUNCTION_URL =
-    "https://hxtzlrsmjwrpqgjgbzyl.supabase.co/functions/v1/ig-admin-driver-password";
-
-
-  async function repararPasswordConductor(){
-
-    const emailInput =
-      document.getElementById("igdAdminDriverEmail");
-
-    if(!emailInput){
-      alert("No se encontró el campo del correo del conductor.");
-      return;
-    }
-
-
-    let passwordInput =
-      document.getElementById("igdAdminDriverPassword");
-
-
-    /*
-      Si el campo todavía no existe,
-      lo creamos automáticamente.
-    */
-    if(!passwordInput){
-
-      const actions =
-        emailInput.closest(".ig-d-card")
-          ?.querySelector(".ig-d-actions");
-
-      if(!actions){
-        alert("No se encontró la zona de configuración del conductor.");
-        return;
-      }
-
-
-      const field =
-        document.createElement("div");
-
-      field.className =
-        "ig-d-field";
-
-      field.innerHTML = `
-        <label>Contraseña del conductor</label>
-
-        <input
-          id="igdAdminDriverPassword"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Nueva contraseña">
-      `;
-
-      actions.parentNode.insertBefore(
-        field,
-        actions
-      );
-
-      passwordInput =
-        document.getElementById(
-          "igdAdminDriverPassword"
-        );
-    }
-
-
-    const email =
-      emailInput.value.trim().toLowerCase();
-
-    const password =
-      passwordInput.value;
-
-
-    if(!email){
-
-      alert(
-        "Indica primero el correo del conductor."
-      );
-
-      return;
-    }
-
-
-    if(!password || password.length < 6){
-
-      alert(
-        "La contraseña debe tener al menos 6 caracteres."
-      );
-
-      return;
-    }
-
-
-    const session =
-      await supabaseClient.auth.getSession();
-
-
-    const token =
-      session.data.session?.access_token;
-
-
-    if(!token){
-
-      alert(
-        "La sesión del administrador no está activa."
-      );
-
-      return;
-    }
-
-
-    const response =
-      await fetch(
-        FUNCTION_URL,
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "application/json",
-
-            "Authorization":
-              "Bearer " + token
-          },
-
-          body:JSON.stringify({
-            email:email,
-            password:password
-          })
-        }
-      );
-
-
-    let data = {};
-
-    try{
-      data = await response.json();
-    }catch(error){}
-
-
-    if(!response.ok){
-
-      alert(
-        data.error ||
-        "No se pudo cambiar la contraseña."
-      );
-
-      return;
-    }
-
-
-    passwordInput.value = "";
-
-
-    alert(
-      "✅ Contraseña del conductor guardada correctamente."
-    );
-
-  }
-
-
-  /*
-    Creamos un botón adicional dentro
-    de la zona del conductor.
-  */
-  function instalarBoton(){
-
-    const emailInput =
-      document.getElementById(
-        "igdAdminDriverEmail"
-      );
-
-    if(!emailInput)return;
-
-
-    const card =
-      emailInput.closest(".ig-d-card");
-
-    if(!card)return;
-
-
-    if(
-      document.getElementById(
-        "igRepairDriverPasswordButton"
-      )
-    ){
-      return;
-    }
-
-
-    const actions =
-      card.querySelector(".ig-d-actions");
-
-    if(!actions)return;
-
-
-    const button =
-      document.createElement("button");
-
-    button.id =
-      "igRepairDriverPasswordButton";
-
-    button.type =
-      "button";
-
-    button.className =
-      "ig-delivery-btn";
-
-    button.textContent =
-      "🔑 Guardar nueva contraseña";
-
-    button.onclick =
-      repararPasswordConductor;
-
-
-    actions.appendChild(button);
-
-
-    /*
-      Crear el campo inmediatamente
-      encima de los botones.
-    */
-    if(
-      !document.getElementById(
-        "igdAdminDriverPassword"
-      )
-    ){
-
-      const field =
-        document.createElement("div");
-
-      field.className =
-        "ig-d-field";
-
-      field.innerHTML = `
-        <label>Contraseña del conductor</label>
-
-        <input
-          id="igdAdminDriverPassword"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Nueva contraseña">
-      `;
-
-      actions.parentNode.insertBefore(
-        field,
-        actions
-      );
-    }
-
-  }
-
-
-  const timer =
-    setInterval(
-      instalarBoton,
-      500
-    );
-
-
-  setTimeout(
-    function(){
-      clearInterval(timer);
-    },
-    30000
-  );
-
-})();
-</script>
 </body>
 </html>
