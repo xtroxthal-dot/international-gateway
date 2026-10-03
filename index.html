@@ -43842,6 +43842,277 @@ supabaseClient.auth.onAuthStateChange(
 <!-- =========================================================
      FIN SISTEMA SIMPLE DE ENVÍOS + GPS
      ========================================================= -->
-  
+  <!-- =========================================================
+     REPARACIÓN: CONTRASEÑA DEL CONDUCTOR DESDE ADMIN
+     ========================================================= -->
+<script>
+(function(){
+
+  const FUNCTION_URL =
+    "https://hxtzlrsmjwrpqgjgbzyl.supabase.co/functions/v1/ig-admin-driver-password";
+
+
+  async function repararPasswordConductor(){
+
+    const emailInput =
+      document.getElementById("igdAdminDriverEmail");
+
+    if(!emailInput){
+      alert("No se encontró el campo del correo del conductor.");
+      return;
+    }
+
+
+    let passwordInput =
+      document.getElementById("igdAdminDriverPassword");
+
+
+    /*
+      Si el campo todavía no existe,
+      lo creamos automáticamente.
+    */
+    if(!passwordInput){
+
+      const actions =
+        emailInput.closest(".ig-d-card")
+          ?.querySelector(".ig-d-actions");
+
+      if(!actions){
+        alert("No se encontró la zona de configuración del conductor.");
+        return;
+      }
+
+
+      const field =
+        document.createElement("div");
+
+      field.className =
+        "ig-d-field";
+
+      field.innerHTML = `
+        <label>Contraseña del conductor</label>
+
+        <input
+          id="igdAdminDriverPassword"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Nueva contraseña">
+      `;
+
+      actions.parentNode.insertBefore(
+        field,
+        actions
+      );
+
+      passwordInput =
+        document.getElementById(
+          "igdAdminDriverPassword"
+        );
+    }
+
+
+    const email =
+      emailInput.value.trim().toLowerCase();
+
+    const password =
+      passwordInput.value;
+
+
+    if(!email){
+
+      alert(
+        "Indica primero el correo del conductor."
+      );
+
+      return;
+    }
+
+
+    if(!password || password.length < 6){
+
+      alert(
+        "La contraseña debe tener al menos 6 caracteres."
+      );
+
+      return;
+    }
+
+
+    const session =
+      await supabaseClient.auth.getSession();
+
+
+    const token =
+      session.data.session?.access_token;
+
+
+    if(!token){
+
+      alert(
+        "La sesión del administrador no está activa."
+      );
+
+      return;
+    }
+
+
+    const response =
+      await fetch(
+        FUNCTION_URL,
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              "Bearer " + token
+          },
+
+          body:JSON.stringify({
+            email:email,
+            password:password
+          })
+        }
+      );
+
+
+    let data = {};
+
+    try{
+      data = await response.json();
+    }catch(error){}
+
+
+    if(!response.ok){
+
+      alert(
+        data.error ||
+        "No se pudo cambiar la contraseña."
+      );
+
+      return;
+    }
+
+
+    passwordInput.value = "";
+
+
+    alert(
+      "✅ Contraseña del conductor guardada correctamente."
+    );
+
+  }
+
+
+  /*
+    Creamos un botón adicional dentro
+    de la zona del conductor.
+  */
+  function instalarBoton(){
+
+    const emailInput =
+      document.getElementById(
+        "igdAdminDriverEmail"
+      );
+
+    if(!emailInput)return;
+
+
+    const card =
+      emailInput.closest(".ig-d-card");
+
+    if(!card)return;
+
+
+    if(
+      document.getElementById(
+        "igRepairDriverPasswordButton"
+      )
+    ){
+      return;
+    }
+
+
+    const actions =
+      card.querySelector(".ig-d-actions");
+
+    if(!actions)return;
+
+
+    const button =
+      document.createElement("button");
+
+    button.id =
+      "igRepairDriverPasswordButton";
+
+    button.type =
+      "button";
+
+    button.className =
+      "ig-delivery-btn";
+
+    button.textContent =
+      "🔑 Guardar nueva contraseña";
+
+    button.onclick =
+      repararPasswordConductor;
+
+
+    actions.appendChild(button);
+
+
+    /*
+      Crear el campo inmediatamente
+      encima de los botones.
+    */
+    if(
+      !document.getElementById(
+        "igdAdminDriverPassword"
+      )
+    ){
+
+      const field =
+        document.createElement("div");
+
+      field.className =
+        "ig-d-field";
+
+      field.innerHTML = `
+        <label>Contraseña del conductor</label>
+
+        <input
+          id="igdAdminDriverPassword"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Nueva contraseña">
+      `;
+
+      actions.parentNode.insertBefore(
+        field,
+        actions
+      );
+    }
+
+  }
+
+
+  const timer =
+    setInterval(
+      instalarBoton,
+      500
+    );
+
+
+  setTimeout(
+    function(){
+      clearInterval(timer);
+    },
+    30000
+  );
+
+})();
+</script>
 </body>
 </html>
