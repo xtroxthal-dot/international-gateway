@@ -45902,7 +45902,12 @@ supabaseClient.auth
 (function(){
 
   'use strict';
-
+  if(
+    typeof window.supabaseClient === 'undefined' &&
+    typeof supabaseClient !== 'undefined'
+  ){
+    window.supabaseClient = supabaseClient;
+  }
   const PREFIX = 'ig-stat-';
   const SECTION_ID = 'admin-statistics';
   const BUTTON_ID = 'ig-statistics-admin-button';
