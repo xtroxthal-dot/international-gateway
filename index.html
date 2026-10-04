@@ -42606,6 +42606,54 @@ window.IGD.driverRoute =
   driverRoute;
 
 
+function openNavigation(){
+
+  if(
+    !igdCurrentOrder ||
+    !igdCurrentOrder.delivery_lat ||
+    !igdCurrentOrder.delivery_lng
+  ){
+
+    alert(
+      "No hay una ubicación de entrega disponible."
+    );
+
+    return;
+
+  }
+
+
+  const destination =
+    Number(
+      igdCurrentOrder.delivery_lat
+    ) +
+    "," +
+    Number(
+      igdCurrentOrder.delivery_lng
+    );
+
+
+  const url =
+    "https://www.google.com/maps/dir/?api=1" +
+    "&destination=" +
+    encodeURIComponent(
+      destination
+    ) +
+    "&travelmode=driving";
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+window.IGD.openNavigation =
+  openNavigation;
+
+
 /* =========================================================
    PRECIO CONDUCTOR
    ========================================================= */
