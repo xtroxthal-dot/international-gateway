@@ -41639,7 +41639,7 @@ function updateDriverMarker(
         igdMap
       )
       .bindPopup(
-        "🚚 Conductor"
+        "🚚 Tu posición"
       );
 
   }else{
@@ -41649,6 +41649,28 @@ function updateDriverMarker(
         lat,
         lng
       ]
+    );
+
+  }
+
+
+  if(
+    igdNavigationMode &&
+    igdMap
+  ){
+
+    igdMap.setView(
+      [
+        lat,
+        lng
+      ],
+      Math.max(
+        igdMap.getZoom(),
+        16
+      ),
+      {
+        animate:true
+      }
     );
 
   }
