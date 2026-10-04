@@ -45196,39 +45196,6 @@ async function checkDriverButton(){
 
 
   button.style.display =
-    "none";
-
-
-  const config =
-    await supabaseClient
-      .from(
-        "ig_driver_config"
-      )
-      .select(
-        "enabled,driver_email"
-      )
-      .eq(
-        "id",
-        1
-      )
-      .maybeSingle();
-
-
-  if(
-    config.error ||
-    !config.data?.enabled ||
-    !String(
-      config.data.driver_email ||
-      ""
-    ).trim()
-  ){
-
-    return;
-
-  }
-
-
-  button.style.display =
     "block";
 
 }
