@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 
@@ -45199,11 +45199,6 @@ async function checkDriverButton(){
     "none";
 
 
-  const session =
-    await supabaseClient.auth
-      .getSession();
-
-
   const config =
     await supabaseClient
       .from(
@@ -45220,50 +45215,21 @@ async function checkDriverButton(){
 
 
   if(
-    !config.data?.enabled
-  ){
-
-    return;
-
-  }
-
-
-  if(
-    !session.data.session
-  ){
-
-    button.style.display =
-      "block";
-
-    return;
-
-  }
-
-
-  const email =
-    session.data.session
-      .user
-      .email;
-
-
-  if(
-
-    String(
+    config.error ||
+    !config.data?.enabled ||
+    !String(
       config.data.driver_email ||
       ""
-    ).toLowerCase() ===
-
-    String(
-      email ||
-      ""
-    ).toLowerCase()
-
+    ).trim()
   ){
 
-    button.style.display =
-      "block";
+    return;
 
   }
+
+
+  button.style.display =
+    "block";
 
 }
 
