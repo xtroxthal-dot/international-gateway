@@ -47611,5 +47611,2206 @@ supabaseClient.auth
      FIN 📊 MÓDULO INDEPENDIENTE DE ESTADÍSTICAS
 ============================================================ -->
 
+ <!-- ============================================================
+     🧾 MÓDULO INDEPENDIENTE DE FACTURAS
+     - Selección de venta
+     - Número de factura manual
+     - Registro en ig_invoices
+     - Factura JPG
+     - WhatsApp
+     - Eliminación definitiva del registro
+============================================================ -->
+
+<style id="ig-invoices-module-style">
+
+#admin-invoices{
+  padding:20px;
+}
+
+#admin-invoices .ig-inv-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+#admin-invoices .ig-inv-head h2{
+  margin:0 0 6px;
+}
+
+#admin-invoices .ig-inv-subtitle{
+  opacity:.72;
+}
+
+#admin-invoices .ig-inv-toolbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+#admin-invoices .ig-inv-orders{
+  display:grid;
+  gap:14px;
+}
+
+#admin-invoices .ig-inv-card{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  padding:16px;
+  background:rgba(255,255,255,.035);
+}
+
+#admin-invoices .ig-inv-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+
+#admin-invoices .ig-inv-card-title{
+  font-size:1.05rem;
+  font-weight:700;
+}
+
+#admin-invoices .ig-inv-meta{
+  margin-top:6px;
+  opacity:.72;
+  line-height:1.5;
+}
+
+#admin-invoices .ig-inv-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+#admin-invoices .ig-inv-number-box{
+  margin-top:14px;
+  padding:14px;
+  border-radius:12px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+#admin-invoices .ig-inv-number-box label{
+  display:block;
+  margin-bottom:7px;
+  font-weight:600;
+}
+
+#admin-invoices .ig-inv-number-box input{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.25);
+  color:inherit;
+  font-size:1rem;
+}
+
+#admin-invoices .ig-inv-created{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:999px;
+  background:rgba(40,190,100,.14);
+  border:1px solid rgba(40,190,100,.25);
+  font-size:.82rem;
+}
+
+#admin-invoices .ig-inv-danger{
+  background:#8f2020 !important;
+}
+
+#admin-invoices .ig-inv-preview{
+  margin-top:24px;
+  padding:18px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+#admin-invoices .ig-inv-preview h3{
+  margin-top:0;
+}
+
+#admin-invoices .ig-inv-preview img{
+  display:block;
+  width:100%;
+  max-width:700px;
+  margin:0 auto;
+  border-radius:8px;
+  background:#fff;
+}
+
+#admin-invoices .ig-inv-preview-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:15px;
+  justify-content:center;
+}
+
+#admin-invoices .ig-inv-loading{
+  opacity:.7;
+  padding:20px 0;
+}
+
+#admin-invoices .ig-inv-empty{
+  opacity:.7;
+  padding:25px 0;
+}
+
+#admin-invoices .ig-inv-error{
+  color:#ff8e8e;
+  white-space:pre-wrap;
+  margin:10px 0;
+}
+
+</style>
+
+
+<script id="ig-invoices-module-script">
+(function(){
+
+  'use strict';
+
+  if(
+    typeof window.supabaseClient === 'undefined' &&
+    typeof supabaseClient !== 'undefined'
+  ){
+    window.supabaseClient = supabaseClient;
+  }
+
+  const SECTION_ID =
+    'admin-invoices';
+
+  const BUTTON_ID =
+    'ig-invoices-admin-button';
+
+  let selectedOrder = null;
+
+  let currentInvoice = null;
+
+  let currentJpgBlob = null;
+
+  let currentJpgUrl = '';
+
+
+
+  function esc(value){
+
+    return String(value ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+
+  }
+
+
+
+  function getRoot(){
+
+    return document.getElementById(
+      SECTION_ID
+    );
+
+  }
+
+
+
+  function moneyInv(value){
+
+    return new Intl.NumberFormat(
+      'es-AR',
+      {
+        style:'currency',
+        currency:'ARS',
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+      }
+    ).format(
+      Number(value || 0)
+    );
+
+  }
+
+
+
+  function paymentLabel(value){
+
+    const map = {
+      cash:'Efectivo',
+      mercado_pago:'Mercado Pago',
+      transfer:'Transferencia',
+      card:'Tarjeta'
+    };
+
+    return map[value] || value || 'No informado';
+
+  }
+
+
+
+  function createSection(){
+
+    if(getRoot()){
+
+      return true;
+
+    }
+
+    const main =
+      document.querySelector(
+        '#adminPanel .admin-main'
+      );
+
+    if(!main){
+
+      return false;
+
+    }
+
+    const section =
+      document.createElement(
+        'section'
+      );
+
+    section.id =
+      SECTION_ID;
+
+    section.className =
+      'admin-section';
+
+    section.innerHTML = `
+
+      <div class="ig-inv-head">
+
+        <div>
+
+          <h2>🧾 Facturas</h2>
+
+          <div class="ig-inv-subtitle">
+            Seleccioná una venta, asignale un número
+            y generá la factura en JPG.
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          class="button"
+          id="ig-inv-refresh">
+
+          🔄 Actualizar
+
+        </button>
+
+      </div>
+
+
+      <div
+        id="ig-inv-error"
+        class="ig-inv-error">
+      </div>
+
+
+      <div
+        id="ig-inv-orders"
+        class="ig-inv-orders">
+
+        <div class="ig-inv-loading">
+          ⏳ Cargando ventas...
+        </div>
+
+      </div>
+
+
+      <div
+        id="ig-inv-preview"
+        class="ig-inv-preview"
+        hidden>
+      </div>
+
+    `;
+
+    main.appendChild(
+      section
+    );
+
+    section
+      .querySelector(
+        '#ig-inv-refresh'
+      )
+      .addEventListener(
+        'click',
+        loadInvoiceOrders
+      );
+
+    return true;
+
+  }
+
+
+
+  function createButton(){
+
+    if(
+      document.getElementById(
+        BUTTON_ID
+      )
+    ){
+
+      return true;
+
+    }
+
+    const nav =
+      document.querySelector(
+        '#adminPanel .admin-nav'
+      );
+
+    if(!nav){
+
+      return false;
+
+    }
+
+    const button =
+      document.createElement(
+        'button'
+      );
+
+    button.type =
+      'button';
+
+    button.id =
+      BUTTON_ID;
+
+    button.dataset.section =
+      'invoices';
+
+    button.textContent =
+      '🧾 Facturas';
+
+    button.onclick =
+      function(){
+
+        if(
+          typeof window.showAdminSection ===
+          'function'
+        ){
+
+          window.showAdminSection(
+            'invoices'
+          );
+
+        }else{
+
+          document
+            .querySelectorAll(
+              '.admin-section'
+            )
+            .forEach(function(el){
+
+              el.classList.remove(
+                'active'
+              );
+
+            });
+
+          const target =
+            document.getElementById(
+              SECTION_ID
+            );
+
+          if(target){
+
+            target.classList.add(
+              'active'
+            );
+
+          }
+
+        }
+
+        loadInvoiceOrders();
+
+      };
+
+    nav.appendChild(
+      button
+    );
+
+    return true;
+
+  }
+
+
+
+  async function loadInvoiceOrders(){
+
+    const root =
+      getRoot();
+
+    if(!root){
+
+      return;
+
+    }
+
+    const container =
+      root.querySelector(
+        '#ig-inv-orders'
+      );
+
+    const errorBox =
+      root.querySelector(
+        '#ig-inv-error'
+      );
+
+    if(!container){
+
+      return;
+
+    }
+
+    errorBox.textContent = '';
+
+    container.innerHTML = `
+      <div class="ig-inv-loading">
+        ⏳ Cargando ventas...
+      </div>
+    `;
+
+    try{
+
+      const result =
+        await Promise.all([
+
+          supabaseClient
+            .from('ig_orders')
+            .select(`
+              *,
+              ig_order_items(
+                product_id,
+                product_name,
+                product_price,
+                quantity,
+                subtotal
+              )
+            `)
+            .order(
+              'created_at',
+              {ascending:false}
+            ),
+
+          supabaseClient
+            .from('ig_invoices')
+            .select(
+              'id,order_id,invoice_number,created_at'
+            )
+            .order(
+              'created_at',
+              {ascending:false}
+            )
+
+        ]);
+
+      const ordersResult =
+        result[0];
+
+      const invoicesResult =
+        result[1];
+
+      if(ordersResult.error){
+
+        throw ordersResult.error;
+
+      }
+
+      if(invoicesResult.error){
+
+        throw invoicesResult.error;
+
+      }
+
+      const orders =
+        ordersResult.data || [];
+
+      const invoices =
+        invoicesResult.data || [];
+
+      const invoiceMap =
+        new Map();
+
+      invoices.forEach(function(invoice){
+
+        invoiceMap.set(
+          invoice.order_id,
+          invoice
+        );
+
+      });
+
+      if(!orders.length){
+
+        container.innerHTML = `
+          <div class="ig-inv-empty">
+            Todavía no hay ventas disponibles
+            para crear facturas.
+          </div>
+        `;
+
+        return;
+
+      }
+
+      container.innerHTML =
+        orders.map(function(order){
+
+          const invoice =
+            invoiceMap.get(
+              order.id
+            );
+
+          return `
+
+            <article
+              class="ig-inv-card"
+              data-order-id="${esc(order.id)}">
+
+              <div class="ig-inv-card-head">
+
+                <div>
+
+                  <div class="ig-inv-card-title">
+
+                    Pedido #${esc(
+                      order.order_number
+                    )}
+
+                  </div>
+
+                  <div class="ig-inv-meta">
+
+                    Cliente:
+                    <strong>
+                      ${esc(
+                        order.customer_name ||
+                        'Sin nombre'
+                      )}
+                    </strong>
+
+                    <br>
+
+                    Teléfono:
+                    ${esc(
+                      order.customer_phone ||
+                      'Sin teléfono'
+                    )}
+
+                    <br>
+
+                    Total:
+                    <strong>
+                      ${moneyInv(order.total)}
+                    </strong>
+
+                    <br>
+
+                    Fecha:
+                    ${new Date(
+                      order.created_at
+                    ).toLocaleString(
+                      'es-AR'
+                    )}
+
+                  </div>
+
+                </div>
+
+                <div>
+
+                  ${
+                    invoice
+                      ? `
+                        <span
+                          class="ig-inv-created">
+
+                          Factura:
+                          ${esc(
+                            invoice.invoice_number
+                          )}
+
+                        </span>
+                      `
+                      : ''
+                  }
+
+                </div>
+
+              </div>
+
+
+              ${
+                invoice
+                  ? `
+
+                    <div class="ig-inv-actions">
+
+                      <button
+                        type="button"
+                        class="button"
+                        onclick="igInvoicesView('${esc(
+                          order.id
+                        )}')">
+
+                        🧾 Ver / regenerar
+
+                      </button>
+
+
+                      <button
+                        type="button"
+                        class="button ig-inv-danger"
+                        onclick="igInvoicesDelete('${esc(
+                          invoice.id
+                        )}')">
+
+                        🗑️ Borrar factura
+
+                      </button>
+
+                    </div>
+
+                  `
+                  : `
+
+                    <div
+                      class="ig-inv-number-box">
+
+                      <label
+                        for="ig-inv-number-${esc(
+                          order.id
+                        )}">
+
+                        Número de factura
+
+                      </label>
+
+                      <input
+                        id="ig-inv-number-${esc(
+                          order.id
+                        )}"
+                        type="text"
+                        inputmode="text"
+                        autocomplete="off"
+                        placeholder="Ej. 000001">
+
+                      <div
+                        class="ig-inv-actions">
+
+                        <button
+                          type="button"
+                          class="button"
+                          onclick="igInvoicesCreate('${esc(
+                            order.id
+                          )}')">
+
+                          🧾 Crear factura
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  `
+
+              }
+
+            </article>
+
+          `;
+
+        }).join('');
+
+    }catch(error){
+
+      console.error(
+        '[IG Facturas]',
+        error
+      );
+
+      container.innerHTML = '';
+
+      errorBox.textContent =
+        'No se pudieron cargar las facturas.\n\n' +
+        (
+          error?.message ||
+          'Error desconocido.'
+        );
+
+    }
+
+  }
+
+
+
+  async function findOrder(orderId){
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from('ig_orders')
+        .select(`
+          *,
+          ig_order_items(
+            product_id,
+            product_name,
+            product_price,
+            quantity,
+            subtotal
+          )
+        `)
+        .eq(
+          'id',
+          orderId
+        )
+        .maybeSingle();
+
+    if(error){
+
+      throw error;
+
+    }
+
+    if(!data){
+
+      throw new Error(
+        'No se encontró la venta seleccionada.'
+      );
+
+    }
+
+    return data;
+
+  }
+
+
+
+  async function createInvoice(orderId){
+
+    const input =
+      document.getElementById(
+        'ig-inv-number-' + orderId
+      );
+
+    if(!input){
+
+      return;
+
+    }
+
+    const invoiceNumber =
+      input.value.trim();
+
+    if(!invoiceNumber){
+
+      alert(
+        'Escribí el número de factura.'
+      );
+
+      input.focus();
+
+      return;
+
+    }
+
+    try{
+
+      const order =
+        await findOrder(
+          orderId
+        );
+
+      const {
+        data:createdInvoice,
+        error
+      } =
+        await supabaseClient
+          .from('ig_invoices')
+          .insert({
+
+            order_id:
+              order.id,
+
+            invoice_number:
+              invoiceNumber
+
+          })
+          .select(
+            'id,order_id,invoice_number,created_at'
+          )
+          .single();
+
+      if(error){
+
+        if(
+          String(error.message || '')
+            .toLowerCase()
+            .includes('duplicate')
+        ){
+
+          throw new Error(
+            'Ese número de factura ya existe.'
+          );
+
+        }
+
+        throw error;
+
+      }
+
+      selectedOrder =
+        order;
+
+      currentInvoice =
+        createdInvoice;
+
+      await renderInvoice(
+        order,
+        createdInvoice
+      );
+
+      await loadInvoiceOrders();
+
+      showInvoicePreview();
+
+    }catch(error){
+
+      console.error(
+        '[IG Facturas] Crear',
+        error
+      );
+
+      const root =
+        getRoot();
+
+      if(root){
+
+        root.querySelector(
+          '#ig-inv-error'
+        ).textContent =
+          error?.message ||
+          'No se pudo crear la factura.';
+
+      }
+
+    }
+
+  }
+
+
+
+  async function viewInvoice(orderId){
+
+    try{
+
+      const order =
+        await findOrder(
+          orderId
+        );
+
+      const {
+        data:invoice,
+        error
+      } =
+        await supabaseClient
+          .from('ig_invoices')
+          .select(
+            'id,order_id,invoice_number,created_at'
+          )
+          .eq(
+            'order_id',
+            orderId
+          )
+          .maybeSingle();
+
+      if(error){
+
+        throw error;
+
+      }
+
+      if(!invoice){
+
+        throw new Error(
+          'La factura ya no existe en la base de datos.'
+        );
+
+      }
+
+      selectedOrder =
+        order;
+
+      currentInvoice =
+        invoice;
+
+      await renderInvoice(
+        order,
+        invoice
+      );
+
+      showInvoicePreview();
+
+    }catch(error){
+
+      console.error(
+        '[IG Facturas] Ver',
+        error
+      );
+
+      const root =
+        getRoot();
+
+      if(root){
+
+        root.querySelector(
+          '#ig-inv-error'
+        ).textContent =
+          error?.message ||
+          'No se pudo abrir la factura.';
+
+      }
+
+    }
+
+  }
+
+
+
+  async function deleteInvoice(invoiceId){
+
+    if(
+      !confirm(
+        '¿Borrar esta factura definitivamente?\n\n' +
+        'La venta NO se borrará. ' +
+        'Solo se eliminará la factura de la base de datos.'
+      )
+    ){
+
+      return;
+
+    }
+
+    try{
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from('ig_invoices')
+          .delete()
+          .eq(
+            'id',
+            invoiceId
+          );
+
+      if(error){
+
+        throw error;
+
+      }
+
+      if(
+        currentInvoice &&
+        currentInvoice.id === invoiceId
+      ){
+
+        currentInvoice =
+          null;
+
+        selectedOrder =
+          null;
+
+        currentJpgBlob =
+          null;
+
+        if(currentJpgUrl){
+
+          URL.revokeObjectURL(
+            currentJpgUrl
+          );
+
+        }
+
+        currentJpgUrl =
+          '';
+
+        const preview =
+          document.getElementById(
+            'ig-inv-preview'
+          );
+
+        if(preview){
+
+          preview.hidden =
+            true;
+
+          preview.innerHTML =
+            '';
+
+        }
+
+      }
+
+      await loadInvoiceOrders();
+
+      if(
+        typeof showToast ===
+        'function'
+      ){
+
+        showToast(
+          'Factura eliminada de la base de datos.'
+        );
+
+      }else{
+
+        alert(
+          'Factura eliminada.'
+        );
+
+      }
+
+    }catch(error){
+
+      console.error(
+        '[IG Facturas] Borrar',
+        error
+      );
+
+      alert(
+        error?.message ||
+        'No se pudo borrar la factura.'
+      );
+
+    }
+
+  }
+
+
+
+  function wrapText(
+    ctx,
+    text,
+    maxWidth
+  ){
+
+    const words =
+      String(text || '')
+        .split(/\s+/);
+
+    const lines = [];
+
+    let line = '';
+
+    words.forEach(function(word){
+
+      const test =
+        line
+          ? line + ' ' + word
+          : word;
+
+      if(
+        ctx.measureText(
+          test
+        ).width > maxWidth &&
+        line
+      ){
+
+        lines.push(
+          line
+        );
+
+        line =
+          word;
+
+      }else{
+
+        line =
+          test;
+
+      }
+
+    });
+
+    if(line){
+
+      lines.push(
+        line
+      );
+
+    }
+
+    return lines.length
+      ? lines
+      : [''];
+
+  }
+
+
+
+  function loadImage(url){
+
+    return new Promise(function(resolve){
+
+      if(!url){
+
+        resolve(null);
+
+        return;
+
+      }
+
+      const img =
+        new Image();
+
+      img.crossOrigin =
+        'anonymous';
+
+      img.onload =
+        function(){
+
+          resolve(img);
+
+        };
+
+      img.onerror =
+        function(){
+
+          resolve(null);
+
+        };
+
+      img.src =
+        url;
+
+    });
+
+  }
+
+
+
+  async function renderInvoice(
+    order,
+    invoice
+  ){
+
+    if(currentJpgUrl){
+
+      URL.revokeObjectURL(
+        currentJpgUrl
+      );
+
+      currentJpgUrl =
+        '';
+
+    }
+
+    currentJpgBlob =
+      null;
+
+    const canvas =
+      document.createElement(
+        'canvas'
+      );
+
+    const width =
+      1400;
+
+    const height =
+      2050;
+
+    canvas.width =
+      width;
+
+    canvas.height =
+      height;
+
+    const ctx =
+      canvas.getContext(
+        '2d'
+      );
+
+    ctx.fillStyle =
+      '#ffffff';
+
+    ctx.fillRect(
+      0,
+      0,
+      width,
+      height
+    );
+
+    ctx.fillStyle =
+      '#111111';
+
+    const logo =
+      await loadImage(
+        settings?.logo_url ||
+        ''
+      );
+
+    if(logo){
+
+      const maxW =
+        330;
+
+      const maxH =
+        150;
+
+      const scale =
+        Math.min(
+          maxW / logo.width,
+          maxH / logo.height,
+          1
+        );
+
+      const w =
+        logo.width * scale;
+
+      const h =
+        logo.height * scale;
+
+      ctx.drawImage(
+        logo,
+        70,
+        55,
+        w,
+        h
+      );
+
+    }else{
+
+      ctx.font =
+        'bold 48px Arial';
+
+      ctx.fillText(
+        settings?.store_name ||
+        'International Gateway',
+        70,
+        110
+      );
+
+    }
+
+
+    ctx.textAlign =
+      'right';
+
+    ctx.font =
+      'bold 52px Arial';
+
+    ctx.fillText(
+      'FACTURA',
+      1330,
+      95
+    );
+
+    ctx.font =
+      'bold 32px Arial';
+
+    ctx.fillText(
+      String(
+        invoice.invoice_number
+      ),
+      1330,
+      145
+    );
+
+    ctx.font =
+      '24px Arial';
+
+    ctx.fillStyle =
+      '#555555';
+
+    ctx.fillText(
+      new Date(
+        invoice.created_at
+      ).toLocaleDateString(
+        'es-AR'
+      ),
+      1330,
+      185
+    );
+
+
+    ctx.textAlign =
+      'left';
+
+    ctx.fillStyle =
+      '#111111';
+
+    ctx.font =
+      'bold 28px Arial';
+
+    ctx.fillText(
+      settings?.store_name ||
+      'International Gateway',
+      70,
+      255
+    );
+
+    ctx.font =
+      '24px Arial';
+
+    ctx.fillStyle =
+      '#444444';
+
+    ctx.fillText(
+      'Comprobante de venta',
+      70,
+      292
+    );
+
+
+    ctx.strokeStyle =
+      '#cccccc';
+
+    ctx.lineWidth =
+      2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      70,
+      330
+    );
+
+    ctx.lineTo(
+      1330,
+      330
+    );
+
+    ctx.stroke();
+
+
+    ctx.fillStyle =
+      '#111111';
+
+    ctx.font =
+      'bold 25px Arial';
+
+    ctx.fillText(
+      'CLIENTE',
+      70,
+      385
+    );
+
+    ctx.font =
+      '24px Arial';
+
+    ctx.fillText(
+      'Nombre: ' +
+      (
+        order.customer_name ||
+        'No informado'
+      ),
+      70,
+      425
+    );
+
+    ctx.fillText(
+      'Teléfono: ' +
+      (
+        order.customer_phone ||
+        'No informado'
+      ),
+      70,
+      462
+    );
+
+    ctx.fillText(
+      'Email: ' +
+      (
+        order.customer_email ||
+        'No informado'
+      ),
+      70,
+      499
+    );
+
+    ctx.fillText(
+      'Pedido: #' +
+      String(
+        order.order_number
+      ),
+      800,
+      425
+    );
+
+    ctx.fillText(
+      'Forma de pago: ' +
+      paymentLabel(
+        order.payment_method
+      ),
+      800,
+      462
+    );
+
+    ctx.fillText(
+      'Estado de pago: ' +
+      (
+        order.payment_status ||
+        'pending'
+      ),
+      800,
+      499
+    );
+
+
+    const tableTop =
+      560;
+
+    ctx.fillStyle =
+      '#eeeeee';
+
+    ctx.fillRect(
+      70,
+      tableTop,
+      1260,
+      60
+    );
+
+    ctx.fillStyle =
+      '#111111';
+
+    ctx.font =
+      'bold 22px Arial';
+
+    ctx.fillText(
+      'PRODUCTO',
+      90,
+      tableTop + 38
+    );
+
+    ctx.textAlign =
+      'center';
+
+    ctx.fillText(
+      'CANT.',
+      820,
+      tableTop + 38
+    );
+
+    ctx.textAlign =
+      'right';
+
+    ctx.fillText(
+      'PRECIO',
+      1080,
+      tableTop + 38
+    );
+
+    ctx.fillText(
+      'SUBTOTAL',
+      1305,
+      tableTop + 38
+    );
+
+
+    let y =
+      tableTop + 95;
+
+    const items =
+      Array.isArray(
+        order.ig_order_items
+      )
+        ? order.ig_order_items
+        : [];
+
+    ctx.font =
+      '21px Arial';
+
+    for(
+      const item of items
+    ){
+
+      const nameLines =
+        wrapText(
+          ctx,
+          item.product_name ||
+          'Producto',
+          650
+        );
+
+      const rowHeight =
+        Math.max(
+          48,
+          nameLines.length * 28
+        );
+
+      ctx.textAlign =
+        'left';
+
+      nameLines.forEach(
+        function(line,index){
+
+          ctx.fillText(
+            line,
+            90,
+            y + index * 28
+          );
+
+        }
+      );
+
+      ctx.textAlign =
+        'center';
+
+      ctx.fillText(
+        String(
+          item.quantity || 0
+        ),
+        820,
+        y
+      );
+
+      ctx.textAlign =
+        'right';
+
+      ctx.fillText(
+        moneyInv(
+          item.product_price
+        ),
+        1080,
+        y
+      );
+
+      ctx.fillText(
+        moneyInv(
+          item.subtotal
+        ),
+        1305,
+        y
+      );
+
+      ctx.strokeStyle =
+        '#eeeeee';
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        70,
+        y + rowHeight + 14
+      );
+
+      ctx.lineTo(
+        1330,
+        y + rowHeight + 14
+      );
+
+      ctx.stroke();
+
+      y +=
+        rowHeight + 30;
+
+      if(y > 1450){
+
+        break;
+
+      }
+
+    }
+
+
+    const total =
+      Number(
+        order.total || 0
+      );
+
+    /*
+      La venta ya tiene su importe final.
+      El IVA 21% se discrimina dentro del
+      total para que la factura conserve
+      exactamente el importe vendido.
+    */
+
+    const neto =
+      total / 1.21;
+
+    const iva =
+      total - neto;
+
+
+    const summaryTop =
+      Math.max(
+        y + 45,
+        1500
+      );
+
+    ctx.strokeStyle =
+      '#cccccc';
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      800,
+      summaryTop
+    );
+
+    ctx.lineTo(
+      1330,
+      summaryTop
+    );
+
+    ctx.stroke();
+
+    ctx.textAlign =
+      'right';
+
+    ctx.fillStyle =
+      '#444444';
+
+    ctx.font =
+      '24px Arial';
+
+    ctx.fillText(
+      'Neto:',
+      1080,
+      summaryTop + 50
+    );
+
+    ctx.fillText(
+      moneyInv(neto),
+      1305,
+      summaryTop + 50
+    );
+
+    ctx.fillText(
+      'IVA 21%:',
+      1080,
+      summaryTop + 92
+    );
+
+    ctx.fillText(
+      moneyInv(iva),
+      1305,
+      summaryTop + 92
+    );
+
+    ctx.fillStyle =
+      '#111111';
+
+    ctx.font =
+      'bold 32px Arial';
+
+    ctx.fillText(
+      'TOTAL:',
+      1080,
+      summaryTop + 145
+    );
+
+    ctx.fillText(
+      moneyInv(total),
+      1305,
+      summaryTop + 145
+    );
+
+
+    ctx.textAlign =
+      'left';
+
+    ctx.fillStyle =
+      '#666666';
+
+    ctx.font =
+      '20px Arial';
+
+    ctx.fillText(
+      'IVA incluido — alícuota 21%',
+      70,
+      1900
+    );
+
+    ctx.fillText(
+      'Pedido #' +
+      String(order.order_number),
+      70,
+      1935
+    );
+
+    ctx.fillText(
+      'Factura Nº ' +
+      String(invoice.invoice_number),
+      70,
+      1970
+    );
+
+
+    const dataUrl =
+      canvas.toDataURL(
+        'image/jpeg',
+        .92
+      );
+
+    const response =
+      await fetch(
+        dataUrl
+      );
+
+    const blob =
+      await response.blob();
+
+    currentJpgBlob =
+      blob;
+
+    currentJpgUrl =
+      URL.createObjectURL(
+        blob
+      );
+
+  }
+
+
+
+  function showInvoicePreview(){
+
+    const root =
+      getRoot();
+
+    if(!root){
+
+      return;
+
+    }
+
+    const preview =
+      root.querySelector(
+        '#ig-inv-preview'
+      );
+
+    if(
+      !preview ||
+      !currentJpgUrl ||
+      !selectedOrder ||
+      !currentInvoice
+    ){
+
+      return;
+
+    }
+
+    preview.hidden =
+      false;
+
+    preview.innerHTML = `
+
+      <h3>
+        🧾 Factura Nº
+        ${esc(
+          currentInvoice.invoice_number
+        )}
+      </h3>
+
+      <img
+        src="${currentJpgUrl}"
+        alt="Factura JPG">
+
+      <div class="ig-inv-preview-actions">
+
+        <button
+          type="button"
+          class="button"
+          id="ig-inv-download">
+
+          ⬇️ Descargar factura JPG
+
+        </button>
+
+        <button
+          type="button"
+          class="button"
+          id="ig-inv-whatsapp">
+
+          📱 Enviar por WhatsApp
+
+        </button>
+
+      </div>
+
+    `;
+
+
+    preview
+      .querySelector(
+        '#ig-inv-download'
+      )
+      .addEventListener(
+        'click',
+        downloadCurrentInvoice
+      );
+
+
+    preview
+      .querySelector(
+        '#ig-inv-whatsapp'
+      )
+      .addEventListener(
+        'click',
+        shareCurrentInvoice
+      );
+
+
+    preview.scrollIntoView({
+      behavior:'smooth',
+      block:'start'
+    });
+
+  }
+
+
+
+  function downloadCurrentInvoice(){
+
+    if(!currentJpgUrl){
+
+      alert(
+        'Primero generá la factura.'
+      );
+
+      return;
+
+    }
+
+    const invoiceNumber =
+      currentInvoice?.invoice_number ||
+      'factura';
+
+    const link =
+      document.createElement(
+        'a'
+      );
+
+    link.href =
+      currentJpgUrl;
+
+    link.download =
+      'Factura-' +
+      String(invoiceNumber)
+        .replace(
+          /[^a-zA-Z0-9_-]/g,
+          '_'
+        ) +
+      '.jpg';
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+
+    link.remove();
+
+  }
+
+
+
+  function normalizeWhatsAppPhone(
+    value
+  ){
+
+    let digits =
+      String(value || '')
+        .replace(
+          /\D/g,
+          ''
+        );
+
+    if(!digits){
+
+      return '';
+
+    }
+
+    if(
+      digits.startsWith('00')
+    ){
+
+      digits =
+        digits.slice(2);
+
+    }
+
+    if(
+      digits.startsWith('54')
+    ){
+
+      return digits;
+
+    }
+
+    if(
+      digits.startsWith('0')
+    ){
+
+      digits =
+        digits.slice(1);
+
+    }
+
+    return '54' + digits;
+
+  }
+
+
+
+  async function shareCurrentInvoice(){
+
+    if(
+      !currentJpgBlob ||
+      !selectedOrder ||
+      !currentInvoice
+    ){
+
+      alert(
+        'Primero generá la factura.'
+      );
+
+      return;
+
+    }
+
+    const phone =
+      normalizeWhatsAppPhone(
+        selectedOrder.customer_phone
+      );
+
+    const file =
+      new File(
+        [
+          currentJpgBlob
+        ],
+        'Factura-' +
+        String(
+          currentInvoice.invoice_number
+        ) +
+        '.jpg',
+        {
+          type:'image/jpeg'
+        }
+      );
+
+    const message =
+      'Hola ' +
+      (
+        selectedOrder.customer_name ||
+        ''
+      ) +
+      ', te envío la factura Nº ' +
+      currentInvoice.invoice_number +
+      ' correspondiente al pedido #' +
+      selectedOrder.order_number +
+      '.';
+
+    try{
+
+      if(
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files:[file]
+        })
+      ){
+
+        await navigator.share({
+
+          title:
+            'Factura Nº ' +
+            currentInvoice.invoice_number,
+
+          text:
+            message,
+
+          files:[
+            file
+          ]
+
+        });
+
+        return;
+
+      }
+
+    }catch(error){
+
+      if(
+        error?.name ===
+        'AbortError'
+      ){
+
+        return;
+
+      }
+
+      console.warn(
+        '[IG Facturas] Compartir JPG:',
+        error
+      );
+
+    }
+
+
+    if(phone){
+
+      window.open(
+        'https://wa.me/' +
+        phone +
+        '?text=' +
+        encodeURIComponent(
+          message
+        ),
+        '_blank'
+      );
+
+      alert(
+        'WhatsApp se abrió. Si el navegador no permite adjuntar automáticamente el JPG, descargá la factura y adjuntala en el chat.'
+      );
+
+    }else{
+
+      alert(
+        'El cliente no tiene un número de teléfono válido para WhatsApp.'
+      );
+
+    }
+
+  }
+
+
+
+  function install(){
+
+    const sectionReady =
+      createSection();
+
+    const buttonReady =
+      createButton();
+
+    return (
+      sectionReady &&
+      buttonReady
+    );
+
+  }
+
+
+
+  window.igInvoicesCreate =
+    createInvoice;
+
+  window.igInvoicesView =
+    viewInvoice;
+
+  window.igInvoicesDelete =
+    deleteInvoice;
+
+
+  install();
+
+
+  let attempts =
+    0;
+
+  const timer =
+    setInterval(
+      function(){
+
+        if(
+          !document.getElementById(
+            BUTTON_ID
+          ) ||
+          !getRoot()
+        ){
+
+          install();
+
+        }
+
+        attempts++;
+
+        if(
+          attempts >= 40
+        ){
+
+          clearInterval(
+            timer
+          );
+
+        }
+
+      },
+      500
+    );
+
+
+  if(window.MutationObserver){
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          if(
+            document.querySelector(
+              '#adminPanel'
+            )
+          ){
+
+            if(
+              !document.getElementById(
+                BUTTON_ID
+              ) ||
+              !getRoot()
+            ){
+
+              install();
+
+            }
+
+          }
+
+        }
+      );
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+})();
+</script>
+
+<!-- ============================================================
+     FIN 🧾 MÓDULO INDEPENDIENTE DE FACTURAS
+============================================================ -->
+
 </body>
 </html>
