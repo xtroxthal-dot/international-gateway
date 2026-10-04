@@ -45629,5 +45629,1982 @@ supabaseClient.auth
   }
 </style>
 
+ <!-- ============================================================
+     INTERNATIONAL GATEWAY
+     📊 MÓDULO INDEPENDIENTE DE ESTADÍSTICAS
+     
+     BLOQUE AUTÓNOMO
+     - No modifica el visor de visitas existente.
+     - No modifica Pedidos.
+     - No modifica Productos.
+     - No modifica Configuración.
+     - No modifica funciones existentes.
+     - Consume ig_admin_store_analytics().
+     - Lee ig_delivery_tracking únicamente para estadísticas
+       del conductor.
+============================================================ -->
+
+<style id="ig-statistics-module-style">
+
+  #admin-statistics{
+    padding-bottom:30px;
+  }
+
+  #admin-statistics .ig-stat-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+
+  #admin-statistics .ig-stat-head h2{
+    margin:0;
+  }
+
+  #admin-statistics .ig-stat-periods{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+  }
+
+  #admin-statistics .ig-stat-period{
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.05);
+    color:inherit;
+    border-radius:9px;
+    padding:9px 13px;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  #admin-statistics .ig-stat-period.active{
+    background:rgba(255,255,255,.16);
+    border-color:rgba(255,255,255,.35);
+  }
+
+  #admin-statistics .ig-stat-refresh{
+    border:0;
+    border-radius:9px;
+    padding:9px 13px;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  #admin-statistics .ig-stat-subtitle{
+    opacity:.72;
+    font-size:.92rem;
+    margin:5px 0 20px;
+  }
+
+  #admin-statistics .ig-stat-grid{
+    display:grid;
+    grid-template-columns:
+      repeat(auto-fit,minmax(155px,1fr));
+    gap:12px;
+    margin-bottom:18px;
+  }
+
+  #admin-statistics .ig-stat-card{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:14px;
+    padding:15px;
+    background:rgba(255,255,255,.035);
+    min-height:86px;
+  }
+
+  #admin-statistics .ig-stat-card small{
+    display:block;
+    opacity:.68;
+    margin-bottom:8px;
+    font-size:.82rem;
+  }
+
+  #admin-statistics .ig-stat-card strong{
+    display:block;
+    font-size:1.45rem;
+    line-height:1.1;
+  }
+
+  #admin-statistics .ig-stat-card span{
+    display:block;
+    opacity:.62;
+    font-size:.76rem;
+    margin-top:7px;
+  }
+
+  #admin-statistics .ig-stat-layout{
+    display:grid;
+    grid-template-columns:
+      repeat(auto-fit,minmax(310px,1fr));
+    gap:16px;
+    margin-bottom:18px;
+  }
+
+  #admin-statistics .ig-stat-panel{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:14px;
+    padding:16px;
+    background:rgba(255,255,255,.025);
+  }
+
+  #admin-statistics .ig-stat-panel h3{
+    margin:0 0 14px;
+  }
+
+  #admin-statistics .ig-stat-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.88rem;
+  }
+
+  #admin-statistics .ig-stat-table th,
+  #admin-statistics .ig-stat-table td{
+    padding:8px 5px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    text-align:left;
+  }
+
+  #admin-statistics .ig-stat-table th:last-child,
+  #admin-statistics .ig-stat-table td:last-child{
+    text-align:right;
+  }
+
+  #admin-statistics .ig-stat-bars{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+  }
+
+  #admin-statistics .ig-stat-bar-row{
+    display:grid;
+    grid-template-columns:90px 1fr 65px;
+    align-items:center;
+    gap:8px;
+    font-size:.82rem;
+  }
+
+  #admin-statistics .ig-stat-bar-track{
+    height:9px;
+    border-radius:999px;
+    overflow:hidden;
+    background:rgba(255,255,255,.08);
+  }
+
+  #admin-statistics .ig-stat-bar-fill{
+    height:100%;
+    width:0;
+    border-radius:999px;
+    background:currentColor;
+    opacity:.8;
+  }
+
+  #admin-statistics .ig-stat-bar-value{
+    text-align:right;
+    opacity:.75;
+  }
+
+  #admin-statistics .ig-stat-daily{
+    display:flex;
+    align-items:flex-end;
+    gap:4px;
+    height:190px;
+    overflow-x:auto;
+    padding:10px 2px 5px;
+  }
+
+  #admin-statistics .ig-stat-day{
+    min-width:22px;
+    height:100%;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    position:relative;
+  }
+
+  #admin-statistics .ig-stat-day-bar{
+    width:16px;
+    min-height:2px;
+    border-radius:5px 5px 2px 2px;
+    background:currentColor;
+    opacity:.78;
+  }
+
+  #admin-statistics .ig-stat-day-label{
+    position:absolute;
+    bottom:-2px;
+    transform:translateY(100%);
+    font-size:8px;
+    opacity:.5;
+    white-space:nowrap;
+  }
+
+  #admin-statistics .ig-stat-loading{
+    padding:25px;
+    text-align:center;
+    opacity:.7;
+  }
+
+  #admin-statistics .ig-stat-error{
+    border:1px solid rgba(255,80,80,.35);
+    background:rgba(255,50,50,.08);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:16px;
+    display:none;
+    white-space:pre-wrap;
+  }
+
+  #admin-statistics .ig-stat-driver{
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:15px;
+    padding:18px;
+    background:rgba(255,255,255,.035);
+    margin-top:18px;
+  }
+
+  #admin-statistics .ig-stat-driver-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+  }
+
+  #admin-statistics .ig-stat-driver-title h3{
+    margin:0;
+  }
+
+  #admin-statistics .ig-stat-driver-badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    font-size:.78rem;
+  }
+
+  @media(max-width:600px){
+    #admin-statistics .ig-stat-bar-row{
+      grid-template-columns:75px 1fr 55px;
+    }
+
+    #admin-statistics .ig-stat-card strong{
+      font-size:1.25rem;
+    }
+  }
+
+</style>
+
+
+<script id="ig-statistics-module-script">
+(function(){
+
+  'use strict';
+
+  const PREFIX = 'ig-stat-';
+  const SECTION_ID = 'admin-statistics';
+  const BUTTON_ID = 'ig-statistics-admin-button';
+
+  let currentDays = 30;
+  let installed = false;
+  let loading = false;
+
+  function esc(value){
+    return String(value ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+
+  function number(value){
+    const n = Number(value || 0);
+    return n.toLocaleString('es-AR');
+  }
+
+  function money(value){
+    const n = Number(value || 0);
+    return '$' + n.toLocaleString('es-AR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    });
+  }
+
+  function pct(value,total){
+    const a = Number(value || 0);
+    const b = Number(total || 0);
+    if(!b) return '0%';
+    return Math.round((a/b)*100) + '%';
+  }
+
+  function getRoot(){
+    return document.getElementById(SECTION_ID);
+  }
+
+  function createSection(){
+
+    if(getRoot()) return true;
+
+    const main =
+      document.querySelector(
+        '#adminPanel .admin-main'
+      );
+
+    if(!main) return false;
+
+    const section =
+      document.createElement('section');
+
+    section.id = SECTION_ID;
+    section.className = 'admin-section';
+
+    section.innerHTML = `
+
+      <div class="ig-stat-head">
+
+        <div>
+          <h2>📊 Estadísticas</h2>
+          <div class="ig-stat-subtitle">
+            Resumen completo de actividad, ventas,
+            clientes, productos, entregas y conductor.
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="ig-stat-refresh"
+          id="ig-stat-refresh">
+          🔄 Actualizar
+        </button>
+
+      </div>
+
+
+      <div class="ig-stat-periods">
+
+        <button
+          type="button"
+          class="ig-stat-period"
+          data-days="7">
+          7 días
+        </button>
+
+        <button
+          type="button"
+          class="ig-stat-period active"
+          data-days="30">
+          30 días
+        </button>
+
+        <button
+          type="button"
+          class="ig-stat-period"
+          data-days="90">
+          90 días
+        </button>
+
+        <button
+          type="button"
+          class="ig-stat-period"
+          data-days="365">
+          1 año
+        </button>
+
+      </div>
+
+      <br>
+
+      <div
+        id="ig-stat-error"
+        class="ig-stat-error">
+      </div>
+
+      <div
+        id="ig-stat-content">
+
+        <div class="ig-stat-loading">
+          Selecciona este módulo para cargar las estadísticas.
+        </div>
+
+      </div>
+    `;
+
+    main.appendChild(section);
+
+    section
+      .querySelectorAll('.ig-stat-period')
+      .forEach(function(btn){
+
+        btn.addEventListener('click',function(){
+
+          currentDays =
+            Number(btn.dataset.days) || 30;
+
+          section
+            .querySelectorAll('.ig-stat-period')
+            .forEach(function(b){
+              b.classList.remove('active');
+            });
+
+          btn.classList.add('active');
+
+          loadStatistics();
+
+        });
+
+      });
+
+    section
+      .querySelector('#ig-stat-refresh')
+      .addEventListener(
+        'click',
+        loadStatistics
+      );
+
+    return true;
+  }
+
+
+  function createButton(){
+
+    if(document.getElementById(BUTTON_ID)){
+      return true;
+    }
+
+    const nav =
+      document.querySelector(
+        '#adminPanel .admin-nav'
+      );
+
+    if(!nav) return false;
+
+    const button =
+      document.createElement('button');
+
+    button.type = 'button';
+    button.id = BUTTON_ID;
+    button.dataset.section = 'statistics';
+    button.textContent = '📊 Estadísticas';
+
+    button.onclick = function(){
+
+      if(typeof window.showAdminSection === 'function'){
+
+        window.showAdminSection(
+          'statistics'
+        );
+
+      }else{
+
+        document
+          .querySelectorAll('.admin-section')
+          .forEach(function(el){
+            el.classList.remove('active');
+          });
+
+        const target =
+          document.getElementById(
+            SECTION_ID
+          );
+
+        if(target){
+          target.classList.add('active');
+        }
+
+      }
+
+      loadStatistics();
+
+    };
+
+    nav.appendChild(button);
+
+    return true;
+  }
+
+
+  function install(){
+
+    const sectionReady =
+      createSection();
+
+    const buttonReady =
+      createButton();
+
+    installed =
+      sectionReady &&
+      buttonReady;
+
+    return installed;
+  }
+
+
+  function renderLoading(){
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    const content =
+      root.querySelector(
+        '#ig-stat-content'
+      );
+
+    if(content){
+
+      content.innerHTML = `
+        <div class="ig-stat-loading">
+          ⏳ Cargando estadísticas...
+        </div>
+      `;
+
+    }
+
+  }
+
+
+  function renderError(message){
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    const box =
+      root.querySelector(
+        '#ig-stat-error'
+      );
+
+    if(box){
+
+      box.textContent =
+        'No se pudieron cargar las estadísticas.\n\n' +
+        String(message || 'Error desconocido.');
+
+      box.style.display =
+        'block';
+
+    }
+
+  }
+
+
+  function clearError(){
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    const box =
+      root.querySelector(
+        '#ig-stat-error'
+      );
+
+    if(box){
+
+      box.textContent = '';
+      box.style.display = 'none';
+
+    }
+
+  }
+
+
+  function renderKpi(
+    title,
+    value,
+    detail
+  ){
+
+    return `
+      <div class="ig-stat-card">
+
+        <small>${esc(title)}</small>
+
+        <strong>${esc(value)}</strong>
+
+        ${
+          detail
+          ?
+          `<span>${esc(detail)}</span>`
+          :
+          ''
+        }
+
+      </div>
+    `;
+
+  }
+
+
+  function renderBars(
+    rows,
+    labelKey,
+    valueKey
+  ){
+
+    if(!Array.isArray(rows) || !rows.length){
+
+      return `
+        <div style="opacity:.6">
+          Sin datos para este período.
+        </div>
+      `;
+
+    }
+
+    const max =
+      Math.max(
+        ...rows.map(function(row){
+          return Number(row[valueKey] || 0);
+        }),
+        1
+      );
+
+    return `
+      <div class="ig-stat-bars">
+
+        ${
+          rows.map(function(row){
+
+            const value =
+              Number(row[valueKey] || 0);
+
+            const width =
+              Math.max(
+                2,
+                Math.round(
+                  (value/max)*100
+                )
+              );
+
+            return `
+
+              <div class="ig-stat-bar-row">
+
+                <span>
+                  ${esc(row[labelKey] || 'Sin dato')}
+                </span>
+
+                <div class="ig-stat-bar-track">
+                  <div
+                    class="ig-stat-bar-fill"
+                    style="width:${width}%">
+                  </div>
+                </div>
+
+                <span class="ig-stat-bar-value">
+                  ${number(value)}
+                </span>
+
+              </div>
+
+            `;
+
+          }).join('')
+
+        }
+
+      </div>
+    `;
+
+  }
+
+
+  function renderDailyVisits(rows){
+
+    if(!Array.isArray(rows) || !rows.length){
+
+      return `
+        <div style="opacity:.6">
+          Sin datos diarios.
+        </div>
+      `;
+
+    }
+
+    const max =
+      Math.max(
+        ...rows.map(function(row){
+          return Number(row.visits || 0);
+        }),
+        1
+      );
+
+    return `
+      <div class="ig-stat-daily">
+
+        ${
+          rows.map(function(row){
+
+            const value =
+              Number(row.visits || 0);
+
+            const height =
+              Math.max(
+                2,
+                Math.round(
+                  (value/max)*160
+                )
+              );
+
+            const label =
+              String(
+                row.day_date || ''
+              ).slice(5);
+
+            return `
+
+              <div
+                class="ig-stat-day"
+                title="${esc(
+                  String(row.day_date || '') +
+                  ': ' +
+                  number(value) +
+                  ' visitas'
+                )}">
+
+                <div
+                  class="ig-stat-day-bar"
+                  style="height:${height}px">
+                </div>
+
+                <div class="ig-stat-day-label">
+                  ${esc(label)}
+                </div>
+
+              </div>
+
+            `;
+
+          }).join('')
+
+        }
+
+      </div>
+    `;
+
+  }
+
+
+  function renderDailySales(rows){
+
+    if(!Array.isArray(rows) || !rows.length){
+
+      return `
+        <div style="opacity:.6">
+          Sin datos diarios.
+        </div>
+      `;
+
+    }
+
+    const max =
+      Math.max(
+        ...rows.map(function(row){
+          return Number(row.revenue || 0);
+        }),
+        1
+      );
+
+    return `
+      <div class="ig-stat-daily">
+
+        ${
+          rows.map(function(row){
+
+            const value =
+              Number(row.revenue || 0);
+
+            const height =
+              Math.max(
+                2,
+                Math.round(
+                  (value/max)*160
+                )
+              );
+
+            const label =
+              String(
+                row.day_date || ''
+              ).slice(5);
+
+            return `
+
+              <div
+                class="ig-stat-day"
+                title="${esc(
+                  String(row.day_date || '') +
+                  ': ' +
+                  money(value)
+                )}">
+
+                <div
+                  class="ig-stat-day-bar"
+                  style="height:${height}px">
+                </div>
+
+                <div class="ig-stat-day-label">
+                  ${esc(label)}
+                </div>
+
+              </div>
+
+            `;
+
+          }).join('')
+
+        }
+
+      </div>
+    `;
+
+  }
+
+
+  function renderTopProducts(rows){
+
+    if(!Array.isArray(rows) || !rows.length){
+
+      return `
+        <div style="opacity:.6">
+          Sin ventas de productos en este período.
+        </div>
+      `;
+
+    }
+
+    return `
+
+      <table class="ig-stat-table">
+
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Unidades</th>
+            <th>Facturación</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${
+            rows.map(function(row){
+
+              return `
+
+                <tr>
+
+                  <td>
+                    ${esc(
+                      row.product_name ||
+                      'Producto'
+                    )}
+                  </td>
+
+                  <td>
+                    ${number(row.units)}
+                  </td>
+
+                  <td>
+                    ${money(row.revenue)}
+                  </td>
+
+                </tr>
+
+              `;
+
+            }).join('')
+          }
+
+        </tbody>
+
+      </table>
+
+    `;
+
+  }
+
+
+  function renderStatistics(data){
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    const visits =
+      data.visits || {};
+
+    const sales =
+      data.sales || {};
+
+    const products =
+      data.products || {};
+
+    const customers =
+      data.customers || {};
+
+    const events =
+      data.events || {};
+
+    const delivery =
+      data.delivery || {};
+
+    const content =
+      root.querySelector(
+        '#ig-stat-content'
+      );
+
+    if(!content) return;
+
+
+    const paidOrders =
+      Number(
+        sales.paid_orders || 0
+      );
+
+    const revenue =
+      Number(
+        sales.revenue || 0
+      );
+
+
+    content.innerHTML = `
+
+      <!-- RESUMEN GENERAL -->
+
+      <div class="ig-stat-grid">
+
+        ${renderKpi(
+          '👁️ Visitas',
+          number(visits.total)
+        )}
+
+        ${renderKpi(
+          '👤 Visitantes únicos',
+          number(visits.unique)
+        )}
+
+        ${renderKpi(
+          '🛒 Pedidos',
+          number(sales.orders)
+        )}
+
+        ${renderKpi(
+          '💰 Facturación',
+          money(revenue)
+        )}
+
+        ${renderKpi(
+          '💳 Pedidos pagados',
+          number(paidOrders)
+        )}
+
+        ${renderKpi(
+          '🧾 Ticket promedio',
+          money(sales.average_order)
+        )}
+
+        ${renderKpi(
+          '👥 Clientes',
+          number(customers.total)
+        )}
+
+        ${renderKpi(
+          '🆕 Nuevos clientes',
+          number(customers.new_period)
+        )}
+
+      </div>
+
+
+      <!-- VENTAS -->
+
+      <div class="ig-stat-grid">
+
+        ${renderKpi(
+          '💰 Facturación hoy',
+          money(sales.today_revenue)
+        )}
+
+        ${renderKpi(
+          '📅 Facturación del mes',
+          money(sales.month_revenue)
+        )}
+
+        ${renderKpi(
+          '⏳ Pedidos pendientes',
+          number(sales.pending)
+        )}
+
+        ${renderKpi(
+          '✅ Pedidos completados',
+          number(sales.completed)
+        )}
+
+        ${renderKpi(
+          '❌ Pedidos cancelados',
+          number(sales.cancelled)
+        )}
+
+      </div>
+
+
+      <!-- EVOLUCIÓN -->
+
+      <div class="ig-stat-layout">
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            👁️ Evolución de visitas
+          </h3>
+
+          ${renderDailyVisits(
+            visits.daily
+          )}
+
+        </div>
+
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            💰 Evolución de facturación
+          </h3>
+
+          ${renderDailySales(
+            sales.daily
+          )}
+
+        </div>
+
+      </div>
+
+
+      <!-- DESGLOSES -->
+
+      <div class="ig-stat-layout">
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            📱 Dispositivos
+          </h3>
+
+          ${
+            renderBars(
+              visits.by_device,
+              'device',
+              'visits'
+            )
+          }
+
+        </div>
+
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            💳 Métodos de pago
+          </h3>
+
+          ${
+            renderBars(
+              sales.by_payment,
+              'payment_method',
+              'orders'
+            )
+          }
+
+        </div>
+
+      </div>
+
+
+      <!-- PRODUCTOS -->
+
+      <div class="ig-stat-layout">
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            🏆 Productos más vendidos
+          </h3>
+
+          ${renderTopProducts(
+            data.top_products
+          )}
+
+        </div>
+
+
+        <div class="ig-stat-panel">
+
+          <h3>
+            👁️ Productos más vistos
+          </h3>
+
+          ${
+            renderBars(
+              events.top_viewed_products,
+              'product_name',
+              'views'
+            )
+          }
+
+        </div>
+
+      </div>
+
+
+      <!-- CARRITO / FAVORITOS -->
+
+      <div class="ig-stat-grid">
+
+        ${renderKpi(
+          '👁️ Vistas de productos',
+          number(events.product_views)
+        )}
+
+        ${renderKpi(
+          '🛒 Añadidos al carrito',
+          number(events.cart_adds)
+        )}
+
+        ${renderKpi(
+          '❤️ Favoritos añadidos',
+          number(events.favorite_adds)
+        )}
+
+        ${renderKpi(
+          '💔 Favoritos quitados',
+          number(events.favorite_removes)
+        )}
+
+      </div>
+
+
+      <!-- ENTREGAS -->
+
+      <div class="ig-stat-panel">
+
+        <h3>
+          🚚 Resumen de entregas
+        </h3>
+
+        <div class="ig-stat-grid">
+
+          ${renderKpi(
+            '⏳ Pendientes',
+            number(delivery.pending)
+          )}
+
+          ${renderKpi(
+            '🚚 En seguimiento',
+            number(delivery.tracking)
+          )}
+
+          ${renderKpi(
+            '✅ Entregadas',
+            number(delivery.delivered)
+          )}
+
+        </div>
+
+      </div>
+
+
+      <!-- CONDUCTOR -->
+
+      <div
+        class="ig-stat-driver"
+        id="ig-stat-driver-panel">
+
+        <div class="ig-stat-driver-title">
+
+          <div>
+
+            <h3>
+              🚚 Estadísticas del conductor
+            </h3>
+
+            <div class="ig-stat-subtitle">
+              Resumen del único conductor registrado.
+            </div>
+
+          </div>
+
+          <span
+            class="ig-stat-driver-badge"
+            id="ig-stat-driver-name">
+            Cargando conductor...
+          </span>
+
+        </div>
+
+
+        <div
+          class="ig-stat-grid"
+          id="ig-stat-driver-kpis">
+
+          ${renderKpi(
+            '📦 Entregas del período',
+            '0'
+          )}
+
+          ${renderKpi(
+            '✅ Completadas',
+            '0'
+          )}
+
+          ${renderKpi(
+            '⏳ Pendientes',
+            '0'
+          )}
+
+          ${renderKpi(
+            '🚚 En seguimiento',
+            '0'
+          )}
+
+          ${renderKpi(
+            '💰 Facturación conductor',
+            '$0'
+          )}
+
+          ${renderKpi(
+            '💵 Promedio por entrega',
+            '$0'
+          )}
+
+        </div>
+
+
+        <div
+          class="ig-stat-panel"
+          style="margin-top:14px">
+
+          <h3>
+            📊 Facturación del conductor por entrega
+          </h3>
+
+          <div
+            id="ig-stat-driver-daily">
+            <div style="opacity:.6">
+              Sin datos.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+
+    loadDriverStatistics();
+
+  }
+
+
+  async function loadStatistics(){
+
+    if(loading) return;
+
+    if(!install()) return;
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    loading = true;
+
+    clearError();
+    renderLoading();
+
+    try{
+
+      if(
+        !window.supabaseClient ||
+        typeof window.supabaseClient.rpc !== 'function'
+      ){
+
+        throw new Error(
+          'No se encontró el cliente de Supabase de la aplicación.'
+        );
+
+      }
+
+
+      const result =
+        await window.supabaseClient.rpc(
+          'ig_admin_store_analytics',
+          {
+            p_days: currentDays
+          }
+        );
+
+
+      if(result.error){
+
+        throw result.error;
+
+      }
+
+
+      renderStatistics(
+        result.data || {}
+      );
+
+
+    }catch(error){
+
+      console.error(
+        '[IG Estadísticas]',
+        error
+      );
+
+      renderError(
+        error.message ||
+        error.details ||
+        'Error al cargar las estadísticas.'
+      );
+
+    }finally{
+
+      loading = false;
+
+    }
+
+  }
+
+
+  async function loadDriverStatistics(){
+
+    const root =
+      getRoot();
+
+    if(!root) return;
+
+    const nameEl =
+      root.querySelector(
+        '#ig-stat-driver-name'
+      );
+
+    const kpis =
+      root.querySelector(
+        '#ig-stat-driver-kpis'
+      );
+
+    const daily =
+      root.querySelector(
+        '#ig-stat-driver-daily'
+      );
+
+
+    try{
+
+      if(
+        !window.supabaseClient ||
+        typeof window.supabaseClient
+          .from !== 'function'
+      ){
+
+        throw new Error(
+          'Cliente Supabase no disponible.'
+        );
+
+      }
+
+
+      /*
+       * Primero obtenemos la configuración del
+       * único conductor.
+       */
+      const configResult =
+        await window.supabaseClient
+          .from('ig_driver_config')
+          .select(
+            'driver_email,enabled'
+          )
+          .eq('id',1)
+          .maybeSingle();
+
+
+      if(configResult.error){
+
+        throw configResult.error;
+
+      }
+
+
+      const driverEmail =
+        configResult.data &&
+        configResult.data.driver_email
+          ?
+          configResult.data.driver_email
+          :
+          'Conductor';
+
+
+      if(nameEl){
+
+        nameEl.textContent =
+          configResult.data &&
+          configResult.data.driver_email
+            ?
+            configResult.data.driver_email
+            :
+            'Conductor';
+
+      }
+
+
+      /*
+       * Leemos las entregas del período.
+       *
+       * accepted_price = precio finalmente aceptado.
+       * driver_price   = respaldo si todavía no existe
+       *                  accepted_price.
+       */
+      const since =
+        new Date(
+          Date.now() -
+          (
+            currentDays *
+            24 *
+            60 *
+            60 *
+            1000
+          )
+        ).toISOString();
+
+
+      let query =
+        window.supabaseClient
+          .from('ig_delivery_tracking')
+          .select(
+            [
+              'order_id',
+              'driver_email',
+              'status',
+              'driver_price',
+              'accepted_price',
+              'updated_at',
+              'tracking_started_at',
+              'tracking_finished_at'
+            ].join(',')
+          )
+          .gte(
+            'updated_at',
+            since
+          );
+
+
+      if(driverEmail){
+
+        query =
+          query.eq(
+            'driver_email',
+            driverEmail
+          );
+
+      }
+
+
+      const deliveryResult =
+        await query;
+
+
+      if(deliveryResult.error){
+
+        throw deliveryResult.error;
+
+      }
+
+
+      const rows =
+        Array.isArray(
+          deliveryResult.data
+        )
+        ?
+        deliveryResult.data
+        :
+        [];
+
+
+      let completed = 0;
+      let pending = 0;
+      let tracking = 0;
+      let cancelled = 0;
+      let billing = 0;
+
+
+      rows.forEach(function(row){
+
+        const status =
+          String(
+            row.status || ''
+          ).toLowerCase();
+
+
+        if(status === 'delivered'){
+
+          completed++;
+
+        }else if(
+          status === 'tracking'
+        ){
+
+          tracking++;
+
+        }else if(
+          status === 'pending' ||
+          status === 'price_proposed' ||
+          status === 'accepted'
+        ){
+
+          pending++;
+
+        }else{
+
+          if(status === 'cancelled'){
+            cancelled++;
+          }
+
+        }
+
+
+        const accepted =
+          Number(
+            row.accepted_price
+          );
+
+        const driverPrice =
+          Number(
+            row.driver_price
+          );
+
+
+        /*
+         * Solo contamos facturación cuando
+         * existe un importe real.
+         *
+         * Para entregas finalizadas se utiliza
+         * accepted_price y, si falta, driver_price.
+         */
+        const price =
+          Number.isFinite(accepted) &&
+          accepted > 0
+            ?
+            accepted
+            :
+            (
+              Number.isFinite(driverPrice)
+              ?
+              driverPrice
+              :
+              0
+            );
+
+
+        if(
+          status === 'delivered' &&
+          price > 0
+        ){
+
+          billing += price;
+
+        }
+
+      });
+
+
+      const completedRows =
+        rows.filter(function(row){
+
+          return String(
+            row.status || ''
+          ).toLowerCase() === 'delivered';
+
+        });
+
+
+      const average =
+        completedRows.length
+          ?
+          billing /
+          completedRows.length
+          :
+          0;
+
+
+      if(kpis){
+
+        kpis.innerHTML = `
+
+          ${renderKpi(
+            '📦 Entregas del período',
+            number(rows.length)
+          )}
+
+          ${renderKpi(
+            '✅ Completadas',
+            number(completed)
+          )}
+
+          ${renderKpi(
+            '⏳ Pendientes',
+            number(pending)
+          )}
+
+          ${renderKpi(
+            '🚚 En seguimiento',
+            number(tracking)
+          )}
+
+          ${renderKpi(
+            '💰 Facturación conductor',
+            money(billing)
+          )}
+
+          ${renderKpi(
+            '💵 Promedio por entrega',
+            money(average)
+          )}
+
+        `;
+
+      }
+
+
+      /*
+       * Evolución diaria de facturación del conductor.
+       */
+      const dailyMap = {};
+
+
+      completedRows.forEach(function(row){
+
+        const date =
+          String(
+            row.tracking_finished_at ||
+            row.updated_at ||
+            ''
+          ).slice(0,10);
+
+
+        if(!date) return;
+
+
+        const accepted =
+          Number(
+            row.accepted_price
+          );
+
+        const driverPrice =
+          Number(
+            row.driver_price
+          );
+
+        const price =
+          Number.isFinite(accepted) &&
+          accepted > 0
+            ?
+            accepted
+            :
+            (
+              Number.isFinite(driverPrice)
+                ?
+                driverPrice
+                :
+                0
+            );
+
+
+        if(!dailyMap[date]){
+          dailyMap[date] = 0;
+        }
+
+        dailyMap[date] += price;
+
+      });
+
+
+      const dailyRows =
+        Object.keys(
+          dailyMap
+        )
+        .sort()
+        .map(function(date){
+
+          return {
+            date:date,
+            amount:dailyMap[date]
+          };
+
+        });
+
+
+      if(daily){
+
+        if(!dailyRows.length){
+
+          daily.innerHTML = `
+            <div style="opacity:.6">
+              No hay facturación de conductor
+              registrada en este período.
+            </div>
+          `;
+
+        }else{
+
+          const max =
+            Math.max(
+              ...dailyRows.map(function(row){
+                return row.amount;
+              }),
+              1
+            );
+
+
+          daily.innerHTML = `
+
+            <div class="ig-stat-daily">
+
+              ${
+                dailyRows.map(function(row){
+
+                  const height =
+                    Math.max(
+                      2,
+                      Math.round(
+                        (
+                          row.amount /
+                          max
+                        ) * 160
+                      )
+                    );
+
+
+                  return `
+
+                    <div
+                      class="ig-stat-day"
+                      title="${esc(
+                        row.date +
+                        ': ' +
+                        money(row.amount)
+                      )}">
+
+                      <div
+                        class="ig-stat-day-bar"
+                        style="height:${height}px">
+                      </div>
+
+                      <div
+                        class="ig-stat-day-label">
+                        ${esc(
+                          row.date.slice(5)
+                        )}
+                      </div>
+
+                    </div>
+
+                  `;
+
+                }).join('')
+
+              }
+
+            </div>
+
+          `;
+
+        }
+
+      }
+
+
+      /*
+       * Dejamos registrado el dato de canceladas
+       * en consola solamente para no alterar el
+       * diseño existente del panel.
+       */
+      console.debug(
+        '[IG Estadísticas] Conductor',
+        {
+          entregas:rows.length,
+          completadas:completed,
+          pendientes:pending,
+          seguimiento:tracking,
+          canceladas:cancelled,
+          facturacion:billing
+        }
+      );
+
+
+    }catch(error){
+
+      console.error(
+        '[IG Estadísticas] Conductor',
+        error
+      );
+
+
+      if(nameEl){
+
+        nameEl.textContent =
+          'No disponible';
+
+      }
+
+
+      if(kpis){
+
+        kpis.innerHTML = `
+
+          <div
+            style="
+              grid-column:1/-1;
+              opacity:.7;
+              padding:10px 0
+            ">
+
+            No se pudieron cargar
+            las estadísticas del conductor.
+
+          </div>
+
+        `;
+
+      }
+
+
+      if(daily){
+
+        daily.innerHTML = `
+
+          <div style="opacity:.65">
+
+            ${esc(
+              error.message ||
+              'No se pudieron cargar los datos del conductor.'
+            )}
+
+          </div>
+
+        `;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * Instalación inicial.
+   */
+  function start(){
+
+    install();
+
+  }
+
+
+  /*
+   * El administrador puede construirse
+   * dinámicamente. Esperamos sin modificar
+   * ninguna función existente.
+   */
+  start();
+
+
+  let attempts = 0;
+
+  const timer =
+    setInterval(function(){
+
+      if(
+        !document.getElementById(
+          BUTTON_ID
+        ) ||
+        !getRoot()
+      ){
+
+        install();
+
+      }
+
+      attempts++;
+
+      if(attempts >= 40){
+
+        clearInterval(timer);
+
+      }
+
+    },500);
+
+
+  /*
+   * Si el administrador se reconstruye,
+   * volvemos a instalar únicamente nuestro
+   * botón y nuestra sección.
+   */
+  if(window.MutationObserver){
+
+    const observer =
+      new MutationObserver(function(){
+
+        if(
+          document.querySelector(
+            '#adminPanel'
+          )
+        ){
+
+          if(
+            !document.getElementById(
+              BUTTON_ID
+            ) ||
+            !getRoot()
+          ){
+
+            install();
+
+          }
+
+        }
+
+      });
+
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+})();
+</script>
+
+<!-- ============================================================
+     FIN 📊 MÓDULO INDEPENDIENTE DE ESTADÍSTICAS
+============================================================ -->
+
 </body>
 </html>
