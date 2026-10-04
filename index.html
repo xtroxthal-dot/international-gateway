@@ -42645,28 +42645,132 @@ function openNavigation(){
   }
 
 
-  const destination =
-    Number(
+  igdNavigationMode = true;
+
+
+  const delivery = {
+    lat:Number(
       igdCurrentOrder.delivery_lat
-    ) +
-    "," +
-    Number(
+    ),
+    lng:Number(
       igdCurrentOrder.delivery_lng
-    );
+    )
+  };
 
 
-  const url =
-    "https://www.google.com/maps/dir/?api=1" +
-    "&destination=" +
-    encodeURIComponent(
-      destination
-    ) +
-    "&travelmode=driving";
+  const current =
+    igdCurrentOrder.current_lat &&
+    igdCurrentOrder.current_lng
+      ? {
+          lat:Number(
+            igdCurrentOrder.current_lat
+          ),
+          lng:Number(
+            igdCurrentOrder.current_lng
+          )
+        }
+      : {
+          lat:delivery.lat,
+          lng:delivery.lng
+        };
 
 
-  window.open(
-    url,
-    "_blank"
+  modal(`
+
+    <div
+      style="
+        position:fixed;
+        inset:0;
+        width:100vw;
+        height:100dvh;
+        background:#111;
+        display:flex;
+        flex-direction:column;
+        z-index:9999;
+      "
+    >
+
+      <div
+        style="
+          flex:none;
+          background:#111;
+          color:#fff;
+          padding:12px 14px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+        "
+      >
+
+        <div>
+          <strong style="font-size:19px;">
+            🧭 Navegación GPS
+          </strong>
+
+          <div
+            id="igNavigationStatus"
+            style="
+              font-size:13px;
+              color:#bbb;
+              margin-top:3px;
+            "
+          >
+            GPS activo
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          class="ig-delivery-btn"
+          onclick="IGD.closeNavigation()"
+        >
+          ✕ Salir
+        </button>
+
+      </div>
+
+
+      <div
+        id="igDeliveryMap"
+        style="
+          flex:1;
+          min-height:0;
+          width:100%;
+        "
+      >
+      </div>
+
+
+      <div
+        style="
+          flex:none;
+          background:#111;
+          padding:10px;
+        "
+      >
+
+        <button
+          type="button"
+          class="ig-delivery-btn blue"
+          style="width:100%;"
+          onclick="IGD.centerDriver()"
+        >
+          📍 Centrar mi posición
+        </button>
+
+      </div>
+
+    </div>
+
+  `);
+
+
+  showMap(
+    current,
+    delivery,
+    current
   );
 
 }
@@ -42674,6 +42778,8 @@ function openNavigation(){
 
 window.IGD.openNavigation =
   openNavigation;
+
+
 
 
 /* =========================================================
