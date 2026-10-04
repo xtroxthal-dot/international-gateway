@@ -42628,6 +42628,76 @@ window.IGD.driverRoute =
   driverRoute;
 
 
+
+function closeNavigation(){
+
+  igdNavigationMode = false;
+
+
+  if(
+    window.__igdNavInterval
+  ){
+
+    clearInterval(
+      window.__igdNavInterval
+    );
+
+    window.__igdNavInterval = null;
+
+  }
+
+
+  if(igdMap){
+
+    igdMap.remove();
+
+    igdMap = null;
+
+  }
+
+
+  igdDriverMarker = null;
+  igdRouteLayer = null;
+
+
+  close();
+
+
+  openDriver();
+
+}
+
+
+function centerDriver(){
+
+  if(
+    !igdMap ||
+    !igdDriverMarker
+  ){
+
+    return;
+
+  }
+
+
+  const position =
+    igdDriverMarker.getLatLng();
+
+
+  igdMap.setView(
+    [
+      position.lat,
+      position.lng
+    ],
+    17,
+    {
+      animate:true
+    }
+  );
+
+}
+
+
 function openNavigation(){
 
   if(
@@ -42649,29 +42719,40 @@ function openNavigation(){
 
 
   const delivery = {
+
     lat:Number(
       igdCurrentOrder.delivery_lat
     ),
+
     lng:Number(
       igdCurrentOrder.delivery_lng
     )
+
   };
 
 
   const current =
     igdCurrentOrder.current_lat &&
     igdCurrentOrder.current_lng
+
       ? {
+
           lat:Number(
             igdCurrentOrder.current_lat
           ),
+
           lng:Number(
             igdCurrentOrder.current_lng
           )
+
         }
+
       : {
+
           lat:delivery.lat,
+
           lng:delivery.lng
+
         };
 
 
@@ -42704,7 +42785,12 @@ function openNavigation(){
       >
 
         <div>
-          <strong style="font-size:19px;">
+
+          <strong
+            style="
+              font-size:19px;
+            "
+          >
             🧭 Navegación GPS
           </strong>
 
@@ -42720,6 +42806,7 @@ function openNavigation(){
           </div>
 
         </div>
+
 
         <button
           type="button"
@@ -42773,12 +42860,83 @@ function openNavigation(){
     current
   );
 
+
+  window.__igdNavInterval =
+    setInterval(
+      function(){
+
+        if(
+          !igdNavigationMode ||
+          !igdCurrentOrder
+        ){
+
+          return;
+
+        }
+
+
+        const status =
+          document.getElementById(
+            "igNavigationStatus"
+          );
+
+
+        if(
+          !status
+        ){
+
+          return;
+
+        }
+
+
+        if(
+          igdCurrentOrder.current_lat &&
+          igdCurrentOrder.current_lng
+        ){
+
+          const km =
+            distanceKm(
+              Number(
+                igdCurrentOrder.current_lat
+              ),
+              Number(
+                igdCurrentOrder.current_lng
+              ),
+              delivery.lat,
+              delivery.lng
+            );
+
+
+          status.textContent =
+            "🚚 GPS activo · " +
+            km.toFixed(2) +
+            " km restantes";
+
+        }else{
+
+          status.textContent =
+            "📡 Esperando posición GPS...";
+
+        }
+
+      },
+      1000
+    );
+
 }
+
+
+window.IGD.closeNavigation =
+  closeNavigation;
+
+
+window.IGD.centerDriver =
+  centerDriver;
 
 
 window.IGD.openNavigation =
   openNavigation;
-
 
 
 
