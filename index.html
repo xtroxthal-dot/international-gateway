@@ -42235,7 +42235,7 @@ function renderDriver(
 
       <div class="ig-d-actions">
 
-        <button
+             <button
           class="ig-delivery-btn blue"
           type="button"
           onclick="IGD.driverRoute()">
@@ -42243,6 +42243,23 @@ function renderDriver(
           🗺️ Ver ruta
 
         </button>
+
+        ${
+          data.delivery_lat && data.delivery_lng
+          ?
+          `
+          <button
+            class="ig-delivery-btn blue"
+            type="button"
+            onclick="IGD.openNavigation()">
+
+            🧭 Navegación GPS
+
+          </button>
+          `
+          :
+          ""
+        }
 
       </div>
 
