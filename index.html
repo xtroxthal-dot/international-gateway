@@ -4258,10 +4258,12 @@ async function loadAdminOrders(){
             Pago:
           </strong>
 
-          ${
+                    ${
             order.payment_method==="mercado_pago"
               ? "Mercado Pago"
-              : "Contado"
+              : order.payment_method==="transfer"
+                ? "Transferencia bancaria"
+                : "Contado"
           }
 
         </p>
