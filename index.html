@@ -2508,6 +2508,49 @@ function showConfirmation(
 
     }
 
+  }else if(
+    paymentMethod==="transfer"
+  ){
+
+    paymentBox.innerHTML=`
+
+      <div class="notice success">
+
+        <strong>
+          🏦 Transferencia bancaria
+        </strong>
+
+        <br><br>
+
+        Realizá la transferencia por el total de tu pedido:
+
+        <br><br>
+
+        <strong>
+          Alias: edukari1
+        </strong>
+
+        <br>
+
+        <strong>
+          Titular: Karina Elizabeth Cochea
+        </strong>
+
+        <br>
+
+        <strong>
+          Banco: Galicia
+        </strong>
+
+        <br><br>
+
+        Una vez realizada la transferencia,
+        conservá el comprobante.
+
+      </div>
+
+    `;
+
   }else{
 
     paymentBox.innerHTML=`
@@ -2525,6 +2568,7 @@ function showConfirmation(
     `;
 
   }
+
 
 
   window.scrollTo({
