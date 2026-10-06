@@ -50694,5 +50694,2829 @@ supabaseClient.auth
      FIN 💰 COMPARADOR DE PRECIOS
 ============================================================ -->
 
+ <!-- ============================================================
+     INTERNATIONAL GATEWAY
+     GPS AVANZADO + NAVEGACIÓN HABLADA
+     BLOQUE DE MEJORA QUIRÚRGICA
+     PEGAR ANTES DE </body>
+============================================================ -->
+
+<style id="IG-GPS-ADVANCED-STYLE">
+
+#igGPSAdvancedPanel{
+  position:fixed;
+  inset:0;
+  z-index:1000000;
+  background:#111;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+#igGPSAdvancedHeader{
+  flex:none;
+  background:#111;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.45);
+}
+
+#igGPSAdvancedHeader strong{
+  font-size:18px;
+}
+
+#igGPSAdvancedStatus{
+  font-size:12px;
+  color:#bbb;
+  margin-top:3px;
+}
+
+#igGPSAdvancedMap{
+  flex:1;
+  min-height:0;
+  width:100%;
+}
+
+#igGPSAdvancedInfo{
+  flex:none;
+  background:#151515;
+  padding:7px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+
+.ig-gps-info{
+  background:#202020;
+  border-radius:9px;
+  padding:7px;
+  font-size:11px;
+}
+
+.ig-gps-info strong{
+  display:block;
+  font-size:15px;
+  margin-top:3px;
+}
+
+#igGPSAdvancedInstruction{
+  flex:none;
+  background:#181818;
+  padding:9px 12px;
+  font-size:14px;
+  font-weight:700;
+  min-height:20px;
+}
+
+#igGPSAdvancedActions{
+  flex:none;
+  background:#111;
+  padding:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.ig-gps-btn{
+  border:0;
+  border-radius:10px;
+  padding:10px 12px;
+  color:#fff;
+  background:#333;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.ig-gps-blue{background:#1267b1}
+.ig-gps-green{background:#16833b}
+.ig-gps-red{background:#b3261e}
+
+@media(max-width:600px){
+
+  #igGPSAdvancedInfo{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .ig-gps-btn{
+    flex:1;
+    min-width:105px;
+  }
+
+}
+
+</style>
+
+
+<script id="IG-GPS-ADVANCED-SCRIPT">
+
+(function(){
+
+"use strict";
+
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+const IGGPS = {
+
+  watchId:null,
+
+  route:null,
+
+  steps:[],
+
+  stepIndex:0,
+
+  lastPosition:null,
+
+  lastSavedAt:0,
+
+  lastSpokenStep:-1,
+
+  map:null,
+
+  marker:null,
+
+  routeLayer:null,
+
+  trailLayer:null,
+
+  adminChannel:null,
+
+  navigation:false,
+
+  adminMode:false,
+
+  follow:true,
+
+  voice:true,
+
+  recalculating:false,
+
+  routePoints:[],
+
+  destination:null
+
+};
+
+
+/* ============================================================
+   UTILIDADES
+============================================================ */
+
+function n(v){
+
+  const x=Number(v);
+
+  return Number.isFinite(x)
+    ? x
+    : 0;
+
+}
+
+
+function esc(v){
+
+  return String(v ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function distanceKm(
+  lat1,
+  lng1,
+  lat2,
+  lng2
+){
+
+  const R=6371;
+
+  const p1=
+    lat1*Math.PI/180;
+
+  const p2=
+    lat2*Math.PI/180;
+
+  const dp=
+    (lat2-lat1)*Math.PI/180;
+
+  const dl=
+    (lng2-lng1)*Math.PI/180;
+
+  const a=
+    Math.sin(dp/2)**2+
+    Math.cos(p1)*
+    Math.cos(p2)*
+    Math.sin(dl/2)**2;
+
+  return R*
+    2*
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    );
+
+}
+
+
+function formatKm(km){
+
+  if(km<1){
+
+    return Math.round(km*1000)+" m";
+
+  }
+
+  return km.toFixed(2)+" km";
+
+}
+
+
+function formatEta(seconds){
+
+  if(!Number.isFinite(seconds))
+    return "—";
+
+  const min=
+    Math.max(
+      1,
+      Math.round(seconds/60)
+    );
+
+  if(min<60)
+    return min+" min";
+
+  const h=
+    Math.floor(min/60);
+
+  const m=
+    min%60;
+
+  return h+" h "+m+" min";
+
+}
+
+
+/* ============================================================
+   VOZ
+============================================================ */
+
+function speak(text){
+
+  if(!IGGPS.voice)
+    return;
+
+  if(!("speechSynthesis" in window))
+    return;
+
+  try{
+
+    window.speechSynthesis.cancel();
+
+    const u=
+      new SpeechSynthesisUtterance(
+        text
+      );
+
+    u.lang="es-AR";
+    u.rate=1;
+    u.pitch=1;
+    u.volume=1;
+
+    window.speechSynthesis.speak(u);
+
+  }catch(error){
+
+    console.warn(
+      "IG voz:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   TEXTO DE MANIOBRA
+============================================================ */
+
+function maneuverText(step){
+
+  if(
+    !step ||
+    !step.maneuver
+  ){
+
+    return "Continuá por la ruta.";
+
+  }
+
+  const m=
+    step.maneuver;
+
+  const type=
+    m.type || "";
+
+  const modifier=
+    m.modifier || "";
+
+
+  if(type==="depart")
+    return "Comenzá el recorrido.";
+
+  if(type==="arrive")
+    return "Llegaste a destino.";
+
+  if(
+    type==="roundabout" ||
+    type==="rotary"
+  ){
+
+    return "Entrá en la rotonda y tomá la salida indicada.";
+
+  }
+
+  if(type==="merge")
+    return "Incorporate a la vía.";
+
+
+  if(type==="fork"){
+
+    if(
+      modifier.includes("left")
+    ){
+
+      return "Tomá la bifurcación de la izquierda.";
+
+    }
+
+    if(
+      modifier.includes("right")
+    ){
+
+      return "Tomá la bifurcación de la derecha.";
+
+    }
+
+    return "Tomá la bifurcación indicada.";
+
+  }
+
+
+  if(modifier==="left")
+    return "Girá a la izquierda.";
+
+  if(modifier==="right")
+    return "Girá a la derecha.";
+
+  if(modifier==="slight left")
+    return "Mantenete levemente a la izquierda.";
+
+  if(modifier==="slight right")
+    return "Mantenete levemente a la derecha.";
+
+  if(modifier==="sharp left")
+    return "Girá cerradamente a la izquierda.";
+
+  if(modifier==="sharp right")
+    return "Girá cerradamente a la derecha.";
+
+  if(modifier==="straight")
+    return "Continuá derecho.";
+
+  return "Continuá por la ruta.";
+
+}
+
+
+function stepText(step){
+
+  const base=
+    maneuverText(step);
+
+  const street=
+    step &&
+    step.name
+      ? " por "+step.name
+      : "";
+
+  return base+street;
+
+}
+
+
+/* ============================================================
+   RUTA OSRM CON INDICACIONES
+============================================================ */
+
+async function calculateRoute(
+  startLat,
+  startLng,
+  endLat,
+  endLng
+){
+
+  const url=
+    "https://router.project-osrm.org/route/v1/driving/"+
+    n(startLng)+","+n(startLat)+
+    ";"+
+    n(endLng)+","+n(endLat)+
+    "?overview=full"+
+    "&geometries=geojson"+
+    "&steps=true";
+
+
+  const response=
+    await fetch(url);
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "No se pudo calcular la ruta."
+    );
+
+  }
+
+
+  const data=
+    await response.json();
+
+
+  if(
+    !data.routes ||
+    !data.routes.length
+  ){
+
+    throw new Error(
+      "No existe una ruta disponible."
+    );
+
+  }
+
+
+  return data.routes[0];
+
+}
+
+
+/* ============================================================
+   PASOS DE NAVEGACIÓN
+============================================================ */
+
+function prepareSteps(){
+
+  IGGPS.steps=[];
+
+  IGGPS.stepIndex=0;
+
+  IGGPS.lastSpokenStep=-1;
+
+
+  if(
+    !IGGPS.route ||
+    !IGGPS.route.legs
+  ){
+
+    return;
+
+  }
+
+
+  IGGPS.route.legs.forEach(
+    function(leg){
+
+      if(
+        Array.isArray(
+          leg.steps
+        )
+      ){
+
+        IGGPS.steps.push(
+          ...leg.steps
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+function currentStep(){
+
+  return IGGPS.steps[
+    IGGPS.stepIndex
+  ] || null;
+
+}
+
+
+/* ============================================================
+   MAPA
+============================================================ */
+
+function createAdvancedMap(){
+
+  if(IGGPS.map){
+
+    try{
+
+      IGGPS.map.remove();
+
+    }catch(e){}
+
+  }
+
+
+  IGGPS.map=
+    L.map(
+      "igGPSAdvancedMap",
+      {
+        zoomControl:true
+      }
+    );
+
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom:19,
+      attribution:
+        "© OpenStreetMap"
+    }
+  ).addTo(
+    IGGPS.map
+  );
+
+}
+
+
+function drawRoute(){
+
+  if(
+    !IGGPS.map ||
+    !IGGPS.route
+  )
+    return;
+
+
+  if(IGGPS.routeLayer){
+
+    try{
+
+      IGGPS.map.removeLayer(
+        IGGPS.routeLayer
+      );
+
+    }catch(e){}
+
+  }
+
+
+  IGGPS.routeLayer=
+    L.geoJSON(
+      IGGPS.route.geometry
+    )
+    .addTo(
+      IGGPS.map
+    );
+
+
+  const bounds=
+    IGGPS.routeLayer.getBounds();
+
+
+  if(bounds.isValid()){
+
+    IGGPS.map.fitBounds(
+      bounds,
+      {
+        padding:[25,25]
+      }
+    );
+
+  }
+
+}
+
+
+function updateMarker(
+  lat,
+  lng,
+  forceCenter
+){
+
+  if(!IGGPS.map)
+    return;
+
+
+  if(!IGGPS.marker){
+
+    IGGPS.marker=
+      L.marker(
+        [lat,lng]
+      )
+      .addTo(
+        IGGPS.map
+      )
+      .bindTooltip(
+        "🚚 Conductor",
+        {
+          direction:"top"
+        }
+      );
+
+  }else{
+
+    IGGPS.marker.setLatLng(
+      [lat,lng]
+    );
+
+  }
+
+
+  if(
+    forceCenter ||
+    IGGPS.follow
+  ){
+
+    IGGPS.map.setView(
+      [lat,lng],
+      Math.max(
+        IGGPS.map.getZoom(),
+        16
+      ),
+      {
+        animate:true
+      }
+    );
+
+  }
+
+}
+
+
+function drawTrail(){
+
+  if(!IGGPS.map)
+    return;
+
+
+  if(IGGPS.trailLayer){
+
+    try{
+
+      IGGPS.map.removeLayer(
+        IGGPS.trailLayer
+      );
+
+    }catch(e){}
+
+  }
+
+
+  if(
+    IGGPS.routePoints.length<2
+  )
+    return;
+
+
+  IGGPS.trailLayer=
+    L.polyline(
+      IGGPS.routePoints.map(
+        p=>[
+          n(p.lat),
+          n(p.lng)
+        ]
+      ),
+      {
+        weight:5
+      }
+    )
+    .addTo(
+      IGGPS.map
+    );
+
+}
+
+
+/* ============================================================
+   INTERFAZ
+============================================================ */
+
+function createPanel(
+  title,
+  subtitle
+){
+
+  const old=
+    document.getElementById(
+      "igGPSAdvancedPanel"
+    );
+
+  if(old)
+    old.remove();
+
+
+  const panel=
+    document.createElement(
+      "div"
+    );
+
+
+  panel.id=
+    "igGPSAdvancedPanel";
+
+
+  panel.innerHTML=`
+
+    <div id="igGPSAdvancedHeader">
+
+      <div>
+
+        <strong>
+          ${esc(title)}
+        </strong>
+
+        <div id="igGPSAdvancedStatus">
+          ${esc(subtitle || "")}
+        </div>
+
+      </div>
+
+      <button
+        id="igGPSAdvancedClose"
+        class="ig-gps-btn">
+
+        ✕ Salir
+
+      </button>
+
+    </div>
+
+
+    <div id="igGPSAdvancedMap"></div>
+
+
+    <div id="igGPSAdvancedInfo">
+
+      <div class="ig-gps-info">
+        📍 Posición
+        <strong id="igGPSPosition">—</strong>
+      </div>
+
+      <div class="ig-gps-info">
+        🎯 Precisión
+        <strong id="igGPSAccuracy">—</strong>
+      </div>
+
+      <div class="ig-gps-info">
+        🚗 Velocidad
+        <strong id="igGPSSpeed">—</strong>
+      </div>
+
+      <div class="ig-gps-info">
+        🧭 Rumbo
+        <strong id="igGPSHeading">—</strong>
+      </div>
+
+      <div class="ig-gps-info">
+        📏 Restante
+        <strong id="igGPSDistance">—</strong>
+      </div>
+
+      <div class="ig-gps-info">
+        ⏱️ ETA
+        <strong id="igGPSEta">—</strong>
+      </div>
+
+    </div>
+
+
+    <div id="igGPSAdvancedInstruction">
+      Esperando GPS...
+    </div>
+
+
+    <div id="igGPSAdvancedActions"></div>
+
+  `;
+
+
+  document.body.appendChild(
+    panel
+  );
+
+
+  document.getElementById(
+    "igGPSAdvancedClose"
+  ).onclick=
+    closeAdvancedPanel;
+
+
+  return panel;
+
+}
+
+
+/* ============================================================
+   INFORMACIÓN GPS
+============================================================ */
+
+function updateGPSInterface(
+  position
+){
+
+  if(!position)
+    return;
+
+
+  const c=
+    position.coords;
+
+
+  const lat=
+    n(c.latitude);
+
+  const lng=
+    n(c.longitude);
+
+
+  const positionBox=
+    document.getElementById(
+      "igGPSPosition"
+    );
+
+
+  if(positionBox){
+
+    positionBox.textContent=
+      lat.toFixed(5)+
+      ", "+
+      lng.toFixed(5);
+
+  }
+
+
+  const accuracy=
+    document.getElementById(
+      "igGPSAccuracy"
+    );
+
+
+  if(accuracy){
+
+    accuracy.textContent=
+      Number.isFinite(
+        c.accuracy
+      )
+        ? Math.round(c.accuracy)+" m"
+        : "—";
+
+  }
+
+
+  const speed=
+    document.getElementById(
+      "igGPSSpeed"
+    );
+
+
+  if(speed){
+
+    speed.textContent=
+      Number.isFinite(c.speed) &&
+      c.speed>=0
+
+        ? (
+            c.speed*3.6
+          ).toFixed(0)+" km/h"
+
+        : "—";
+
+  }
+
+
+  const heading=
+    document.getElementById(
+      "igGPSHeading"
+    );
+
+
+  if(heading){
+
+    heading.textContent=
+      Number.isFinite(c.heading) &&
+      c.heading>=0
+
+        ? Math.round(
+            c.heading
+          )+"°"
+
+        : "—";
+
+  }
+
+}
+
+
+/* ============================================================
+   DISTANCIA + ETA
+============================================================ */
+
+function updateDistanceEta(
+  lat,
+  lng,
+  position
+){
+
+  if(!IGGPS.destination)
+    return;
+
+
+  const remaining=
+    distanceKm(
+      lat,
+      lng,
+      IGGPS.destination.lat,
+      IGGPS.destination.lng
+    );
+
+
+  const distanceBox=
+    document.getElementById(
+      "igGPSDistance"
+    );
+
+
+  if(distanceBox){
+
+    distanceBox.textContent=
+      formatKm(
+        remaining
+      );
+
+  }
+
+
+  let speedKmh=
+    position &&
+    position.coords &&
+    Number.isFinite(
+      position.coords.speed
+    )
+      ? position.coords.speed*3.6
+      : 0;
+
+
+  /*
+    Si el GPS indica velocidad cero
+    utilizamos una velocidad prudente
+    para poder mostrar ETA.
+  */
+
+  if(speedKmh<5){
+
+    speedKmh=30;
+
+  }
+
+
+  const etaSeconds=
+    remaining/
+    speedKmh*
+    3600;
+
+
+  const eta=
+    document.getElementById(
+      "igGPSEta"
+    );
+
+
+  if(eta){
+
+    eta.textContent=
+      formatEta(
+        etaSeconds
+      );
+
+  }
+
+
+  return remaining;
+
+}
+
+
+/* ============================================================
+   INDICACIÓN DE VOZ
+============================================================ */
+
+function processNavigationStep(
+  lat,
+  lng
+){
+
+  const step=
+    currentStep();
+
+
+  if(!step)
+    return;
+
+
+  const location=
+    step.maneuver &&
+    step.maneuver.location;
+
+
+  if(!location)
+    return;
+
+
+  const d=
+    distanceKm(
+      lat,
+      lng,
+      n(location[1]),
+      n(location[0])
+    )*1000;
+
+
+  const instruction=
+    document.getElementById(
+      "igGPSAdvancedInstruction"
+    );
+
+
+  if(instruction){
+
+    instruction.textContent=
+      "➡️ "+
+      stepText(step);
+
+  }
+
+
+  /*
+    Aviso previo.
+  */
+
+  if(
+    d<=180 &&
+    d>60 &&
+    IGGPS.lastSpokenStep!==IGGPS.stepIndex
+  ){
+
+    IGGPS.lastSpokenStep=
+      IGGPS.stepIndex;
+
+
+    speak(
+      "En aproximadamente "+
+      Math.round(d/10)*10+
+      " metros, "+
+      stepText(step)
+    );
+
+  }
+
+
+  /*
+    Al llegar a la maniobra.
+  */
+
+  if(d<=60){
+
+    if(
+      IGGPS.lastSpokenStep!==
+      IGGPS.stepIndex
+    ){
+
+      IGGPS.lastSpokenStep=
+        IGGPS.stepIndex;
+
+      speak(
+        stepText(step)
+      );
+
+    }
+
+
+    if(
+      IGGPS.stepIndex<
+      IGGPS.steps.length-1
+    ){
+
+      IGGPS.stepIndex++;
+
+      const next=
+        currentStep();
+
+
+      if(next){
+
+        const nextText=
+          document.getElementById(
+            "igGPSAdvancedInstruction"
+          );
+
+
+        if(nextText){
+
+          nextText.textContent=
+            "➡️ "+
+            stepText(next);
+
+        }
+
+      }
+
+    }else{
+
+      speak(
+        "Llegaste a destino."
+      );
+
+      if(instruction){
+
+        instruction.textContent=
+          "🏁 Llegaste a destino.";
+
+      }
+
+    }
+
+  }
+
+}
+
+
+/* ============================================================
+   GUARDAR GPS EN SUPABASE
+============================================================ */
+
+async function saveGPSPosition(
+  position
+){
+
+  if(!igdCurrentOrder)
+    return;
+
+
+  const c=
+    position.coords;
+
+
+  const lat=
+    n(c.latitude);
+
+  const lng=
+    n(c.longitude);
+
+
+  let addedKm=0;
+
+
+  if(IGGPS.lastPosition){
+
+    addedKm=
+      distanceKm(
+        IGGPS.lastPosition.lat,
+        IGGPS.lastPosition.lng,
+        lat,
+        lng
+      );
+
+  }
+
+
+  /*
+    Ignorar saltos GPS absurdos.
+    Evita que un error momentáneo
+    incremente kilómetros falsamente.
+  */
+
+  if(
+    addedKm>0 &&
+    addedKm>0.25
+  ){
+
+    addedKm=0;
+
+  }
+
+
+  IGGPS.lastPosition={
+    lat,
+    lng
+  };
+
+
+  const currentKm=
+    n(
+      igdCurrentOrder.driven_km
+    )+
+    addedKm;
+
+
+  IGGPS.routePoints.push({
+
+    lat,
+    lng,
+
+    time:
+      new Date().toISOString()
+
+  });
+
+
+  /*
+    Máximo 3000 puntos.
+  */
+
+  if(
+    IGGPS.routePoints.length>3000
+  ){
+
+    IGGPS.routePoints=
+      IGGPS.routePoints.slice(
+        -3000
+      );
+
+  }
+
+
+  igdCurrentOrder.driven_km=
+    currentKm;
+
+  igdCurrentOrder.current_lat=
+    lat;
+
+  igdCurrentOrder.current_lng=
+    lng;
+
+  igdCurrentOrder.route_points=
+    IGGPS.routePoints;
+
+
+  drawTrail();
+
+
+  /*
+    No saturamos Supabase.
+    Máximo un UPDATE cada 2 segundos.
+  */
+
+  const now=
+    Date.now();
+
+
+  if(
+    now-IGGPS.lastSavedAt<2000
+  ){
+
+    return;
+
+  }
+
+
+  IGGPS.lastSavedAt=
+    now;
+
+
+  const update={
+
+    current_lat:
+      lat,
+
+    current_lng:
+      lng,
+
+    driven_km:
+      currentKm,
+
+    route_points:
+      IGGPS.routePoints,
+
+    tracking_active:
+      true,
+
+    status:
+      "tracking",
+
+    gps_updated_at:
+      new Date().toISOString(),
+
+    gps_accuracy_m:
+      Number.isFinite(
+        c.accuracy
+      )
+        ? c.accuracy
+        : null,
+
+    gps_speed_kmh:
+      Number.isFinite(
+        c.speed
+      ) &&
+      c.speed>=0
+        ? c.speed*3.6
+        : null,
+
+    gps_heading:
+      Number.isFinite(
+        c.heading
+      ) &&
+      c.heading>=0
+        ? c.heading
+        : null,
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+
+  const result=
+    await supabaseClient
+      .from(
+        "ig_delivery_tracking"
+      )
+      .update(
+        update
+      )
+      .eq(
+        "order_id",
+        igdCurrentOrder.order_id
+      );
+
+
+  if(result.error){
+
+    console.warn(
+      "IG GPS:",
+      result.error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   RECALCULAR SI SE DESVÍA
+============================================================ */
+
+async function recalculateIfNeeded(
+  lat,
+  lng
+){
+
+  if(
+    !IGGPS.route ||
+    IGGPS.recalculating
+  )
+    return;
+
+
+  const coordinates=
+    IGGPS.route.geometry &&
+    IGGPS.route.geometry.coordinates
+      ? IGGPS.route.geometry.coordinates
+      : [];
+
+
+  if(!coordinates.length)
+    return;
+
+
+  let nearest=Infinity;
+
+
+  /*
+    Buscamos el punto de ruta
+    más cercano.
+  */
+
+  for(
+    let i=0;
+    i<coordinates.length;
+    i++
+  ){
+
+    const p=
+      coordinates[i];
+
+
+    const d=
+      distanceKm(
+        lat,
+        lng,
+        n(p[1]),
+        n(p[0])
+      );
+
+
+    if(d<nearest)
+      nearest=d;
+
+  }
+
+
+  /*
+    Más de 80 metros:
+    posible desvío.
+  */
+
+  if(nearest<0.08)
+    return;
+
+
+  IGGPS.recalculating=
+    true;
+
+
+  try{
+
+    const route=
+      await calculateRoute(
+
+        lat,
+        lng,
+
+        IGGPS.destination.lat,
+        IGGPS.destination.lng
+
+      );
+
+
+    IGGPS.route=
+      route;
+
+
+    prepareSteps();
+
+    drawRoute();
+
+
+    speak(
+      "Te saliste de la ruta. Ruta recalculada."
+    );
+
+
+  }catch(error){
+
+    console.warn(
+      "IG recalculando:",
+      error
+    );
+
+  }
+
+
+  IGGPS.recalculating=
+    false;
+
+}
+
+
+/* ============================================================
+   ERROR GPS
+============================================================ */
+
+function gpsError(error){
+
+  const status=
+    document.getElementById(
+      "igGPSAdvancedStatus"
+    );
+
+
+  if(!status)
+    return;
+
+
+  if(
+    error &&
+    error.code===1
+  ){
+
+    status.textContent=
+      "🔴 Permiso de ubicación denegado.";
+
+    return;
+
+  }
+
+
+  if(
+    error &&
+    error.code===2
+  ){
+
+    status.textContent=
+      "🟠 No se pudo obtener posición GPS.";
+
+    return;
+
+  }
+
+
+  if(
+    error &&
+    error.code===3
+  ){
+
+    status.textContent=
+      "🟠 GPS tardando en responder...";
+
+    return;
+
+  }
+
+
+  status.textContent=
+    "🔴 GPS no disponible.";
+
+}
+
+
+/* ============================================================
+   WATCH GPS
+============================================================ */
+
+function startAdvancedWatch(){
+
+  if(
+    !navigator.geolocation
+  ){
+
+    alert(
+      "Este dispositivo no dispone de GPS."
+    );
+
+    return;
+
+  }
+
+
+  if(
+    IGGPS.watchId!==null
+  ){
+
+    navigator.geolocation.clearWatch(
+      IGGPS.watchId
+    );
+
+  }
+
+
+  IGGPS.watchId=
+    navigator.geolocation.watchPosition(
+
+      async function(position){
+
+        const c=
+          position.coords;
+
+
+        const lat=
+          n(c.latitude);
+
+        const lng=
+          n(c.longitude);
+
+
+        updateGPSInterface(
+          position
+        );
+
+
+        updateDistanceEta(
+          lat,
+          lng,
+          position
+        );
+
+
+        updateMarker(
+          lat,
+          lng,
+          IGGPS.navigation
+        );
+
+
+        processNavigationStep(
+          lat,
+          lng
+        );
+
+
+        await recalculateIfNeeded(
+          lat,
+          lng
+        );
+
+
+        await saveGPSPosition(
+          position
+        );
+
+
+        const status=
+          document.getElementById(
+            "igGPSAdvancedStatus"
+          );
+
+
+        if(status){
+
+          status.textContent=
+            "🟢 GPS activo · "+
+            (
+              Number.isFinite(
+                c.accuracy
+              )
+                ? "precisión "+
+                  Math.round(
+                    c.accuracy
+                  )+
+                  " m"
+                : "posición recibida"
+            );
+
+        }
+
+      },
+
+      gpsError,
+
+      {
+
+        /*
+          Máxima precisión solicitada.
+        */
+
+        enableHighAccuracy:true,
+
+        /*
+          Nunca usar una posición
+          almacenada como primera opción.
+        */
+
+        maximumAge:0,
+
+        /*
+          Tiempo máximo de espera
+          razonable para cada lectura.
+        */
+
+        timeout:15000
+
+      }
+
+    );
+
+}
+
+
+/* ============================================================
+   POSICIÓN INICIAL
+============================================================ */
+
+function getInitialPosition(){
+
+  return new Promise(
+    function(resolve,reject){
+
+      navigator.geolocation
+        .getCurrentPosition(
+
+          resolve,
+
+          reject,
+
+          {
+
+            enableHighAccuracy:true,
+
+            maximumAge:0,
+
+            timeout:20000
+
+          }
+
+        );
+
+    }
+  );
+
+}
+
+
+/* ============================================================
+   INICIAR NAVEGACIÓN
+============================================================ */
+
+async function openAdvancedNavigation(){
+
+  if(
+    !igdCurrentOrder ||
+    !igdCurrentOrder.delivery_lat ||
+    !igdCurrentOrder.delivery_lng
+  ){
+
+    alert(
+      "No hay una ubicación de entrega disponible."
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !navigator.geolocation
+  ){
+
+    alert(
+      "Este dispositivo no dispone de GPS."
+    );
+
+    return;
+
+  }
+
+
+  IGGPS.navigation=true;
+
+  IGGPS.adminMode=false;
+
+  IGGPS.follow=true;
+
+  IGGPS.routePoints=
+    Array.isArray(
+      igdCurrentOrder.route_points
+    )
+      ? [
+          ...igdCurrentOrder.route_points
+        ]
+      : [];
+
+
+  IGGPS.destination={
+
+    lat:n(
+      igdCurrentOrder.delivery_lat
+    ),
+
+    lng:n(
+      igdCurrentOrder.delivery_lng
+    )
+
+  };
+
+
+  createPanel(
+
+    "🧭 Navegación GPS",
+
+    "GPS de alta precisión + navegación hablada"
+
+  );
+
+
+  createAdvancedMap();
+
+
+  /*
+    Obtener posición REAL,
+    no la última guardada.
+  */
+
+  let position;
+
+
+  try{
+
+    position=
+      await getInitialPosition();
+
+  }catch(error){
+
+    gpsError(error);
+
+    alert(
+      "No pude obtener la posición GPS actual."
+    );
+
+    return;
+
+  }
+
+
+  const lat=
+    n(
+      position.coords.latitude
+    );
+
+  const lng=
+    n(
+      position.coords.longitude
+    );
+
+
+  updateGPSInterface(
+    position
+  );
+
+
+  updateMarker(
+    lat,
+    lng,
+    true
+  );
+
+
+  /*
+    Ruta desde la posición REAL
+    hasta la entrega.
+  */
+
+  try{
+
+    IGGPS.route=
+      await calculateRoute(
+
+        lat,
+        lng,
+
+        IGGPS.destination.lat,
+        IGGPS.destination.lng
+
+      );
+
+
+    prepareSteps();
+
+    drawRoute();
+
+
+    const first=
+      currentStep();
+
+
+    if(first){
+
+      document.getElementById(
+        "igGPSAdvancedInstruction"
+      ).textContent=
+        "➡️ "+
+        stepText(first);
+
+
+      speak(
+        "Navegación iniciada. "+
+        stepText(first)
+      );
+
+    }
+
+  }catch(error){
+
+    console.warn(
+      "IG ruta:",
+      error
+    );
+
+
+    speak(
+      "No pude calcular la ruta."
+    );
+
+  }
+
+
+  const actions=
+    document.getElementById(
+      "igGPSAdvancedActions"
+    );
+
+
+  if(actions){
+
+    actions.innerHTML=`
+
+      <button
+        id="igGPSCenter"
+        class="ig-gps-btn ig-gps-blue">
+
+        📍 Centrar
+
+      </button>
+
+      <button
+        id="igGPSVoice"
+        class="ig-gps-btn">
+
+        🔊 Voz activada
+
+      </button>
+
+      <button
+        id="igGPSPause"
+        class="ig-gps-btn">
+
+        ⏸️ Seguir mapa
+
+      </button>
+
+    `;
+
+
+    document.getElementById(
+      "igGPSCenter"
+    ).onclick=
+      function(){
+
+        IGGPS.follow=true;
+
+        if(IGGPS.marker){
+
+          const p=
+            IGGPS.marker.getLatLng();
+
+
+          IGGPS.map.setView(
+            [p.lat,p.lng],
+            17,
+            {
+              animate:true
+            }
+          );
+
+        }
+
+      };
+
+
+    document.getElementById(
+      "igGPSVoice"
+    ).onclick=
+      function(){
+
+        IGGPS.voice=
+          !IGGPS.voice;
+
+
+        this.textContent=
+          IGGPS.voice
+            ? "🔊 Voz activada"
+            : "🔇 Voz desactivada";
+
+
+        if(IGGPS.voice){
+
+          speak(
+            "Indicaciones de voz activadas."
+          );
+
+        }
+
+      };
+
+
+    document.getElementById(
+      "igGPSPause"
+    ).onclick=
+      function(){
+
+        IGGPS.follow=
+          !IGGPS.follow;
+
+
+        this.textContent=
+          IGGPS.follow
+            ? "⏸️ Seguir mapa"
+            : "▶️ Seguir conductor";
+
+      };
+
+  }
+
+
+  /*
+    Guardamos inmediatamente
+    la primera posición.
+  */
+
+  await saveGPSPosition(
+    position
+  );
+
+
+  /*
+    Comenzamos seguimiento continuo.
+  */
+
+  startAdvancedWatch();
+
+}
+
+
+/* ============================================================
+   START GPS — REEMPLAZA EL EXISTENTE
+============================================================ */
+
+async function advancedStartGPS(){
+
+  if(!igdCurrentOrder)
+    return;
+
+
+  if(
+    !navigator.geolocation
+  ){
+
+    alert(
+      "Este dispositivo no dispone de GPS."
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !confirm(
+      "Se activará el seguimiento GPS real durante el reparto. ¿Continuar?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  const result=
+    await supabaseClient
+      .from(
+        "ig_delivery_tracking"
+      )
+      .update({
+
+        status:
+          "tracking",
+
+        tracking_active:
+          true,
+
+        tracking_started_at:
+          new Date().toISOString(),
+
+        updated_at:
+          new Date().toISOString()
+
+      })
+      .eq(
+        "order_id",
+        igdCurrentOrder.order_id
+      );
+
+
+  if(result.error){
+
+    alert(
+      result.error.message
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Abrimos la navegación avanzada.
+  */
+
+  await openAdvancedNavigation();
+
+}
+
+
+/* ============================================================
+   FINALIZAR — DETENER WATCH AVANZADO
+============================================================ */
+
+const originalFinish=
+  window.IGD.finishDelivery;
+
+
+window.IGD.finishDelivery=
+  async function(){
+
+    if(
+      IGGPS.watchId!==null
+    ){
+
+      navigator.geolocation
+        .clearWatch(
+          IGGPS.watchId
+        );
+
+      IGGPS.watchId=null;
+
+    }
+
+
+    if(
+      "speechSynthesis" in window
+    ){
+
+      try{
+
+        window.speechSynthesis.cancel();
+
+      }catch(e){}
+
+    }
+
+
+    return originalFinish
+      ? originalFinish()
+      : undefined;
+
+  };
+
+
+/* ============================================================
+   CERRAR NAVEGACIÓN
+============================================================ */
+
+function closeAdvancedPanel(){
+
+  if(
+    IGGPS.watchId!==null
+  ){
+
+    navigator.geolocation
+      .clearWatch(
+        IGGPS.watchId
+      );
+
+    IGGPS.watchId=null;
+
+  }
+
+
+  if(
+    IGGPS.adminChannel
+  ){
+
+    try{
+
+      supabaseClient
+        .removeChannel(
+          IGGPS.adminChannel
+        );
+
+    }catch(e){}
+
+    IGGPS.adminChannel=null;
+
+  }
+
+
+  if(
+    "speechSynthesis" in window
+  ){
+
+    try{
+
+      window.speechSynthesis.cancel();
+
+    }catch(e){}
+
+  }
+
+
+  if(IGGPS.map){
+
+    try{
+
+      IGGPS.map.remove();
+
+    }catch(e){}
+
+    IGGPS.map=null;
+
+  }
+
+
+  const panel=
+    document.getElementById(
+      "igGPSAdvancedPanel"
+    );
+
+
+  if(panel)
+    panel.remove();
+
+
+  IGGPS.marker=null;
+
+  IGGPS.routeLayer=null;
+
+  IGGPS.trailLayer=null;
+
+  IGGPS.navigation=false;
+
+  IGGPS.adminMode=false;
+
+}
+
+
+/* ============================================================
+   ADMINISTRADOR — SEGUIMIENTO GPS EN VIVO
+============================================================ */
+
+async function openAdvancedAdminTracking(){
+
+  /*
+    Recuperamos exactamente el envío
+    que ya utiliza el módulo existente.
+  */
+
+  const result=
+    await supabaseClient
+      .from(
+        "ig_delivery_tracking"
+      )
+      .select(`
+        *,
+        ig_orders(
+          order_number,
+          customer_name,
+          customer_phone
+        )
+      `)
+      .order(
+        "updated_at",
+        {
+          ascending:false
+        }
+      )
+      .limit(1)
+      .maybeSingle();
+
+
+  if(result.error){
+
+    alert(
+      result.error.message
+    );
+
+    return;
+
+  }
+
+
+  if(!result.data){
+
+    alert(
+      "No hay ningún envío preparado."
+    );
+
+    return;
+
+  }
+
+
+  igdCurrentOrder=
+    result.data;
+
+
+  IGGPS.navigation=false;
+
+  IGGPS.adminMode=true;
+
+  IGGPS.follow=true;
+
+  IGGPS.routePoints=
+    Array.isArray(
+      igdCurrentOrder.route_points
+    )
+      ? [
+          ...igdCurrentOrder.route_points
+        ]
+      : [];
+
+
+  createPanel(
+
+    "📡 Seguimiento del conductor",
+
+    "Posición GPS en tiempo real"
+
+  );
+
+
+  createAdvancedMap();
+
+
+  /*
+    Ruta prevista.
+  */
+
+  if(
+    igdCurrentOrder.pickup_lat &&
+    igdCurrentOrder.pickup_lng &&
+    igdCurrentOrder.delivery_lat &&
+    igdCurrentOrder.delivery_lng
+  ){
+
+    try{
+
+      IGGPS.route=
+        await calculateRoute(
+
+          n(
+            igdCurrentOrder.pickup_lat
+          ),
+
+          n(
+            igdCurrentOrder.pickup_lng
+          ),
+
+          n(
+            igdCurrentOrder.delivery_lat
+          ),
+
+          n(
+            igdCurrentOrder.delivery_lng
+          )
+
+        );
+
+
+      drawRoute();
+
+    }catch(error){
+
+      console.warn(
+        "IG ruta admin:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+    Posición actual.
+  */
+
+  if(
+    igdCurrentOrder.current_lat &&
+    igdCurrentOrder.current_lng
+  ){
+
+    updateMarker(
+
+      n(
+        igdCurrentOrder.current_lat
+      ),
+
+      n(
+        igdCurrentOrder.current_lng
+      ),
+
+      true
+
+    );
+
+  }
+
+
+  drawTrail();
+
+
+  const actions=
+    document.getElementById(
+      "igGPSAdvancedActions"
+    );
+
+
+  if(actions){
+
+    actions.innerHTML=`
+
+      <button
+        id="igAdminCenterGPS"
+        class="ig-gps-btn ig-gps-blue">
+
+        📍 Seguir conductor
+
+      </button>
+
+      <button
+        id="igAdminFollowGPS"
+        class="ig-gps-btn">
+
+        ⏸️ Seguimiento automático
+
+      </button>
+
+    `;
+
+
+    document.getElementById(
+      "igAdminCenterGPS"
+    ).onclick=
+      function(){
+
+        IGGPS.follow=true;
+
+        if(IGGPS.marker){
+
+          const p=
+            IGGPS.marker.getLatLng();
+
+
+          IGGPS.map.setView(
+            [p.lat,p.lng],
+            17,
+            {
+              animate:true
+            }
+          );
+
+        }
+
+      };
+
+
+    document.getElementById(
+      "igAdminFollowGPS"
+    ).onclick=
+      function(){
+
+        IGGPS.follow=
+          !IGGPS.follow;
+
+
+        this.textContent=
+          IGGPS.follow
+            ? "⏸️ Seguimiento automático"
+            : "▶️ Seguir conductor";
+
+      };
+
+  }
+
+
+  subscribeAdvancedAdmin(
+    igdCurrentOrder.order_id
+  );
+
+}
+
+
+/* ============================================================
+   REALTIME ADMIN
+============================================================ */
+
+function subscribeAdvancedAdmin(
+  orderId
+){
+
+  if(
+    IGGPS.adminChannel
+  ){
+
+    try{
+
+      supabaseClient
+        .removeChannel(
+          IGGPS.adminChannel
+        );
+
+    }catch(e){}
+
+  }
+
+
+  IGGPS.adminChannel=
+    supabaseClient
+      .channel(
+        "IG-GPS-LIVE-"+
+        orderId+
+        "-"+
+        Date.now()
+      )
+      .on(
+
+        "postgres_changes",
+
+        {
+
+          event:"UPDATE",
+
+          schema:"public",
+
+          table:
+            "ig_delivery_tracking",
+
+          filter:
+            "order_id=eq."+orderId
+
+        },
+
+        function(payload){
+
+          const data=
+            payload.new;
+
+
+          igdCurrentOrder=
+            {
+              ...igdCurrentOrder,
+              ...data
+            };
+
+
+          if(
+            data.current_lat &&
+            data.current_lng
+          ){
+
+            updateMarker(
+
+              n(
+                data.current_lat
+              ),
+
+              n(
+                data.current_lng
+              ),
+
+              IGGPS.follow
+
+            );
+
+          }
+
+
+          if(
+            Array.isArray(
+              data.route_points
+            )
+          ){
+
+            IGGPS.routePoints=
+              data.route_points;
+
+            drawTrail();
+
+          }
+
+
+          const status=
+            document.getElementById(
+              "igGPSAdvancedStatus"
+            );
+
+
+          if(status){
+
+            if(
+              data.tracking_active
+            ){
+
+              const age=
+                data.gps_updated_at
+
+                  ? Math.max(
+                      0,
+                      Math.round(
+                        (
+                          Date.now()-
+                          new Date(
+                            data.gps_updated_at
+                          ).getTime()
+                        )/1000
+                      )
+                    )
+
+                  : null;
+
+
+              status.textContent=
+                "🟢 GPS activo"+
+                (
+                  age!==null
+                    ? " · última señal "+
+                      age+
+                      " s"
+                    : ""
+                );
+
+            }else{
+
+              status.textContent=
+                "🔴 GPS detenido";
+
+            }
+
+          }
+
+
+          const pos=
+            document.getElementById(
+              "igGPSPosition"
+            );
+
+
+          if(
+            pos &&
+            data.current_lat &&
+            data.current_lng
+          ){
+
+            pos.textContent=
+              n(
+                data.current_lat
+              ).toFixed(5)+
+              ", "+
+              n(
+                data.current_lng
+              ).toFixed(5);
+
+          }
+
+
+          const accuracy=
+            document.getElementById(
+              "igGPSAccuracy"
+            );
+
+
+          if(
+            accuracy &&
+            data.gps_accuracy_m!=null
+          ){
+
+            accuracy.textContent=
+              Math.round(
+                n(
+                  data.gps_accuracy_m
+                )
+              )+
+              " m";
+
+          }
+
+
+          const speed=
+            document.getElementById(
+              "igGPSSpeed"
+            );
+
+
+          if(
+            speed &&
+            data.gps_speed_kmh!=null
+          ){
+
+            speed.textContent=
+              n(
+                data.gps_speed_kmh
+              ).toFixed(0)+
+              " km/h";
+
+          }
+
+
+          const heading=
+            document.getElementById(
+              "igGPSHeading"
+            );
+
+
+          if(
+            heading &&
+            data.gps_heading!=null
+          ){
+
+            heading.textContent=
+              Math.round(
+                n(
+                  data.gps_heading
+                )
+              )+
+              "°";
+
+          }
+
+
+          if(
+            data.current_lat &&
+            data.current_lng &&
+            data.delivery_lat &&
+            data.delivery_lng
+          ){
+
+            updateDistanceEta(
+
+              n(
+                data.current_lat
+              ),
+
+              n(
+                data.current_lng
+              ),
+
+              {
+                coords:{
+                  speed:
+                    data.gps_speed_kmh!=null
+                      ? n(
+                          data.gps_speed_kmh
+                        )/3.6
+                      : 0
+                }
+              }
+
+            );
+
+          }
+
+        }
+
+      )
+      .subscribe();
+
+}
+
+
+/* ============================================================
+   INSTALAR OVERRIDES
+============================================================ */
+
+window.IGD.startGPS=
+  advancedStartGPS;
+
+
+window.IGD.openNavigation=
+  openAdvancedNavigation;
+
+
+window.IGD.adminRoute=
+  openAdvancedAdminTracking;
+
+
+/*
+  También dejamos accesibles
+  estas funciones para pruebas.
+*/
+
+window.IGLiveGPS={
+
+  start:
+    advancedStartGPS,
+
+  navigation:
+    openAdvancedNavigation,
+
+  admin:
+    openAdvancedAdminTracking,
+
+  close:
+    closeAdvancedPanel
+
+};
+
+
+})();
+</script>
+
+<!-- ============================================================
+     FIN GPS AVANZADO
+============================================================ -->
+
 </body>
 </html>
