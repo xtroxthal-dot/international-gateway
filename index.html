@@ -45254,14 +45254,20 @@ adminPrice =
   );
 
 
-  }catch(error){
+ }catch(error){
 
-    console.warn(
-      "Ruta:",
-      error
-    );
+  console.warn(
+    "Ruta:",
+    error
+  );
 
-  }
+  alert(
+    "No se pudo calcular la distancia de la ruta. No se puede guardar el envío sin calcular su precio."
+  );
+
+  return;
+
+}
 
 
   const result =
