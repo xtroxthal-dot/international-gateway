@@ -45139,15 +45139,8 @@ async function saveShipment(){
       .trim();
 
 
-  const adminPrice =
-    Number(
-      document
-        .getElementById(
-          "igdAdminPrice"
-        )
-        ?.value ||
-      0
-    );
+  let adminPrice =
+  null;
 
 
   if(!orderId){
