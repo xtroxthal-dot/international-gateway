@@ -45241,10 +45241,17 @@ async function saveShipment(){
 
 
     estimatedKm =
-      Number(
-        route.distance /
-        1000
-      ).toFixed(2);
+  Number(
+    route.distance /
+    1000
+  ).toFixed(2);
+
+adminPrice =
+  Math.round(
+    Number(
+      estimatedKm
+    ) * 1000
+  );
 
 
   }catch(error){
