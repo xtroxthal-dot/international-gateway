@@ -43014,7 +43014,351 @@ window.IGD.centerDriver =
 window.IGD.openNavigation =
   openNavigation;
 
+/* =========================================================
+   🗣️ NAVEGACIÓN GPS POR VOZ
+   ========================================================= */
 
+function igdSpeak(text){
+
+  if(!("speechSynthesis" in window)) return;
+
+  try{
+
+    window.speechSynthesis.cancel();
+
+    const u =
+      new SpeechSynthesisUtterance(text);
+
+    u.lang = "es-AR";
+    u.rate = 0.95;
+    u.pitch = 1;
+    u.volume = 1;
+
+    const voices =
+      window.speechSynthesis.getVoices();
+
+    const voice =
+      voices.find(v =>
+        /^es-AR$/i.test(v.lang)
+      ) ||
+      voices.find(v =>
+        /^es/i.test(v.lang)
+      );
+
+    if(voice){
+      u.voice = voice;
+    }
+
+    window.speechSynthesis.speak(u);
+
+  }catch(e){
+
+    console.warn(
+      "Navegación por voz:",
+      e
+    );
+
+  }
+
+}
+
+
+function igdManeuverText(step){
+
+  if(!step || !step.maneuver){
+    return "Continuá por la ruta.";
+  }
+
+  const type =
+    step.maneuver.type || "";
+
+  const modifier =
+    step.maneuver.modifier || "";
+
+  const street =
+    step.name
+      ? " por " + step.name
+      : "";
+
+  if(type === "arrive"){
+    return "Llegaste a tu destino.";
+  }
+
+  if(type === "depart"){
+    return "Comenzá la ruta" + street + ".";
+  }
+
+  if(type === "roundabout" ||
+     type === "rotary"){
+
+    return "Entrá a la rotonda" +
+      street + ".";
+  }
+
+  let action = "Continuá";
+
+  if(modifier === "left"){
+    action = "GirÁ a la izquierda";
+  }else if(modifier === "right"){
+    action = "GirÁ a la derecha";
+  }else if(
+    modifier === "slight left"
+  ){
+    action = "Tomá ligeramente a la izquierda";
+  }else if(
+    modifier === "slight right"
+  ){
+    action = "Tomá ligeramente a la derecha";
+  }else if(
+    modifier === "sharp left"
+  ){
+    action = "GirÁ pronunciadamente a la izquierda";
+  }else if(
+    modifier === "sharp right"
+  ){
+    action = "GirÁ pronunciadamente a la derecha";
+  }else if(
+    modifier === "straight"
+  ){
+    action = "Continuá derecho";
+  }
+
+  return action + street + ".";
+}
+
+
+function igdStartVoiceNavigation(){
+
+  if(!igdNavigationMode) return;
+
+  window.__igdNavigationStepIndex = -1;
+  window.__igdNavigationLastVoice = 0;
+  window.__igdNavigationLastReroute = 0;
+
+  igdSpeak(
+    "Navegación GPS iniciada. Preparando la ruta."
+  );
+
+}
+
+
+function igdDistanceToStep(
+  lat,
+  lng,
+  step
+){
+
+  if(
+    !step ||
+    !step.maneuver ||
+    !step.maneuver.location
+  ){
+    return Infinity;
+  }
+
+  const a =
+    step.maneuver.location[1];
+
+  const b =
+    step.maneuver.location[0];
+
+  return distanceKm(
+    lat,
+    lng,
+    a,
+    b
+  ) * 1000;
+
+}
+
+
+async function igdUpdateVoiceNavigation(
+  lat,
+  lng
+){
+
+  if(!igdNavigationMode) return;
+
+  const route =
+    window.__igdNavigationRoute;
+
+  if(
+    !route ||
+    !route.legs ||
+    !route.legs[0] ||
+    !route.legs[0].steps
+  ){
+    return;
+  }
+
+  const steps =
+    route.legs[0].steps;
+
+  if(!steps.length) return;
+
+  let index =
+    Number.isInteger(
+      window.__igdNavigationStepIndex
+    )
+      ? window.__igdNavigationStepIndex
+      : -1;
+
+  if(index < 0){
+    index = 0;
+  }
+
+  const currentStep =
+    steps[index];
+
+  const distance =
+    igdDistanceToStep(
+      lat,
+      lng,
+      currentStep
+    );
+
+  const now =
+    Date.now();
+
+  if(
+    distance > 120 &&
+    now -
+      (window.__igdNavigationLastReroute || 0)
+      > 15000
+  ){
+
+    const destination = {
+      lat:
+        Number(
+          igdCurrentOrder.delivery_lat
+        ),
+      lng:
+        Number(
+          igdCurrentOrder.delivery_lng
+        )
+    };
+
+    if(
+      Number.isFinite(destination.lat) &&
+      Number.isFinite(destination.lng)
+    ){
+
+      try{
+
+        const newRoute =
+          await getRoute(
+            {
+              lat,
+              lng
+            },
+            destination
+          );
+
+        if(newRoute){
+
+          window.__igdNavigationRoute =
+            newRoute;
+
+          window.__igdNavigationStepIndex =
+            -1;
+
+          window.__igdNavigationLastReroute =
+            now;
+
+          igdSpeak(
+            "Ruta recalculada."
+          );
+
+          if(
+            typeof L !== "undefined" &&
+            igdMap &&
+            newRoute.geometry
+          ){
+
+            if(igdRouteLayer){
+              igdMap.removeLayer(
+                igdRouteLayer
+              );
+            }
+
+            igdRouteLayer =
+              L.geoJSON(
+                newRoute.geometry,
+                {
+                  style:{
+                    weight:6
+                  }
+                }
+              ).addTo(igdMap);
+
+          }
+
+          return;
+
+        }
+
+      }catch(e){
+
+        console.warn(
+          "No se pudo recalcular la ruta:",
+          e
+        );
+
+      }
+
+    }
+
+  }
+
+  if(distance > 180) return;
+
+  if(
+    index ===
+    window.__igdNavigationStepIndex
+  ){
+
+    const lastVoice =
+      Number(
+        window.__igdNavigationLastVoice || 0
+      );
+
+    if(
+      now - lastVoice < 8000
+    ){
+      return;
+    }
+
+  }
+
+  window.__igdNavigationStepIndex =
+    index;
+
+  window.__igdNavigationLastVoice =
+    now;
+
+  const instruction =
+    igdManeuverText(
+      currentStep
+    );
+
+  if(distance <= 60){
+
+    igdSpeak(
+      instruction
+    );
+
+  }else{
+
+    igdSpeak(
+      "En " +
+      Math.round(distance) +
+      " metros, " +
+      instruction
+    );
+
+  }
+
+}
 
 /* =========================================================
    PRECIO CONDUCTOR
