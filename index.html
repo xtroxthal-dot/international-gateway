@@ -51811,21 +51811,14 @@ supabaseClient.auth
   }
 
 
-  async function addAdminReviews(){
+    async function addAdminReviews(){
 
     const content =
       document.getElementById(
         "igDeliveryContent"
       );
 
-    if(
-      !content ||
-      document.getElementById(
-        "igdAdminDriverReviews"
-      )
-    ){
-      return;
-    }
+    if(!content)return;
 
     if(
       !content.innerText.includes(
@@ -51835,72 +51828,143 @@ supabaseClient.auth
       return;
     }
 
-    const card =
-      document.createElement(
-        "div"
+    let box =
+      document.getElementById(
+        "igdAdminDriverReviews"
       );
 
-    card.className =
-      "ig-d-card";
+    if(!box){
 
-    card.innerHTML =
-      '<h3>⭐ Valoraciones de conductores</h3>'+
-      '<div id="igdAdminDriverReviews">'+
-      'Cargando valoraciones...'+
-      '</div>';
-
-    const current =
-      Array
-        .from(
-          content.querySelectorAll(
-            ".ig-d-card"
-          )
-        )
-        .find(
-          function(element){
-
-            return element.innerText
-              .includes(
-                "Envío actual"
-              );
-
-          }
+      const card =
+        document.createElement(
+          "div"
         );
 
-    if(
-      current &&
-      current.parentElement
-    ){
+      card.className =
+        "ig-d-card";
 
-      current.after(
-        card
-      );
+      card.innerHTML =
+        '<h3>⭐ Valoraciones de conductores</h3>'+
+        '<div id="igdAdminDriverReviews">'+
+        'Cargando valoraciones...'+
+        '</div>';
 
-    }else{
+      const current =
+        Array
+          .from(
+            content.querySelectorAll(
+              ".ig-d-card"
+            )
+          )
+          .find(
+            function(element){
 
-      content.appendChild(
-        card
-      );
+              return element.innerText
+                .includes(
+                  "Envío actual"
+                );
+
+            }
+          );
+
+      if(
+        current &&
+        current.parentElement
+      ){
+
+        current.after(
+          card
+        );
+
+      }else{
+
+        content.appendChild(
+          card
+        );
+
+      }
+
+      box =
+        document.getElementById(
+          "igdAdminDriverReviews"
+        );
 
     }
 
-    const rows =
-      await getReviews(
-        "admin"
-      );
+    if(!box)return;
 
-    document
-      .getElementById(
-        "igdAdminDriverReviews"
-      )
-      .innerHTML =
+    box.innerHTML =
+      '<p class="ig-d-muted">'+
+      'Cargando valoraciones...'+
+      '</p>';
+
+    try{
+
+      const result =
+        await supabaseClient
+          .from("ig_driver_reviews")
+          .select(
+            "rating,feedback_type,comment,customer_name,driver_email,created_at,order_id"
+          )
+          .order(
+            "created_at",
+            {
+              ascending:false
+            }
+          )
+          .limit(100);
+
+      if(result.error){
+
+        console.warn(
+          "Valoraciones conductor:",
+          result.error.message
+        );
+
+        box.innerHTML =
+          '<p class="ig-d-muted">'+
+          'No se pudieron cargar las valoraciones.'+
+          '</p>';
+
+        return;
+
+      }
+
+      const rows =
+        result.data || [];
+
+      if(!rows.length){
+
+        box.innerHTML =
+          '<p class="ig-d-muted">'+
+          'Todavía no hay valoraciones de conductores.'+
+          '</p>';
+
+        return;
+
+      }
+
+      box.innerHTML =
         reviewsHtml(
           rows,
           true
         );
 
-  }
+    }catch(error){
 
+      console.error(
+        "Error cargando valoraciones de conductores:",
+        error
+      );
+
+      box.innerHTML =
+        '<p class="ig-d-muted">'+
+        'No se pudieron cargar las valoraciones.'+
+        '</p>';
+
+    }
+
+  }
 
   function scan(){
 
