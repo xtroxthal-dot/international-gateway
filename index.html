@@ -49882,5 +49882,817 @@ supabaseClient.auth
      FIN 🧾 MÓDULO INDEPENDIENTE DE FACTURAS
 ============================================================ -->
 
+ <!-- ============================================================
+     💰 COMPARADOR DE PRECIOS — INTERNATIONAL GATEWAY
+     MÓDULO INDEPENDIENTE
+     No modifica Productos / Pedidos / Facturas / Máquina Gateway
+============================================================ -->
+
+<script>
+(function(){
+
+  "use strict";
+
+  const IGPC_BUTTON_ID = "igpcAdminButton";
+  const IGPC_SECTION_ID = "admin-price-comparator";
+
+  function igpcGetPanel(){
+    return document.getElementById("adminPanel");
+  }
+
+  function igpcGetNav(){
+    const panel = igpcGetPanel();
+    return panel
+      ? panel.querySelector(".admin-nav")
+      : null;
+  }
+
+  function igpcGetMain(){
+    const panel = igpcGetPanel();
+    return panel
+      ? panel.querySelector(".admin-main")
+      : null;
+  }
+
+  function igpcGetSection(){
+    return document.getElementById(IGPC_SECTION_ID);
+  }
+
+  function igpcEscape(value){
+    return String(value || "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function igpcSearchText(){
+
+    const name =
+      document.getElementById("igpcName")?.value.trim() || "";
+
+    const brand =
+      document.getElementById("igpcBrand")?.value.trim() || "";
+
+    const presentation =
+      document.getElementById("igpcPresentation")?.value.trim() || "";
+
+    const barcode =
+      document.getElementById("igpcBarcode")?.value.trim() || "";
+
+    const parts = [];
+
+    if(barcode){
+      parts.push(barcode);
+    }
+
+    if(brand){
+      parts.push(brand);
+    }
+
+    if(name){
+      parts.push(name);
+    }
+
+    if(presentation){
+      parts.push(presentation);
+    }
+
+    return parts.join(" ").trim();
+  }
+
+  function igpcBuildQuery(){
+
+    const text = igpcSearchText();
+
+    if(!text){
+      return "";
+    }
+
+    return text + " precio Argentina";
+  }
+
+  function igpcOpen(url){
+
+    const opened =
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    if(!opened){
+      window.location.href = url;
+    }
+
+  }
+
+  function igpcGoogle(){
+
+    const query = igpcBuildQuery();
+
+    if(!query){
+      alert(
+        "Ingresá al menos el nombre, la marca o el código de barras."
+      );
+      return;
+    }
+
+    igpcOpen(
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(query)
+    );
+
+  }
+
+  function igpcGoogleShopping(){
+
+    const query = igpcSearchText();
+
+    if(!query){
+      alert(
+        "Ingresá al menos el nombre, la marca o el código de barras."
+      );
+      return;
+    }
+
+    igpcOpen(
+      "https://www.google.com/search?tbm=shop&q=" +
+      encodeURIComponent(query)
+    );
+
+  }
+
+  function igpcMercadoLibre(){
+
+    const query = igpcSearchText();
+
+    if(!query){
+      alert(
+        "Ingresá al menos el nombre, la marca o el código de barras."
+      );
+      return;
+    }
+
+    igpcOpen(
+      "https://listado.mercadolibre.com.ar/" +
+      encodeURIComponent(query)
+    );
+
+  }
+
+  function igpcPreviewImage(file){
+
+    const preview =
+      document.getElementById("igpcPreview");
+
+    if(!preview){
+      return;
+    }
+
+    preview.innerHTML = "";
+
+    if(!file){
+      return;
+    }
+
+    if(!file.type.startsWith("image/")){
+      preview.textContent =
+        "El archivo seleccionado no es una imagen.";
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(file);
+
+    const img =
+      document.createElement("img");
+
+    img.src = url;
+    img.alt = "Producto seleccionado";
+
+    img.onload = function(){
+      URL.revokeObjectURL(url);
+    };
+
+    preview.appendChild(img);
+
+  }
+
+  function igpcConnectImageInput(id){
+
+    const input =
+      document.getElementById(id);
+
+    if(!input){
+      return;
+    }
+
+    input.addEventListener(
+      "change",
+      function(){
+
+        const file =
+          this.files &&
+          this.files[0];
+
+        igpcPreviewImage(file);
+
+      }
+    );
+
+  }
+
+  function igpcCreateSection(){
+
+    if(igpcGetSection()){
+      return true;
+    }
+
+    const main = igpcGetMain();
+
+    if(!main){
+      return false;
+    }
+
+    const section =
+      document.createElement("section");
+
+    section.id =
+      IGPC_SECTION_ID;
+
+    section.className =
+      "admin-section";
+
+    section.innerHTML = `
+
+      <div class="igpc-box">
+
+        <div class="igpc-header">
+
+          <div>
+
+            <h2>💰 Comparador de precios</h2>
+
+            <p>
+              Buscá rápidamente un producto en Internet
+              para comparar sus precios.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="igpc-fields">
+
+          <div class="igpc-field igpc-full">
+
+            <label>
+              📷 Foto del producto
+            </label>
+
+            <div class="igpc-photo-buttons">
+
+              <label class="igpc-upload">
+
+                📷 Cámara
+
+                <input
+                  id="igpcCamera"
+                  type="file"
+                  accept="image/*"
+                  capture="environment">
+
+              </label>
+
+              <label class="igpc-upload">
+
+                🖼️ Galería
+
+                <input
+                  id="igpcGallery"
+                  type="file"
+                  accept="image/*">
+
+              </label>
+
+            </div>
+
+            <div id="igpcPreview"></div>
+
+            <small>
+              La foto sirve como referencia visual.
+              Para localizar el producto con precisión,
+              utilizá también nombre, marca o código de barras.
+            </small>
+
+          </div>
+
+
+          <div class="igpc-field">
+
+            <label for="igpcName">
+              🏷️ Nombre del producto
+            </label>
+
+            <input
+              id="igpcName"
+              type="text"
+              placeholder="Ej.: Coca-Cola">
+
+          </div>
+
+
+          <div class="igpc-field">
+
+            <label for="igpcBrand">
+              🏭 Marca
+            </label>
+
+            <input
+              id="igpcBrand"
+              type="text"
+              placeholder="Ej.: Coca-Cola">
+
+          </div>
+
+
+          <div class="igpc-field">
+
+            <label for="igpcPresentation">
+              📦 Presentación / tamaño
+            </label>
+
+            <input
+              id="igpcPresentation"
+              type="text"
+              placeholder="Ej.: 2,25 litros">
+
+          </div>
+
+
+          <div class="igpc-field">
+
+            <label for="igpcBarcode">
+              🔢 Código de barras
+            </label>
+
+            <input
+              id="igpcBarcode"
+              type="text"
+              inputmode="numeric"
+              placeholder="Ej.: 7790895001234">
+
+          </div>
+
+        </div>
+
+
+        <div class="igpc-actions">
+
+          <button
+            type="button"
+            class="button"
+            id="igpcGoogleShoppingButton">
+
+            🛒 Buscar precios
+
+          </button>
+
+          <button
+            type="button"
+            class="button secondary"
+            id="igpcGoogleButton">
+
+            🔎 Buscar en Google
+
+          </button>
+
+          <button
+            type="button"
+            class="button secondary"
+            id="igpcMercadoLibreButton">
+
+            🛍️ Buscar en Mercado Libre
+
+          </button>
+
+        </div>
+
+
+        <div class="igpc-help">
+
+          <strong>Cómo utilizarlo:</strong>
+
+          <ol>
+
+            <li>
+              Cargá la foto desde cámara o galería.
+            </li>
+
+            <li>
+              Escribí nombre, marca y presentación.
+            </li>
+
+            <li>
+              Si tenés el código de barras, agregalo.
+            </li>
+
+            <li>
+              Pulsá <strong>🛒 Buscar precios</strong>.
+            </li>
+
+            <li>
+              Se abrirán los resultados para que puedas
+              ver y comparar los precios.
+            </li>
+
+          </ol>
+
+          <div class="igpc-note">
+            ℹ️ Este módulo no modifica ni guarda
+            productos, pedidos ni datos de clientes.
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    main.appendChild(section);
+
+    igpcConnectImageInput("igpcCamera");
+    igpcConnectImageInput("igpcGallery");
+
+    document
+      .getElementById("igpcGoogleShoppingButton")
+      ?.addEventListener(
+        "click",
+        igpcGoogleShopping
+      );
+
+    document
+      .getElementById("igpcGoogleButton")
+      ?.addEventListener(
+        "click",
+        igpcGoogle
+      );
+
+    document
+      .getElementById("igpcMercadoLibreButton")
+      ?.addEventListener(
+        "click",
+        igpcMercadoLibre
+      );
+
+    return true;
+
+  }
+
+
+  function igpcCreateButton(){
+
+    const nav = igpcGetNav();
+
+    if(!nav){
+      return false;
+    }
+
+    if(
+      document.getElementById(
+        IGPC_BUTTON_ID
+      )
+    ){
+      return true;
+    }
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+
+    button.id =
+      IGPC_BUTTON_ID;
+
+    button.dataset.section =
+      "price-comparator";
+
+    button.textContent =
+      "💰 Comparador de precios";
+
+    button.addEventListener(
+      "click",
+      function(){
+
+        if(
+          typeof window.showAdminSection ===
+          "function"
+        ){
+
+          window.showAdminSection(
+            "price-comparator"
+          );
+
+        }
+
+        const section =
+          igpcGetSection();
+
+        if(section){
+          section.classList.add("active");
+        }
+
+      }
+    );
+
+    nav.appendChild(button);
+
+    return true;
+
+  }
+
+
+  function igpcInstall(){
+
+    if(!igpcGetPanel()){
+      return false;
+    }
+
+    if(!igpcCreateSection()){
+      return false;
+    }
+
+    if(!igpcCreateButton()){
+      return false;
+    }
+
+    return true;
+
+  }
+
+
+  function igpcAddStyles(){
+
+    if(
+      document.getElementById(
+        "igpcStyles"
+      )
+    ){
+      return;
+    }
+
+    const style =
+      document.createElement("style");
+
+    style.id =
+      "igpcStyles";
+
+    style.textContent = `
+
+      #admin-price-comparator{
+        display:none;
+      }
+
+      #admin-price-comparator.active{
+        display:block;
+      }
+
+      .igpc-box{
+        background:#fff;
+        border-radius:16px;
+        padding:24px;
+        box-shadow:var(--shadow);
+      }
+
+      .igpc-header{
+        margin-bottom:22px;
+      }
+
+      .igpc-header h2{
+        margin:0 0 8px;
+      }
+
+      .igpc-header p{
+        margin:0;
+        color:#666;
+      }
+
+      .igpc-fields{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:16px;
+      }
+
+      .igpc-field{
+        display:flex;
+        flex-direction:column;
+        gap:7px;
+      }
+
+      .igpc-field.igpc-full{
+        grid-column:1/-1;
+      }
+
+      .igpc-field label{
+        font-weight:700;
+      }
+
+      .igpc-field input{
+        width:100%;
+        box-sizing:border-box;
+        padding:12px;
+        border:1px solid #ccc;
+        border-radius:9px;
+        background:#fff;
+        color:#111;
+      }
+
+      .igpc-photo-buttons{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+      }
+
+      .igpc-upload{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:12px 16px;
+        border:1px solid #ccc;
+        border-radius:9px;
+        cursor:pointer;
+        background:#f7f7f7;
+        font-weight:700;
+      }
+
+      .igpc-upload input{
+        display:none;
+      }
+
+      #igpcPreview{
+        margin-top:12px;
+        min-height:0;
+      }
+
+      #igpcPreview img{
+        display:block;
+        width:180px;
+        max-width:100%;
+        max-height:220px;
+        object-fit:contain;
+        border-radius:12px;
+        border:1px solid #ddd;
+        background:#f5f5f5;
+      }
+
+      .igpc-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-top:22px;
+      }
+
+      .igpc-help{
+        margin-top:22px;
+        padding:16px;
+        border-radius:12px;
+        background:#f5f5f5;
+        color:#444;
+      }
+
+      .igpc-help ol{
+        margin:10px 0 14px;
+        padding-left:22px;
+      }
+
+      .igpc-note{
+        padding:12px;
+        border-radius:9px;
+        background:#fff;
+        border:1px solid #ddd;
+      }
+
+      @media(max-width:700px){
+
+        .igpc-fields{
+          grid-template-columns:1fr;
+        }
+
+        .igpc-field.igpc-full{
+          grid-column:auto;
+        }
+
+        .igpc-actions{
+          flex-direction:column;
+        }
+
+        .igpc-actions button{
+          width:100%;
+        }
+
+      }
+
+    `;
+
+    document.head.appendChild(style);
+
+  }
+
+
+  function igpcStart(){
+
+    igpcAddStyles();
+
+    if(igpcInstall()){
+      return;
+    }
+
+    let attempts = 0;
+
+    const timer =
+      setInterval(
+        function(){
+
+          attempts++;
+
+          if(igpcInstall()){
+
+            clearInterval(timer);
+
+            return;
+
+          }
+
+          if(attempts >= 40){
+
+            clearInterval(timer);
+
+          }
+
+        },
+        500
+      );
+
+  }
+
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      igpcStart,
+      {once:true}
+    );
+
+  }else{
+
+    igpcStart();
+
+  }
+
+
+  if(window.MutationObserver){
+
+    const observer =
+      new MutationObserver(
+        function(){
+
+          if(
+            document.getElementById(
+              "adminPanel"
+            )
+          ){
+
+            igpcInstall();
+
+          }
+
+        }
+      );
+
+    observer.observe(
+      document.body,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+  }
+
+
+})();
+</script>
+
+<!-- ============================================================
+     FIN 💰 COMPARADOR DE PRECIOS
+============================================================ -->
+
 </body>
 </html>
