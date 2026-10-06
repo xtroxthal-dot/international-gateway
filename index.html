@@ -44878,6 +44878,134 @@ async function openAdminDelivery(){
 
 
   await loadAdminShipment();
+         const updateAdminDeliveryPrice =
+    async function(){
+
+      const pickup =
+        document
+          .getElementById(
+            "igdAdminPickup"
+          )
+          ?.value
+          .trim();
+
+      const delivery =
+        document
+          .getElementById(
+            "igdAdminDelivery"
+          )
+          ?.value
+          .trim();
+
+      const priceField =
+        document
+          .getElementById(
+            "igdAdminPrice"
+          );
+
+      if(!priceField){
+        return;
+      }
+
+      if(
+        !pickup ||
+        !delivery
+      ){
+        priceField.value =
+          "Se calculará automáticamente";
+        return;
+      }
+
+      priceField.value =
+        "Calculando ruta...";
+
+      try{
+
+        const pickupGeo =
+          await geocode(
+            pickup
+          );
+
+        const deliveryGeo =
+          await geocode(
+            delivery
+          );
+
+        if(
+          !pickupGeo ||
+          !deliveryGeo
+        ){
+
+          priceField.value =
+            "No se pudo localizar la dirección";
+
+          return;
+
+        }
+
+        const route =
+          await getRoute(
+            pickupGeo.lat,
+            pickupGeo.lng,
+            deliveryGeo.lat,
+            deliveryGeo.lng
+          );
+
+        const estimatedKm =
+          Number(
+            route.distance /
+            1000
+          ).toFixed(2);
+
+        const adminPrice =
+          Math.round(
+            Number(
+              estimatedKm
+            ) * 1000
+          );
+
+        priceField.value =
+          "$" +
+          adminPrice.toLocaleString(
+            "es-AR"
+          ) +
+          " (" +
+          estimatedKm +
+          " km)";
+
+      }catch(error){
+
+        console.warn(
+          "Precio de envío:",
+          error
+        );
+
+        priceField.value =
+          "No se pudo calcular la ruta";
+
+      }
+
+    };
+
+  const pickupInput =
+    document.getElementById(
+      "igdAdminPickup"
+    );
+
+  const deliveryInput =
+    document.getElementById(
+      "igdAdminDelivery"
+    );
+
+  if(pickupInput){
+    pickupInput.onblur =
+      updateAdminDeliveryPrice;
+  }
+
+  if(deliveryInput){
+    deliveryInput.onblur =
+      updateAdminDeliveryPrice;
+  }
 
 }
 
