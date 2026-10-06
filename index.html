@@ -41519,7 +41519,13 @@ async function getRoute(
   }
 
 
-  return data.routes[0];
+    const route = data.routes[0];
+
+  window.__igdNavigationRoute = route;
+  window.__igdNavigationStepIndex = -1;
+
+  return route;
+
 
 }
 
