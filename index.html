@@ -51250,7 +51250,698 @@ supabaseClient.auth
 <!-- ============================================================
      FIN 💰 COMPARADOR DE PRECIOS
 ============================================================ -->
+ 
+<script>
+(function(){
 
+  async function saveDriverReview(
+    orderId,
+    driverEmail,
+    customerName
+  ){
+
+    const rating =
+      Number(
+        document.getElementById(
+          "igdCustomerRating"
+        )?.value || 0
+      );
+
+    const type =
+      document.getElementById(
+        "igdCustomerFeedbackType"
+      )?.value || "";
+
+    const comment =
+      document.getElementById(
+        "igdCustomerComment"
+      )?.value?.trim() || "";
+
+    const button =
+      document.getElementById(
+        "igdCustomerReviewButton"
+      );
+
+    if(!rating){
+      alert(
+        "Elegí una puntuación de 1 a 5 estrellas."
+      );
+      return;
+    }
+
+    if(
+      type !== "queja" &&
+      type !== "alabanza"
+    ){
+      alert(
+        "Elegí si querés dejar una queja o una alabanza."
+      );
+      return;
+    }
+
+    if(button){
+      button.disabled = true;
+      button.textContent =
+        "Enviando valoración...";
+    }
+
+    const result =
+      await supabaseClient
+        .from("ig_driver_reviews")
+        .insert({
+
+          order_id:
+            orderId,
+
+          driver_email:
+            driverEmail,
+
+          rating:
+            rating,
+
+          feedback_type:
+            type,
+
+          comment:
+            comment,
+
+          customer_name:
+            customerName || ""
+
+        });
+
+    if(result.error){
+
+      if(button){
+        button.disabled = false;
+        button.textContent =
+          "⭐ Enviar valoración";
+      }
+
+      alert(
+        "No se pudo guardar la valoración: "+
+        result.error.message
+      );
+
+      return;
+
+    }
+
+    const box =
+      document.getElementById(
+        "igdCustomerReviewBox"
+      );
+
+    if(box){
+
+      box.innerHTML =
+        '<p class="ig-d-ok">'+
+        '✅ Gracias por valorar el servicio del conductor.'+
+        '</p>';
+
+    }
+
+  }
+
+
+  async function getReviews(
+    mode
+  ){
+
+    const result =
+      await supabaseClient
+        .from("ig_driver_reviews")
+        .select(
+          "rating,feedback_type,comment,customer_name,driver_email,created_at,order_id"
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        )
+        .limit(
+          mode === "admin"
+            ? 100
+            : 50
+        );
+
+    if(result.error){
+
+      console.warn(
+        "Valoraciones conductor:",
+        result.error.message
+      );
+
+      return [];
+
+    }
+
+    return result.data || [];
+
+  }
+
+
+  function reviewsHtml(
+    rows,
+    admin
+  ){
+
+    if(!rows.length){
+
+      return (
+        '<p class="ig-d-muted">'+
+        'Todavía no hay valoraciones de conductores.'+
+        '</p>'
+      );
+
+    }
+
+    return rows
+      .map(
+        function(row){
+
+          const stars =
+            "★".repeat(
+              Number(
+                row.rating || 0
+              )
+            )+
+            "☆".repeat(
+              Math.max(
+                0,
+                5 -
+                Number(
+                  row.rating || 0
+                )
+              )
+            );
+
+          return (
+            '<div class="ig-d-card">'+
+
+            '<strong>'+
+            stars+
+            '</strong>'+
+
+            '<p><strong>'+
+            (
+              row.feedback_type === "queja"
+                ? "⚠️ Queja"
+                : "👏 Alabanza"
+            )+
+            '</strong></p>'+
+
+            (
+              row.comment
+                ?
+                '<p>'+
+                esc(row.comment)+
+                '</p>'
+                :
+                ''
+            )+
+
+            '<p class="ig-d-muted">'+
+            'Cliente: '+
+            esc(
+              row.customer_name ||
+              "No indicado"
+            )+
+
+            (
+              admin
+                ?
+                '<br>Conductor: '+
+                esc(
+                  row.driver_email ||
+                  "No indicado"
+                )
+                :
+                ''
+            )+
+
+            '</p>'+
+
+            '</div>'
+          );
+
+        }
+      )
+      .join("");
+
+  }
+
+
+  async function addCustomerReview(){
+
+    const box =
+      document.getElementById(
+        "igdCustomerResult"
+      );
+
+    if(
+      !box ||
+      document.getElementById(
+        "igdCustomerReviewBox"
+      )
+    ){
+      return;
+    }
+
+    if(
+      !box.innerText.includes(
+        "Entrega finalizada"
+      )
+    ){
+      return;
+    }
+
+    const match =
+      box.innerText.match(
+        /Pedido:\s*#([^\s\n]+)/
+      );
+
+    if(!match)return;
+
+    const order =
+      await supabaseClient
+        .from("ig_orders")
+        .select(
+          "id,order_number,customer_name"
+        )
+        .eq(
+          "order_number",
+          match[1].trim()
+        )
+        .maybeSingle();
+
+    if(
+      order.error ||
+      !order.data
+    ){
+      return;
+    }
+
+    const tracking =
+      await supabaseClient
+        .from("ig_delivery_tracking")
+        .select(
+          "order_id,driver_email,status"
+        )
+        .eq(
+          "order_id",
+          order.data.id
+        )
+        .maybeSingle();
+
+    if(
+      tracking.error ||
+      !tracking.data?.driver_email ||
+      tracking.data.status !== "delivered"
+    ){
+      return;
+    }
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+    card.id =
+      "igdCustomerReviewBox";
+
+    card.className =
+      "ig-d-card";
+
+    card.innerHTML =
+      '<h3>💛 ¿Te atendieron bien?</h3>'+
+
+      '<p>'+
+      'Si el conductor te brindó un buen servicio, '+
+      'podés agradecerle con una propina. '+
+      '¡Tu reconocimiento es muy valorado! 🚚⭐'+
+      '</p>'+
+
+      '<p><strong>⭐ Valorá al conductor</strong></p>'+
+
+      '<div class="ig-d-field">'+
+
+      '<label>Puntuación</label>'+
+
+      '<select id="igdCustomerRating">'+
+
+      '<option value="">Elegir estrellas</option>'+
+      '<option value="5">★★★★★ — Excelente</option>'+
+      '<option value="4">★★★★☆ — Muy bueno</option>'+
+      '<option value="3">★★★☆☆ — Bueno</option>'+
+      '<option value="2">★★☆☆☆ — Regular</option>'+
+      '<option value="1">★☆☆☆☆ — Malo</option>'+
+
+      '</select>'+
+
+      '</div>'+
+
+      '<div class="ig-d-field">'+
+
+      '<label>Tipo de valoración</label>'+
+
+      '<select id="igdCustomerFeedbackType">'+
+
+      '<option value="">Elegir</option>'+
+      '<option value="alabanza">👏 Alabanza</option>'+
+      '<option value="queja">⚠️ Queja</option>'+
+
+      '</select>'+
+
+      '</div>'+
+
+      '<div class="ig-d-field">'+
+
+      '<label>Comentario</label>'+
+
+      '<textarea id="igdCustomerComment" '+
+      'rows="3" '+
+      'placeholder="Contanos cómo fue el servicio">'+
+      '</textarea>'+
+
+      '</div>'+
+
+      '<button '+
+      'id="igdCustomerReviewButton" '+
+      'class="ig-delivery-btn green" '+
+      'type="button">'+
+
+      '⭐ Enviar valoración'+
+
+      '</button>';
+
+    box.appendChild(
+      card
+    );
+
+    document
+      .getElementById(
+        "igdCustomerReviewButton"
+      )
+      .onclick =
+        function(){
+
+          saveDriverReview(
+            order.data.id,
+            tracking.data.driver_email,
+            order.data.customer_name || ""
+          );
+
+        };
+
+  }
+
+
+  async function addDriverReviews(){
+
+    const content =
+      document.getElementById(
+        "igDeliveryContent"
+      );
+
+    if(
+      !content ||
+      document.getElementById(
+        "igdDriverReviews"
+      )
+    ){
+      return;
+    }
+
+    if(
+      !content.innerText.includes(
+        "🔐 Salir"
+      ) ||
+      !content.innerText.includes(
+        "Estado: delivered"
+      )
+    ){
+      return;
+    }
+
+    const match =
+      content.innerText.match(
+        /Pedido:\s*#([^\s\n]+)/
+      );
+
+    if(!match)return;
+
+    const order =
+      await supabaseClient
+        .from("ig_orders")
+        .select(
+          "id,order_number"
+        )
+        .eq(
+          "order_number",
+          match[1].trim()
+        )
+        .maybeSingle();
+
+    if(
+      order.error ||
+      !order.data
+    ){
+      return;
+    }
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+    card.className =
+      "ig-d-card";
+
+    card.innerHTML =
+      '<h3>⭐ Valoraciones recibidas</h3>'+
+      '<div id="igdDriverReviews">'+
+      'Cargando valoraciones...'+
+      '</div>';
+
+    const logout =
+      Array
+        .from(
+          content.querySelectorAll(
+            "button"
+          )
+        )
+        .find(
+          function(button){
+
+            return button.textContent
+              .includes(
+                "Salir"
+              );
+
+          }
+        );
+
+    if(
+      logout &&
+      logout.parentElement
+    ){
+
+      logout.parentElement
+        .before(
+          card
+        );
+
+    }else{
+
+      content.appendChild(
+        card
+      );
+
+    }
+
+    const tracking =
+      await supabaseClient
+        .from(
+          "ig_delivery_tracking"
+        )
+        .select(
+          "driver_email"
+        )
+        .eq(
+          "order_id",
+          order.data.id
+        )
+        .maybeSingle();
+
+    if(
+      tracking.error ||
+      !tracking.data?.driver_email
+    ){
+
+      document
+        .getElementById(
+          "igdDriverReviews"
+        )
+        .innerHTML =
+          '<p class="ig-d-muted">'+
+          'No hay conductor asignado.'+
+          '</p>';
+
+      return;
+
+    }
+
+    const rows =
+      await getReviews(
+        "driver"
+      );
+
+    document
+      .getElementById(
+        "igdDriverReviews"
+      )
+      .innerHTML =
+        reviewsHtml(
+          rows,
+          false
+        );
+
+  }
+
+
+  async function addAdminReviews(){
+
+    const content =
+      document.getElementById(
+        "igDeliveryContent"
+      );
+
+    if(
+      !content ||
+      document.getElementById(
+        "igdAdminDriverReviews"
+      )
+    ){
+      return;
+    }
+
+    if(
+      !content.innerText.includes(
+        "Guardar conductor"
+      )
+    ){
+      return;
+    }
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+    card.className =
+      "ig-d-card";
+
+    card.innerHTML =
+      '<h3>⭐ Valoraciones de conductores</h3>'+
+      '<div id="igdAdminDriverReviews">'+
+      'Cargando valoraciones...'+
+      '</div>';
+
+    const current =
+      Array
+        .from(
+          content.querySelectorAll(
+            ".ig-d-card"
+          )
+        )
+        .find(
+          function(element){
+
+            return element.innerText
+              .includes(
+                "Envío actual"
+              );
+
+          }
+        );
+
+    if(
+      current &&
+      current.parentElement
+    ){
+
+      current.after(
+        card
+      );
+
+    }else{
+
+      content.appendChild(
+        card
+      );
+
+    }
+
+    const rows =
+      await getReviews(
+        "admin"
+      );
+
+    document
+      .getElementById(
+        "igdAdminDriverReviews"
+      )
+      .innerHTML =
+        reviewsHtml(
+          rows,
+          true
+        );
+
+  }
+
+
+  function scan(){
+
+    addCustomerReview();
+
+    addDriverReviews();
+
+    addAdminReviews();
+
+  }
+
+
+  const observer =
+    new MutationObserver(
+      function(){
+
+        scan();
+
+      }
+    );
+
+  observer.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
+
+  setTimeout(
+    scan,
+    500
+  );
+
+  setTimeout(
+    scan,
+    1500
+  );
+
+})();
+</script>
 
 </body>
 </html>
