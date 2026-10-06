@@ -43163,11 +43163,10 @@ window.IGD.acceptShipment =
    SOLO SE ACTIVA AL PULSAR EL BOTÓN
    ========================================================= */
 
+
 async function startGPS(){
 
-  if(
-    !navigator.geolocation
-  ){
+  if(!navigator.geolocation){
 
     alert(
       "Este dispositivo no dispone de GPS."
@@ -43177,22 +43176,17 @@ async function startGPS(){
 
   }
 
-
   if(!igdCurrentOrder)return;
 
-
   if(
-
     !confirm(
       "Se activará el seguimiento GPS y el cliente podrá ver tu ubicación aproximada durante el reparto. ¿Continuar?"
     )
-
   ){
 
     return;
 
   }
-
 
   if(
     igdWatchId !== null
@@ -43203,15 +43197,11 @@ async function startGPS(){
         igdWatchId
       );
 
-    igdWatchId =
-      null;
+    igdWatchId = null;
 
   }
 
-
-  igdLastPosition =
-    null;
-
+  igdLastPosition = null;
 
   const result =
     await supabaseClient
@@ -43238,7 +43228,6 @@ async function startGPS(){
         igdCurrentOrder.order_id
       );
 
-
   if(result.error){
 
     alert(
@@ -43249,179 +43238,252 @@ async function startGPS(){
 
   }
 
-
   igdWatchId =
-    navigator.geolocation
-      .watchPosition(
+    navigator.geolocation.watchPosition(
 
-        async function(
-          position
+      async function(position){
+
+        const accuracy =
+          Number(
+            position.coords.accuracy
+          );
+
+        if(
+          Number.isFinite(accuracy) &&
+          accuracy > 100
         ){
 
-          const lat =
-            position.coords.latitude;
-
-          const lng =
-            position.coords.longitude;
-
-
-          let addedKm =
-            0;
-
-
-          if(
-            igdLastPosition
-          ){
-
-            addedKm =
-              distanceKm(
-
-                igdLastPosition.lat,
-                igdLastPosition.lng,
-
-                lat,
-                lng
-
-              );
-
-          }
-
-
-          igdLastPosition = {
-            lat,
-            lng
-          };
-
-
-          const currentKm =
-            Number(
-              igdCurrentOrder.driven_km ||
-              0
-            ) +
-            addedKm;
-
-
-          const points =
-
-            Array.isArray(
-              igdCurrentOrder.route_points
-            )
-
-            ?
-
-            [
-              ...igdCurrentOrder.route_points
-            ]
-
-            :
-
-            [];
-
-
-          points.push({
-
-            lat,
-            lng,
-
-            time:
-              new Date().toISOString()
-
-          });
-
-
-          igdCurrentOrder.driven_km =
-            currentKm;
-
-
-          igdCurrentOrder.route_points =
-            points;
-
-
-          igdCurrentOrder.current_lat =
-            lat;
-
-
-          igdCurrentOrder.current_lng =
-            lng;
-
-
-          updateDriverMarker(
-            lat,
-            lng
-          );
-
-
-          const update =
-            await supabaseClient
-              .from(
-                "ig_delivery_tracking"
-              )
-              .update({
-
-                current_lat:
-                  lat,
-
-                current_lng:
-                  lng,
-
-                driven_km:
-                  currentKm,
-
-                route_points:
-                  points,
-
-                updated_at:
-                  new Date().toISOString()
-
-              })
-              .eq(
-                "order_id",
-                igdCurrentOrder.order_id
-              );
-
-
-          if(update.error){
-
-            console.warn(
-              "GPS:",
-              update.error.message
-            );
-
-          }
-
-        },
-
-
-        function(error){
-
-          console.warn(
-            "GPS:",
-            error
-          );
-
-        },
-
-
-        {
-
-          enableHighAccuracy:
-            true,
-
-          maximumAge:
-            5000,
-
-          timeout:
-            10000
+          return;
 
         }
 
-      );
+        const lat =
+          Number(
+            position.coords.latitude
+          );
 
+        const lng =
+          Number(
+            position.coords.longitude
+          );
+
+        if(
+          !Number.isFinite(lat) ||
+          !Number.isFinite(lng)
+        ){
+
+          return;
+
+        }
+
+        let addedKm = 0;
+
+        if(
+          igdLastPosition
+        ){
+
+          addedKm =
+            distanceKm(
+              igdLastPosition.lat,
+              igdLastPosition.lng,
+              lat,
+              lng
+            );
+
+          if(
+            addedKm > 0.25
+          ){
+
+            return;
+
+          }
+
+        }
+
+        igdLastPosition = {
+          lat,
+          lng
+        };
+
+        const rawSpeed =
+          Number(
+            position.coords.speed
+          );
+
+        const rawHeading =
+          Number(
+            position.coords.heading
+          );
+
+        const speedKmh =
+          Number.isFinite(rawSpeed) &&
+          rawSpeed >= 0
+            ? rawSpeed * 3.6
+            : null;
+
+        const heading =
+          Number.isFinite(rawHeading)
+            ? rawHeading
+            : null;
+
+        const currentKm =
+          Number(
+            igdCurrentOrder.driven_km || 0
+          ) +
+          addedKm;
+
+        const points =
+          Array.isArray(
+            igdCurrentOrder.route_points
+          )
+            ? [
+                ...igdCurrentOrder.route_points
+              ]
+            : [];
+
+        points.push({
+
+          lat,
+          lng,
+
+          accuracy:
+            Number.isFinite(accuracy)
+              ? accuracy
+              : null,
+
+          speed_kmh:
+            speedKmh,
+
+          heading:
+            heading,
+
+          time:
+            new Date().toISOString()
+
+        });
+
+        if(
+          points.length > 5000
+        ){
+
+          points.splice(
+            0,
+            points.length - 5000
+          );
+
+        }
+
+        igdCurrentOrder.driven_km =
+          currentKm;
+
+        igdCurrentOrder.route_points =
+          points;
+
+        igdCurrentOrder.current_lat =
+          lat;
+
+        igdCurrentOrder.current_lng =
+          lng;
+
+        igdCurrentOrder.gps_accuracy_m =
+          Number.isFinite(accuracy)
+            ? accuracy
+            : null;
+
+        igdCurrentOrder.gps_speed_kmh =
+          speedKmh;
+
+        igdCurrentOrder.gps_heading =
+          heading;
+
+        updateDriverMarker(
+          lat,
+          lng
+        );
+
+        const now =
+          new Date().toISOString();
+
+        const update =
+          await supabaseClient
+            .from(
+              "ig_delivery_tracking"
+            )
+            .update({
+
+              current_lat:
+                lat,
+
+              current_lng:
+                lng,
+
+              driven_km:
+                currentKm,
+
+              route_points:
+                points,
+
+              gps_updated_at:
+                now,
+
+              gps_accuracy_m:
+                Number.isFinite(accuracy)
+                  ? accuracy
+                  : null,
+
+              gps_speed_kmh:
+                speedKmh,
+
+              gps_heading:
+                heading,
+
+              updated_at:
+                now
+
+            })
+            .eq(
+              "order_id",
+              igdCurrentOrder.order_id
+            );
+
+        if(update.error){
+
+          console.warn(
+            "GPS:",
+            update.error.message
+          );
+
+        }
+
+      },
+
+      function(error){
+
+        console.warn(
+          "GPS:",
+          error
+        );
+
+      },
+
+      {
+
+        enableHighAccuracy:
+          true,
+
+        maximumAge:
+          0,
+
+        timeout:
+          15000
+
+      }
+
+    );
 
   await openDriver();
 
 }
-
 
 window.IGD.startGPS =
   startGPS;
