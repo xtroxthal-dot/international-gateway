@@ -44832,18 +44832,22 @@ async function openAdminDelivery(){
 
       <div class="ig-d-field">
 
-        <label>
-          Precio del administrador
-        </label>
+  <label>
+    Precio del administrador
+  </label>
 
-        <input
-          id="igdAdminPrice"
-          type="number"
-          min="0"
-          step="0.01"
-          placeholder="Opcional">
+  <input
+    id="igdAdminPrice"
+    type="text"
+    value="Se calculará automáticamente"
+    readonly>
 
-      </div>
+  <p class="ig-d-muted">
+    🗺️ Se calculará según la distancia real de la ruta:
+    <strong>$1.000 por kilómetro</strong>.
+  </p>
+
+</div>
 
 
       <button
