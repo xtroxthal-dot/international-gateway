@@ -43246,13 +43246,12 @@ async function igdUpdateVoiceNavigation(
 
       try{
 
-        const newRoute =
+                const newRoute =
           await getRoute(
-            {
-              lat,
-              lng
-            },
-            destination
+            lat,
+            lng,
+            destination.lat,
+            destination.lng
           );
 
         if(newRoute){
