@@ -43406,7 +43406,14 @@ async function startGPS(){
           lat,
           lng
         );
+          if(igdNavigationMode){
 
+            igdUpdateVoiceNavigation(
+              lat,
+              lng
+            );
+
+          }
         const now =
           new Date().toISOString();
 
