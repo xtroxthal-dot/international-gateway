@@ -54278,6 +54278,2001 @@ window.IGGPSPRO={
 })();
 </script>
 <!-- FIN AJUSTE QUIRÚRGICO DE BOTONES GPS PRO -->
+<!-- =========================================================
+     INTERNATIONAL GATEWAY
+     RADIO DEL CONDUCTOR + PRIORIDAD REAL DEL GPS PRO
+     ========================================================= -->
+
+<style>
+#IG_DRIVER_RADIO{
+  position:fixed;
+  left:10px;
+  right:10px;
+  bottom:10px;
+  z-index:2147482998;
+  display:none;
+  pointer-events:none;
+}
+
+#IG_DRIVER_RADIO.ig-radio-active{
+  display:block;
+}
+
+#IG_DRIVER_RADIO .ig-radio-box{
+  width:min(430px,100%);
+  margin-left:auto;
+  pointer-events:auto;
+  color:#fff;
+  background:rgba(7,16,24,.96);
+  border:1px solid rgba(33,167,255,.30);
+  border-radius:18px;
+  box-shadow:0 12px 40px rgba(0,0,0,.48);
+  backdrop-filter:blur(16px);
+  overflow:hidden;
+}
+
+#IG_DRIVER_RADIO .ig-radio-mini{
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:7px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-play{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  border:0;
+  border-radius:50%;
+  background:#168fe0;
+  color:#fff;
+  font-size:17px;
+  font-weight:900;
+}
+
+#IG_DRIVER_RADIO .ig-radio-info{
+  min-width:0;
+  flex:1;
+  cursor:pointer;
+}
+
+#IG_DRIVER_RADIO .ig-radio-info strong,
+#IG_DRIVER_RADIO .ig-radio-info span{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_DRIVER_RADIO .ig-radio-info strong{
+  font-size:12px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-info span{
+  margin-top:3px;
+  color:#8e9da9;
+  font-size:9px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-gps{
+  padding:5px 7px;
+  border-radius:999px;
+  background:#102d40;
+  color:#7bd2ff;
+  font-size:8px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+#IG_DRIVER_RADIO .ig-radio-open{
+  width:37px;
+  height:37px;
+  border:0;
+  border-radius:10px;
+  background:#172733;
+  color:#fff;
+  font-size:16px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-panel{
+  display:none;
+  padding:9px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+#IG_DRIVER_RADIO.open .ig-radio-panel{
+  display:block;
+}
+
+#IG_DRIVER_RADIO .ig-radio-row{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  margin-bottom:7px;
+}
+
+#IG_DRIVER_RADIO input,
+#IG_DRIVER_RADIO select{
+  min-width:0;
+  height:38px;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:9px;
+  background:#101b24;
+  color:#fff;
+  outline:none;
+  padding:0 9px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-search{
+  flex:1;
+}
+
+#IG_DRIVER_RADIO button{
+  cursor:pointer;
+}
+
+#IG_DRIVER_RADIO .ig-radio-btn{
+  min-height:36px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:9px;
+  background:#172733;
+  color:#fff;
+  padding:0 9px;
+  font-size:10px;
+  font-weight:800;
+}
+
+#IG_DRIVER_RADIO .ig-radio-list{
+  max-height:190px;
+  overflow:auto;
+  display:grid;
+  gap:5px;
+  margin:7px 0;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  width:100%;
+  padding:8px;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;
+  background:#101b24;
+  color:#fff;
+  text-align:left;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station.active{
+  border-color:#168fe0;
+  background:#102b3d;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station-info{
+  min-width:0;
+  flex:1;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station-info strong,
+#IG_DRIVER_RADIO .ig-radio-station-info small{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station-info strong{
+  font-size:11px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-station-info small{
+  margin-top:2px;
+  color:#8998a4;
+  font-size:8px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-fav{
+  border:0;
+  background:transparent;
+  color:#ffd75c;
+  font-size:17px;
+  padding:3px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-status{
+  min-height:14px;
+  margin:3px 1px 6px;
+  color:#8f9da8;
+  font-size:9px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-volume{
+  flex:1;
+}
+
+#IG_DRIVER_RADIO .ig-radio-volume-text{
+  width:34px;
+  text-align:right;
+  color:#aeb9c1;
+  font-size:9px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-duck{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#b8c2c9;
+  font-size:9px;
+  margin-top:7px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-duck input{
+  width:17px;
+  height:17px;
+}
+
+#IG_DRIVER_RADIO .ig-radio-custom{
+  flex:1;
+}
+
+@media(max-width:600px){
+
+  #IG_DRIVER_RADIO{
+    left:7px;
+    right:7px;
+    bottom:7px;
+  }
+
+  #IG_DRIVER_RADIO .ig-radio-box{
+    width:100%;
+  }
+
+  #IG_DRIVER_RADIO .ig-radio-gps{
+    display:none;
+  }
+
+  #IG_DRIVER_RADIO .ig-radio-list{
+    max-height:160px;
+  }
+}
+</style>
+
+
+<div id="IG_DRIVER_RADIO">
+
+  <div class="ig-radio-box">
+
+    <div class="ig-radio-mini">
+
+      <button
+        id="IG_RADIO_PLAY"
+        class="ig-radio-play"
+        type="button">
+        ▶
+      </button>
+
+      <div
+        id="IG_RADIO_INFO"
+        class="ig-radio-info">
+
+        <strong id="IG_RADIO_NAME">
+          📻 Radio del conductor
+        </strong>
+
+        <span id="IG_RADIO_SUB">
+          Elegí una emisora
+        </span>
+
+      </div>
+
+      <span
+        id="IG_RADIO_GPS"
+        class="ig-radio-gps">
+        GPS PRIORIDAD
+      </span>
+
+      <button
+        id="IG_RADIO_OPEN"
+        class="ig-radio-open"
+        type="button">
+        ⌃
+      </button>
+
+    </div>
+
+
+    <div class="ig-radio-panel">
+
+      <div class="ig-radio-row">
+
+        <input
+          id="IG_RADIO_SEARCH"
+          class="ig-radio-search"
+          type="search"
+          placeholder="Buscar emisora, país o género">
+
+        <button
+          id="IG_RADIO_SEARCH_BTN"
+          class="ig-radio-btn"
+          type="button">
+          Buscar
+        </button>
+
+      </div>
+
+
+      <div class="ig-radio-row">
+
+        <button
+          id="IG_RADIO_PREV"
+          class="ig-radio-btn"
+          type="button">
+          ⏮
+        </button>
+
+        <button
+          id="IG_RADIO_NEXT"
+          class="ig-radio-btn"
+          type="button">
+          ⏭
+        </button>
+
+        <button
+          id="IG_RADIO_FAVS"
+          class="ig-radio-btn"
+          type="button">
+          ★
+        </button>
+
+        <select
+          id="IG_RADIO_SLEEP">
+
+          <option value="0">
+            ⏱ Sin temporizador
+          </option>
+
+          <option value="15">
+            15 min
+          </option>
+
+          <option value="30">
+            30 min
+          </option>
+
+          <option value="60">
+            60 min
+          </option>
+
+          <option value="120">
+            2 horas
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div
+        id="IG_RADIO_STATUS"
+        class="ig-radio-status">
+        Radio lista.
+      </div>
+
+
+      <div
+        id="IG_RADIO_LIST"
+        class="ig-radio-list">
+      </div>
+
+
+      <div class="ig-radio-row">
+
+        <span style="font-size:12px">
+          🔊
+        </span>
+
+        <input
+          id="IG_RADIO_VOLUME"
+          class="ig-radio-volume"
+          type="range"
+          min="0"
+          max="1"
+          step=".01"
+          value=".70">
+
+        <span
+          id="IG_RADIO_VOLUME_TEXT"
+          class="ig-radio-volume-text">
+          70%
+        </span>
+
+        <button
+          id="IG_RADIO_MUTE"
+          class="ig-radio-btn"
+          type="button">
+          🔇
+        </button>
+
+      </div>
+
+
+      <label class="ig-radio-duck">
+
+        <input
+          id="IG_RADIO_DUCK"
+          type="checkbox"
+          checked>
+
+        Bajar automáticamente la radio cuando hable el GPS
+
+      </label>
+
+
+      <div class="ig-radio-row" style="margin-top:8px">
+
+        <input
+          id="IG_RADIO_CUSTOM"
+          class="ig-radio-custom"
+          type="url"
+          placeholder="URL directa de streaming">
+
+        <button
+          id="IG_RADIO_CUSTOM_BTN"
+          class="ig-radio-btn"
+          type="button">
+          Añadir
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+(function(){
+
+"use strict";
+
+
+/* =========================================================
+   RADIO CONDUCTOR — CONFIGURACIÓN
+   ========================================================= */
+
+if(window.__IG_RADIO_GPS_PRIORITY_V2__){
+  return;
+}
+
+window.__IG_RADIO_GPS_PRIORITY_V2__ = true;
+
+
+const RADIO_STORAGE =
+  "IG_DRIVER_RADIO_GPS_PRIORITY_V2";
+
+
+const audio =
+  document.createElement("audio");
+
+audio.id =
+  "IG_DRIVER_RADIO_AUDIO";
+
+audio.preload =
+  "none";
+
+audio.setAttribute(
+  "playsinline",
+  ""
+);
+
+document.body.appendChild(audio);
+
+
+/* =========================================================
+   EMISORAS INICIALES
+   ========================================================= */
+
+let stations = [
+
+  {
+    name:"Radio Nacional",
+    country:"Argentina",
+    genre:"Noticias / Cultura",
+    url:"https://sa.mp3.icecast.magma.edge-access.net/sc_rad1"
+  },
+
+  {
+    name:"Nacional Clásica",
+    country:"Argentina",
+    genre:"Música clásica",
+    url:"https://sa.mp3.icecast.magma.edge-access.net/sc_rad37"
+  },
+
+  {
+    name:"Cadena 3",
+    country:"Argentina",
+    genre:"Noticias / Música",
+    url:"https://c3ny1.mediainbox.net/cadena3.mp3"
+  },
+
+  {
+    name:"FM Córdoba",
+    country:"Argentina",
+    genre:"Música",
+    url:"https://c3ny1.mediainbox.net/fmcordoba.mp3"
+  },
+
+  {
+    name:"Popular",
+    country:"Argentina",
+    genre:"Música / Noticias",
+    url:"https://c3ny1.mediainbox.net/popular.mp3"
+  }
+
+];
+
+
+const state = {
+
+  current:null,
+
+  favorites:[],
+
+  volume:.70,
+
+  duck:true,
+
+  gpsSpeaking:false,
+
+  favoritesOnly:false
+
+};
+
+
+let sleepTimer =
+  null;
+
+let previousVolume =
+  .70;
+
+
+/* =========================================================
+   ELEMENTOS
+   ========================================================= */
+
+const dock =
+  document.getElementById(
+    "IG_DRIVER_RADIO"
+  );
+
+const play =
+  document.getElementById(
+    "IG_RADIO_PLAY"
+  );
+
+const name =
+  document.getElementById(
+    "IG_RADIO_NAME"
+  );
+
+const sub =
+  document.getElementById(
+    "IG_RADIO_SUB"
+  );
+
+const open =
+  document.getElementById(
+    "IG_RADIO_OPEN"
+  );
+
+const search =
+  document.getElementById(
+    "IG_RADIO_SEARCH"
+  );
+
+const list =
+  document.getElementById(
+    "IG_RADIO_LIST"
+  );
+
+const status =
+  document.getElementById(
+    "IG_RADIO_STATUS"
+  );
+
+const volume =
+  document.getElementById(
+    "IG_RADIO_VOLUME"
+  );
+
+const volumeText =
+  document.getElementById(
+    "IG_RADIO_VOLUME_TEXT"
+  );
+
+const duck =
+  document.getElementById(
+    "IG_RADIO_DUCK"
+  );
+
+const sleep =
+  document.getElementById(
+    "IG_RADIO_SLEEP"
+  );
+
+const mute =
+  document.getElementById(
+    "IG_RADIO_MUTE"
+  );
+
+
+/* =========================================================
+   PERSISTENCIA
+   ========================================================= */
+
+function load(){
+
+  try{
+
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          RADIO_STORAGE
+        ) || "{}"
+      );
+
+    if(
+      Array.isArray(
+        saved.favorites
+      )
+    ){
+
+      state.favorites =
+        saved.favorites;
+
+    }
+
+    if(
+      typeof saved.volume ===
+      "number"
+    ){
+
+      state.volume =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            saved.volume
+          )
+        );
+
+    }
+
+    if(
+      typeof saved.duck ===
+      "boolean"
+    ){
+
+      state.duck =
+        saved.duck;
+
+    }
+
+    if(saved.current){
+
+      state.current =
+        saved.current;
+
+    }
+
+  }catch(e){}
+
+}
+
+
+function save(){
+
+  try{
+
+    localStorage.setItem(
+      RADIO_STORAGE,
+      JSON.stringify({
+
+        favorites:
+          state.favorites,
+
+        volume:
+          state.volume,
+
+        duck:
+          state.duck,
+
+        current:
+          state.current
+
+      })
+    );
+
+  }catch(e){}
+
+}
+
+
+load();
+
+volume.value =
+  state.volume;
+
+volumeText.textContent =
+  Math.round(
+    state.volume * 100
+  ) + "%";
+
+duck.checked =
+  state.duck;
+
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
+function setStatus(text){
+
+  status.textContent =
+    text;
+
+}
+
+
+function esc(text){
+
+  return String(
+    text || ""
+  ).replace(
+    /[&<>"']/g,
+    function(c){
+
+      return {
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+
+      }[c];
+
+    }
+  );
+
+}
+
+
+function isFavorite(station){
+
+  return state.favorites.some(
+    function(item){
+
+      return item.url ===
+        station.url;
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   VISIBILIDAD
+   ========================================================= */
+
+function gpsIsOpen(){
+
+  const root =
+    document.getElementById(
+      "IGGPSPRO_ROOT"
+    );
+
+  return !!(
+    root &&
+    root.classList.contains(
+      "igp-open"
+    )
+  );
+
+}
+
+
+function updateVisibility(){
+
+  if(!dock){
+    return;
+  }
+
+  dock.classList.toggle(
+    "ig-radio-active",
+    gpsIsOpen()
+  );
+
+}
+
+
+setInterval(
+  updateVisibility,
+  500
+);
+
+updateVisibility();
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function render(){
+
+  let source =
+    state.favoritesOnly
+      ? state.favorites
+      : stations;
+
+  const q =
+    String(
+      search.value || ""
+    )
+    .trim()
+    .toLowerCase();
+
+  if(q){
+
+    source =
+      source.filter(
+        function(station){
+
+          return (
+            station.name +
+            " " +
+            station.country +
+            " " +
+            station.genre
+          )
+          .toLowerCase()
+          .includes(q);
+
+        }
+      );
+
+  }
+
+
+  if(!source.length){
+
+    list.innerHTML =
+      '<div style="padding:10px;color:#8998a4;font-size:10px">' +
+      'No hay emisoras disponibles.' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  list.innerHTML =
+    source.map(
+      function(station,index){
+
+        const active =
+          state.current &&
+          state.current.url ===
+            station.url;
+
+        return (
+
+          '<div class="ig-radio-station ' +
+          (active ? "active" : "") +
+          '" data-radio-index="' +
+          index +
+          '">' +
+
+          '<button type="button" ' +
+          'style="border:0;background:transparent;color:#fff;font-size:17px">' +
+          '📻' +
+          '</button>' +
+
+          '<div class="ig-radio-station-info">' +
+
+          '<strong>' +
+          esc(station.name) +
+          '</strong>' +
+
+          '<small>' +
+          esc(
+            station.country +
+            " · " +
+            station.genre
+          ) +
+          '</small>' +
+
+          '</div>' +
+
+          '<button ' +
+          'type="button" ' +
+          'class="ig-radio-fav" ' +
+          'data-radio-fav="' +
+          encodeURIComponent(
+            station.url
+          ) +
+          '">' +
+
+          (
+            isFavorite(station)
+              ? "★"
+              : "☆"
+          ) +
+
+          '</button>' +
+
+          '</div>'
+
+        );
+
+      }
+    ).join("");
+
+
+  Array.from(
+    list.querySelectorAll(
+      "[data-radio-index]"
+    )
+  ).forEach(
+    function(row){
+
+      row.addEventListener(
+        "click",
+        function(event){
+
+          if(
+            event.target.closest(
+              "[data-radio-fav]"
+            )
+          ){
+
+            return;
+
+          }
+
+          const sourceList =
+            state.favoritesOnly
+              ? state.favorites
+              : stations;
+
+          const station =
+            sourceList[
+              Number(
+                row.dataset.radioIndex
+              )
+            ];
+
+          if(station){
+
+            selectStation(
+              station,
+              true
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+  Array.from(
+    list.querySelectorAll(
+      "[data-radio-fav]"
+    )
+  ).forEach(
+    function(button){
+
+      button.addEventListener(
+        "click",
+        function(event){
+
+          event.stopPropagation();
+
+          const url =
+            decodeURIComponent(
+              button.dataset.radioFav
+            );
+
+          const existing =
+            state.favorites.findIndex(
+              function(item){
+
+                return item.url ===
+                  url;
+
+              }
+            );
+
+
+          const station =
+            stations.find(
+              function(item){
+
+                return item.url ===
+                  url;
+
+              }
+            ) ||
+            state.favorites.find(
+              function(item){
+
+                return item.url ===
+                  url;
+
+              }
+            );
+
+
+          if(!station){
+            return;
+          }
+
+
+          if(existing >= 0){
+
+            state.favorites.splice(
+              existing,
+              1
+            );
+
+          }else{
+
+            state.favorites.unshift(
+              station
+            );
+
+          }
+
+          save();
+
+          render();
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SELECCIÓN
+   ========================================================= */
+
+function selectStation(
+  station,
+  autoPlay
+){
+
+  state.current =
+    station;
+
+  name.textContent =
+    "📻 " +
+    station.name;
+
+  sub.textContent =
+    station.country +
+    " · " +
+    station.genre;
+
+  audio.src =
+    station.url;
+
+  setAudioVolume();
+
+  save();
+
+  render();
+
+
+  if(autoPlay){
+
+    const promise =
+      audio.play();
+
+    if(
+      promise &&
+      promise.catch
+    ){
+
+      promise.catch(
+        function(){
+
+          setStatus(
+            "Tocá ▶ para iniciar."
+          );
+
+        }
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   VOLUMEN NORMAL
+   ========================================================= */
+
+function setAudioVolume(){
+
+  if(
+    state.gpsSpeaking &&
+    state.duck
+  ){
+
+    /*
+     * Mientras el GPS habla:
+     * radio al 8 % de su volumen normal.
+     *
+     * No se apaga completamente.
+     */
+    audio.volume =
+      Math.min(
+        state.volume,
+        .08
+      );
+
+  }else{
+
+    audio.volume =
+      state.volume;
+
+  }
+
+}
+
+
+/* =========================================================
+   PRIORIDAD REAL DEL GPS
+   ========================================================= */
+
+function gpsVoiceStarted(){
+
+  if(!state.duck){
+    return;
+  }
+
+  state.gpsSpeaking =
+    true;
+
+  setAudioVolume();
+
+  const indicator =
+    document.getElementById(
+      "IG_RADIO_GPS"
+    );
+
+  if(indicator){
+
+    indicator.textContent =
+      "🎙️ GPS HABLANDO";
+
+    indicator.style.background =
+      "#573311";
+
+    indicator.style.color =
+      "#ffd08a";
+
+  }
+
+}
+
+
+function gpsVoiceFinished(){
+
+  if(!state.duck){
+    return;
+  }
+
+  /*
+   * Pequeña espera para que no vuelva a subir
+   * entre dos frases consecutivas del GPS.
+   */
+  clearTimeout(
+    window.__IG_RADIO_RESTORE_TIMER__
+  );
+
+  window.__IG_RADIO_RESTORE_TIMER__ =
+    setTimeout(
+      function(){
+
+        state.gpsSpeaking =
+          false;
+
+        setAudioVolume();
+
+        const indicator =
+          document.getElementById(
+            "IG_RADIO_GPS"
+          );
+
+        if(indicator){
+
+          indicator.textContent =
+            "GPS PRIORIDAD";
+
+          indicator.style.background =
+            "#102d40";
+
+          indicator.style.color =
+            "#7bd2ff";
+
+        }
+
+      },
+      350
+    );
+
+}
+
+
+/* =========================================================
+   CONEXIÓN DIRECTA CON EL MOTOR DE VOZ REAL
+   ========================================================= */
+
+function hookRealGPSVoice(){
+
+  if(
+    !window.speechSynthesis
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    window.__IG_RADIO_SPEECH_HOOK__
+  ){
+
+    return;
+
+  }
+
+
+  window.__IG_RADIO_SPEECH_HOOK__ =
+    true;
+
+
+  const speech =
+    window.speechSynthesis;
+
+
+  const originalSpeak =
+    speech.speak.bind(
+      speech
+    );
+
+
+  const originalCancel =
+    speech.cancel.bind(
+      speech
+    );
+
+
+  /*
+   * Este es el punto exacto que usa tu GPS PRO:
+   *
+   * speechSynthesis.speak(u)
+   *
+   * El GPS crea el SpeechSynthesisUtterance
+   * inmediatamente antes de llamar aquí.
+   */
+  speech.speak =
+    function(utterance){
+
+      gpsVoiceStarted();
+
+
+      const originalEnd =
+        utterance.onend;
+
+      const originalError =
+        utterance.onerror;
+
+
+      utterance.onend =
+        function(event){
+
+          try{
+
+            if(
+              typeof originalEnd ===
+              "function"
+            ){
+
+              originalEnd.call(
+                this,
+                event
+              );
+
+            }
+
+          }finally{
+
+            gpsVoiceFinished();
+
+          }
+
+        };
+
+
+      utterance.onerror =
+        function(event){
+
+          try{
+
+            if(
+              typeof originalError ===
+              "function"
+            ){
+
+              originalError.call(
+                this,
+                event
+              );
+
+            }
+
+          }finally{
+
+            gpsVoiceFinished();
+
+          }
+
+        };
+
+
+      return originalSpeak(
+        utterance
+      );
+
+    };
+
+
+  /*
+   * Tu función speak() del GPS hace:
+   *
+   * speechSynthesis.cancel();
+   *
+   * antes de cada nueva indicación.
+   *
+   * Lo interceptamos también para restaurar
+   * correctamente el estado.
+   */
+  speech.cancel =
+    function(){
+
+      const result =
+        originalCancel();
+
+      gpsVoiceFinished();
+
+      return result;
+
+    };
+
+}
+
+
+hookRealGPSVoice();
+
+
+/*
+ * Por si el navegador carga speechSynthesis
+ * unos instantes después.
+ */
+setTimeout(
+  hookRealGPSVoice,
+  500
+);
+
+setTimeout(
+  hookRealGPSVoice,
+  1500
+);
+
+
+/* =========================================================
+   PLAY / PAUSE
+   ========================================================= */
+
+play.onclick =
+  function(){
+
+    if(!state.current){
+
+      selectStation(
+        stations[0],
+        true
+      );
+
+      return;
+
+    }
+
+
+    if(audio.paused){
+
+      const promise =
+        audio.play();
+
+      if(
+        promise &&
+        promise.catch
+      ){
+
+        promise.catch(
+          function(){
+
+            setStatus(
+              "No se pudo iniciar la emisora."
+            );
+
+          }
+        );
+
+      }
+
+    }else{
+
+      audio.pause();
+
+    }
+
+  };
+
+
+audio.addEventListener(
+  "play",
+  function(){
+
+    play.textContent =
+      "Ⅱ";
+
+  }
+);
+
+
+audio.addEventListener(
+  "pause",
+  function(){
+
+    play.textContent =
+      "▶";
+
+  }
+);
+
+
+audio.addEventListener(
+  "playing",
+  function(){
+
+    setStatus(
+      "🔴 EN VIVO · " +
+      (
+        state.current
+          ? state.current.name
+          : "Radio"
+      )
+    );
+
+  }
+);
+
+
+audio.addEventListener(
+  "waiting",
+  function(){
+
+    setStatus(
+      "Conectando con la emisora…"
+    );
+
+  }
+);
+
+
+audio.addEventListener(
+  "error",
+  function(){
+
+    setStatus(
+      "Esta emisora no responde. Probá otra."
+    );
+
+  }
+);
+
+
+/* =========================================================
+   ABRIR / CERRAR
+   ========================================================= */
+
+open.onclick =
+  function(){
+
+    dock.classList.toggle(
+      "open"
+    );
+
+  };
+
+
+document.getElementById(
+  "IG_RADIO_INFO"
+).onclick =
+  function(){
+
+    dock.classList.toggle(
+      "open"
+    );
+
+  };
+
+
+/* =========================================================
+   BÚSQUEDA
+   ========================================================= */
+
+search.addEventListener(
+  "input",
+  render
+);
+
+
+document.getElementById(
+  "IG_RADIO_SEARCH_BTN"
+).onclick =
+  render;
+
+
+/* =========================================================
+   ANTERIOR / SIGUIENTE
+   ========================================================= */
+
+function changeStation(direction){
+
+  const source =
+    state.favoritesOnly &&
+    state.favorites.length
+      ? state.favorites
+      : stations;
+
+  if(!source.length){
+    return;
+  }
+
+  let index =
+    source.findIndex(
+      function(item){
+
+        return state.current &&
+          item.url ===
+          state.current.url;
+
+      }
+    );
+
+  if(index < 0){
+    index=0;
+  }else{
+
+    index =
+      (
+        index +
+        direction +
+        source.length
+      ) %
+      source.length;
+
+  }
+
+  selectStation(
+    source[index],
+    true
+  );
+
+}
+
+
+document.getElementById(
+  "IG_RADIO_PREV"
+).onclick =
+  function(){
+
+    changeStation(-1);
+
+  };
+
+
+document.getElementById(
+  "IG_RADIO_NEXT"
+).onclick =
+  function(){
+
+    changeStation(1);
+
+  };
+
+
+/* =========================================================
+   FAVORITAS
+   ========================================================= */
+
+document.getElementById(
+  "IG_RADIO_FAVS"
+).onclick =
+  function(){
+
+    state.favoritesOnly =
+      !state.favoritesOnly;
+
+    render();
+
+    setStatus(
+      state.favoritesOnly
+        ? "Mostrando favoritas."
+        : "Mostrando todas las emisoras."
+    );
+
+  };
+
+
+/* =========================================================
+   VOLUMEN
+   ========================================================= */
+
+volume.addEventListener(
+  "input",
+  function(){
+
+    state.volume =
+      Number(
+        this.value
+      );
+
+    if(
+      state.volume > 0
+    ){
+
+      previousVolume =
+        state.volume;
+
+    }
+
+    volumeText.textContent =
+      Math.round(
+        state.volume * 100
+      ) + "%";
+
+    setAudioVolume();
+
+    save();
+
+  }
+);
+
+
+/* =========================================================
+   MUTE
+   ========================================================= */
+
+mute.onclick =
+  function(){
+
+    if(
+      state.volume > 0
+    ){
+
+      previousVolume =
+        state.volume;
+
+      state.volume=0;
+
+    }else{
+
+      state.volume =
+        previousVolume || .70;
+
+    }
+
+    volume.value =
+      state.volume;
+
+    volumeText.textContent =
+      Math.round(
+        state.volume * 100
+      ) + "%";
+
+    setAudioVolume();
+
+    save();
+
+  };
+
+
+/* =========================================================
+   GPS DUCKING ON / OFF
+   ========================================================= */
+
+duck.addEventListener(
+  "change",
+  function(){
+
+    state.duck =
+      this.checked;
+
+    if(!state.duck){
+
+      state.gpsSpeaking =
+        false;
+
+    }
+
+    setAudioVolume();
+
+    save();
+
+  }
+);
+
+
+/* =========================================================
+   TEMPORIZADOR
+   ========================================================= */
+
+sleep.addEventListener(
+  "change",
+  function(){
+
+    clearTimeout(
+      sleepTimer
+    );
+
+    const minutes =
+      Number(
+        this.value
+      );
+
+    if(!minutes){
+      return;
+    }
+
+    setStatus(
+      "La radio se apagará en " +
+      minutes +
+      " minutos."
+    );
+
+    sleepTimer =
+      setTimeout(
+        function(){
+
+          audio.pause();
+
+          sleep.value =
+            "0";
+
+          setStatus(
+            "⏱ Radio apagada por temporizador."
+          );
+
+        },
+        minutes * 60000
+      );
+
+  }
+);
+
+
+/* =========================================================
+   EMISORA PERSONALIZADA
+   ========================================================= */
+
+document.getElementById(
+  "IG_RADIO_CUSTOM_BTN"
+).onclick =
+  function(){
+
+    const input =
+      document.getElementById(
+        "IG_RADIO_CUSTOM"
+      );
+
+    const url =
+      String(
+        input.value || ""
+      ).trim();
+
+
+    if(
+      !/^https?:\/\//i.test(url)
+    ){
+
+      setStatus(
+        "Introducí una URL válida de streaming."
+      );
+
+      return;
+
+    }
+
+
+    const station={
+
+      name:"Mi emisora",
+
+      country:"Personalizada",
+
+      genre:"Streaming",
+
+      url:url
+
+    };
+
+
+    stations.push(
+      station
+    );
+
+    input.value="";
+
+    selectStation(
+      station,
+      true
+    );
+
+    render();
+
+    setStatus(
+      "Emisora personalizada añadida."
+    );
+
+  };
+
+
+/* =========================================================
+   MEDIA SESSION — CONTROLES DEL TELÉFONO
+   ========================================================= */
+
+if(
+  "mediaSession" in navigator
+){
+
+  audio.addEventListener(
+    "play",
+    function(){
+
+      try{
+
+        navigator.mediaSession.playbackState =
+          "playing";
+
+      }catch(e){}
+
+    }
+  );
+
+
+  audio.addEventListener(
+    "pause",
+    function(){
+
+      try{
+
+        navigator.mediaSession.playbackState =
+          "paused";
+
+      }catch(e){}
+
+    }
+  );
+
+
+  try{
+
+    navigator.mediaSession.setActionHandler(
+      "play",
+      function(){
+
+        audio.play();
+
+      }
+    );
+
+    navigator.mediaSession.setActionHandler(
+      "pause",
+      function(){
+
+        audio.pause();
+
+      }
+    );
+
+    navigator.mediaSession.setActionHandler(
+      "nexttrack",
+      function(){
+
+        changeStation(1);
+
+      }
+    );
+
+    navigator.mediaSession.setActionHandler(
+      "previoustrack",
+      function(){
+
+        changeStation(-1);
+
+      }
+    );
+
+  }catch(e){}
+
+}
+
+
+/* =========================================================
+   RESTAURAR ÚLTIMA EMISORA
+   ========================================================= */
+
+if(state.current){
+
+  name.textContent =
+    "📻 " +
+    state.current.name;
+
+  sub.textContent =
+    state.current.country +
+    " · " +
+    state.current.genre;
+
+  audio.src =
+    state.current.url;
+
+}
+
+
+/* =========================================================
+   INICIO
+   ========================================================= */
+
+render();
+
+updateVisibility();
+
+})();
+</script>
+
+<!-- =========================================================
+     FIN RADIO CONDUCTOR + GPS PRIORIDAD REAL
+     ========================================================= -->
+ 
 
 </body>
 </html>
