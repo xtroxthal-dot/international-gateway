@@ -56272,6 +56272,82 @@ updateVisibility();
 <!-- =========================================================
      FIN RADIO CONDUCTOR + GPS PRIORIDAD REAL
      ========================================================= -->
+<!-- =========================================================
+     PARCHE RADIO CONDUCTOR INDEPENDIENTE DEL PEDIDO/GPS
+     ========================================================= -->
+<script>
+(function(){
+
+  function repararRadioConductor(){
+
+    const radio =
+      document.getElementById("IG_DRIVER_RADIO");
+
+    if(!radio){
+      return;
+    }
+
+    /*
+     * 1. LA RADIO YA NO DEPENDE DE QUE EL GPS
+     *    ESTÉ ABIERTO.
+     *
+     *    Se fuerza su visibilidad.
+     */
+    radio.classList.add("ig-radio-active");
+
+    radio.style.display = "block";
+
+    /*
+     * 2. LA RADIO QUEDA POR ENCIMA DEL GPS.
+     *
+     *    GPS actual: 2147483000
+     *    Radio actual: 2147482998
+     */
+    radio.style.zIndex = "2147483001";
+
+    /*
+     * 3. Permitimos pulsar la radio.
+     */
+    radio.style.pointerEvents = "auto";
+
+  }
+
+  /*
+   * Intentar inmediatamente.
+   */
+  repararRadioConductor();
+
+  /*
+   * Por si la radio todavía no existe cuando
+   * se ejecuta este parche.
+   */
+  setTimeout(
+    repararRadioConductor,
+    100
+  );
+
+  setTimeout(
+    repararRadioConductor,
+    500
+  );
+
+  setTimeout(
+    repararRadioConductor,
+    1500
+  );
+
+  /*
+   * Mantener la radio disponible aunque el
+   * GPS cambie de estado.
+   */
+  setInterval(
+    repararRadioConductor,
+    1000
+  );
+
+})();
+</script>
+ 
  
 
 </body>
