@@ -52013,6 +52013,2196 @@ supabaseClient.auth
 
 })();
 </script>
+<!-- =========================================================
+     INTERNATIONAL GATEWAY GPS PRO
+     GPS autónomo — NO MODIFICA EL GPS DE REPARTO
+     ========================================================= -->
+<style>
+#IGGPSPRO_ROOT,
+#IGGPSPRO_ROOT *{box-sizing:border-box}
+#IGGPSPRO_ROOT{
+  --igp-bg:#071018;
+  --igp-panel:rgba(8,17,27,.94);
+  --igp-panel2:rgba(15,27,40,.96);
+  --igp-line:rgba(255,255,255,.11);
+  --igp-text:#f4f7fa;
+  --igp-muted:#9eabb7;
+  --igp-blue:#21a7ff;
+  --igp-green:#25d889;
+  --igp-yellow:#ffd24a;
+  --igp-red:#ff5266;
+  --igp-shadow:0 18px 55px rgba(0,0,0,.42);
+  position:fixed;
+  inset:0;
+  z-index:2147483000;
+  display:none;
+  background:#071018;
+  color:var(--igp-text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  overflow:hidden;
+}
+#IGGPSPRO_ROOT.igp-open{display:block}
+#IGGPSPRO_MAP{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:#dbe5ec;
+}
+#IGGPSPRO_ROOT .leaflet-control-attribution{
+  font-size:9px!important;
+  opacity:.85;
+}
+#IGGPSPRO_ROOT .leaflet-control-zoom{
+  display:none;
+}
+#IGGPSPRO_TOP{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  z-index:20;
+  padding:calc(10px + env(safe-area-inset-top)) 12px 8px;
+  pointer-events:none;
+}
+.igp-topbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  pointer-events:auto;
+}
+.igp-search{
+  flex:1;
+  min-width:0;
+  height:52px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px;
+  background:rgba(7,16,24,.92);
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:18px;
+  box-shadow:var(--igp-shadow);
+  backdrop-filter:blur(18px);
+}
+.igp-search input{
+  flex:1;
+  min-width:0;
+  height:40px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#fff;
+  font-size:15px;
+  padding:0 7px;
+}
+.igp-search input::placeholder{color:#81909d}
+.igp-iconbtn,
+.igp-action{
+  border:0;
+  color:#fff;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.igp-iconbtn{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  background:#152432;
+  font-size:18px;
+}
+.igp-iconbtn:active,
+.igp-action:active{transform:scale(.96)}
+.igp-logo{
+  height:52px;
+  min-width:52px;
+  padding:0 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-radius:17px;
+  background:linear-gradient(135deg,#07131f,#12283a);
+  border:1px solid rgba(33,167,255,.35);
+  box-shadow:var(--igp-shadow);
+  font-weight:900;
+  letter-spacing:.5px;
+  pointer-events:auto;
+  white-space:nowrap;
+}
+.igp-logo span{
+  color:var(--igp-blue);
+}
+#IGGPSPRO_STATUS{
+  margin-top:8px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(7,16,24,.88);
+  border:1px solid rgba(255,255,255,.11);
+  box-shadow:0 8px 28px rgba(0,0,0,.3);
+  font-size:12px;
+  font-weight:700;
+  pointer-events:auto;
+  backdrop-filter:blur(15px);
+}
+.igp-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--igp-green);
+  box-shadow:0 0 12px currentColor;
+}
+.igp-dot.warn{background:var(--igp-yellow)}
+.igp-dot.bad{background:var(--igp-red)}
+
+#IGGPSPRO_RIGHT{
+  position:absolute;
+  top:145px;
+  right:12px;
+  z-index:20;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.igp-mapbtn{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(7,16,24,.91);
+  color:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  font-size:19px;
+  cursor:pointer;
+  backdrop-filter:blur(14px);
+}
+.igp-mapbtn.active{
+  background:#147fc3;
+  border-color:#5bc4ff;
+}
+#IGGPSPRO_BOTTOM{
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:10px;
+  z-index:30;
+  padding-bottom:env(safe-area-inset-bottom);
+  pointer-events:none;
+}
+.igp-bottom-card{
+  background:var(--igp-panel);
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:25px;
+  box-shadow:var(--igp-shadow);
+  backdrop-filter:blur(22px);
+  overflow:hidden;
+  pointer-events:auto;
+}
+.igp-next{
+  display:flex;
+  gap:13px;
+  align-items:center;
+  padding:13px 15px;
+  background:linear-gradient(135deg,rgba(33,167,255,.16),rgba(7,16,24,.02));
+}
+.igp-turn{
+  width:52px;
+  height:52px;
+  flex:0 0 52px;
+  border-radius:17px;
+  background:#1689d1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  font-weight:900;
+}
+.igp-next-main{
+  min-width:0;
+  flex:1;
+}
+.igp-next-distance{
+  font-size:20px;
+  font-weight:950;
+}
+.igp-next-road{
+  color:#aebac4;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:2px;
+}
+.igp-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--igp-line);
+}
+.igp-stat{
+  padding:9px 5px;
+  text-align:center;
+  border-right:1px solid var(--igp-line);
+}
+.igp-stat:last-child{border-right:0}
+.igp-stat b{
+  display:block;
+  font-size:15px;
+}
+.igp-stat span{
+  display:block;
+  color:var(--igp-muted);
+  font-size:9px;
+  margin-top:2px;
+}
+.igp-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:7px;
+  padding:9px;
+  border-top:1px solid var(--igp-line);
+}
+.igp-action{
+  min-height:43px;
+  border-radius:14px;
+  background:#182938;
+  font-weight:800;
+  font-size:12px;
+}
+.igp-action.primary{
+  background:linear-gradient(135deg,#0789d4,#18b7ff);
+}
+.igp-action.danger{
+  background:#54202b;
+}
+.igp-action.green{
+  background:#145c46;
+}
+
+#IGGPSPRO_DRAWER{
+  position:absolute;
+  z-index:50;
+  top:0;
+  right:0;
+  bottom:0;
+  width:min(430px,94vw);
+  background:#071018;
+  border-left:1px solid rgba(255,255,255,.11);
+  box-shadow:-20px 0 60px rgba(0,0,0,.5);
+  transform:translateX(105%);
+  transition:transform .24s ease;
+  overflow:auto;
+  padding:calc(12px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+}
+#IGGPSPRO_DRAWER.open{transform:translateX(0)}
+.igp-drawer-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:15px;
+}
+.igp-title{
+  font-size:20px;
+  font-weight:950;
+}
+.igp-sub{
+  color:var(--igp-muted);
+  font-size:11px;
+  margin-top:2px;
+}
+.igp-section{
+  margin-top:13px;
+  padding:13px;
+  border-radius:19px;
+  background:#0d1a26;
+  border:1px solid rgba(255,255,255,.08);
+}
+.igp-section h3{
+  margin:0 0 10px;
+  font-size:13px;
+}
+.igp-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.igp-mini{
+  border:1px solid rgba(255,255,255,.08);
+  background:#142534;
+  color:#fff;
+  border-radius:14px;
+  padding:11px;
+  text-align:left;
+  cursor:pointer;
+}
+.igp-mini strong{display:block;font-size:13px}
+.igp-mini small{display:block;color:#93a1ac;margin-top:3px}
+.igp-field{
+  width:100%;
+  height:43px;
+  border-radius:13px;
+  border:1px solid rgba(255,255,255,.1);
+  background:#111f2b;
+  color:#fff;
+  outline:0;
+  padding:0 12px;
+  margin-bottom:8px;
+}
+.igp-row{
+  display:flex;
+  gap:8px;
+}
+.igp-row>*{flex:1}
+.igp-switch{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.igp-switch:last-child{border-bottom:0}
+.igp-switch label{font-size:13px}
+.igp-switch small{display:block;color:#8c99a4;font-size:10px;margin-top:2px}
+.igp-switch input{width:21px;height:21px}
+.igp-route{
+  padding:11px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#122330;
+  border-radius:15px;
+  margin-top:7px;
+  cursor:pointer;
+}
+.igp-route.selected{
+  border-color:#21a7ff;
+  background:#103450;
+}
+.igp-route b{font-size:14px}
+.igp-route span{
+  display:block;
+  color:#9eabb7;
+  font-size:11px;
+  margin-top:3px;
+}
+.igp-place{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.igp-place:last-child{border-bottom:0}
+.igp-place-main{
+  flex:1;
+  min-width:0;
+}
+.igp-place-main b{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:12px;
+}
+.igp-place-main span{
+  color:#84929e;
+  font-size:10px;
+}
+.igp-place button{
+  border:0;
+  background:#182b3b;
+  color:#fff;
+  border-radius:10px;
+  padding:7px 9px;
+}
+#IGGPSPRO_TOAST{
+  position:absolute;
+  left:50%;
+  top:120px;
+  transform:translate(-50%,-15px);
+  z-index:100;
+  max-width:min(92vw,430px);
+  padding:11px 15px;
+  border-radius:15px;
+  background:rgba(4,11,17,.94);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 15px 45px rgba(0,0,0,.42);
+  color:#fff;
+  font-size:12px;
+  font-weight:750;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+  text-align:center;
+}
+#IGGPSPRO_TOAST.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+.igp-modal{
+  position:absolute;
+  inset:0;
+  z-index:80;
+  display:none;
+  align-items:flex-end;
+  background:rgba(0,0,0,.46);
+}
+.igp-modal.open{display:flex}
+.igp-modal-card{
+  width:100%;
+  max-height:85vh;
+  overflow:auto;
+  background:#071018;
+  border-top:1px solid rgba(255,255,255,.12);
+  border-radius:26px 26px 0 0;
+  padding:18px 15px calc(20px + env(safe-area-inset-bottom));
+}
+.igp-modal-title{
+  font-size:19px;
+  font-weight:950;
+}
+.igp-modal-text{
+  color:#a8b3bc;
+  font-size:12px;
+  margin:5px 0 14px;
+}
+.igp-big{
+  font-size:28px;
+  font-weight:950;
+}
+.igp-arrival{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin:12px 0;
+}
+.igp-arrival div{
+  padding:11px;
+  border-radius:14px;
+  background:#10202d;
+  text-align:center;
+}
+.igp-arrival b{display:block;font-size:15px}
+.igp-arrival span{font-size:9px;color:#8e9ba5}
+.igp-pin{
+  width:22px;
+  height:22px;
+  border-radius:50% 50% 50% 0;
+  background:#ff3f5b;
+  border:4px solid #fff;
+  transform:rotate(-45deg);
+  box-shadow:0 4px 18px rgba(0,0,0,.45);
+}
+.igp-current{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#128fe1;
+  border:4px solid #fff;
+  box-shadow:0 0 0 8px rgba(18,143,225,.2),0 3px 15px rgba(0,0,0,.4);
+}
+.igp-heading{
+  position:absolute;
+  z-index:5;
+  width:0;
+  height:0;
+}
+.igp-heading-arrow{
+  width:0;
+  height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:20px solid #21a7ff;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
+}
+@media(max-width:600px){
+  .igp-logo{min-width:48px;padding:0 10px;font-size:12px}
+  .igp-search{height:50px}
+  .igp-stats{grid-template-columns:repeat(4,1fr)}
+  .igp-stat b{font-size:13px}
+  .igp-actions{grid-template-columns:1fr 1fr 1fr}
+}
+</style>
+
+<div id="IGGPSPRO_ROOT" aria-hidden="true">
+  <div id="IGGPSPRO_MAP"></div>
+
+  <div id="IGGPSPRO_TOP">
+    <div class="igp-topbar">
+      <div class="igp-search">
+        <span style="font-size:19px">🔎</span>
+        <input id="IGGPSPRO_SEARCH" autocomplete="off"
+               placeholder="¿A dónde vamos? Buscar dirección o lugar">
+        <button class="igp-iconbtn" id="IGGPSPRO_SEARCHBTN">➤</button>
+      </div>
+      <div class="igp-logo">IG <span>GPS</span></div>
+    </div>
+    <div id="IGGPSPRO_STATUS">
+      <span class="igp-dot"></span>
+      <span id="IGGPSPRO_STATUSTEXT">GPS PRO listo</span>
+    </div>
+  </div>
+
+  <div id="IGGPSPRO_RIGHT">
+    <button class="igp-mapbtn" id="IGGPSPRO_MENU" title="Menú">☰</button>
+    <button class="igp-mapbtn" id="IGGPSPRO_CENTER" title="Mi ubicación">◎</button>
+    <button class="igp-mapbtn" id="IGGPSPRO_PICK" title="Elegir destino en mapa">🎯</button>
+    <button class="igp-mapbtn" id="IGGPSPRO_COMPASS" title="Brújula">🧭</button>
+    <button class="igp-mapbtn" id="IGGPSPRO_SOUND" title="Voz">🔊</button>
+  </div>
+
+  <div id="IGGPSPRO_BOTTOM">
+    <div class="igp-bottom-card">
+      <div class="igp-next">
+        <div class="igp-turn" id="IGGPSPRO_TURN">↑</div>
+        <div class="igp-next-main">
+          <div class="igp-next-distance" id="IGGPSPRO_NEXTDIST">Preparando GPS…</div>
+          <div class="igp-next-road" id="IGGPSPRO_NEXTROAD">Esperando ubicación</div>
+        </div>
+        <div style="text-align:right">
+          <div class="igp-big" id="IGGPSPRO_ETA">—</div>
+          <div style="font-size:9px;color:#8f9ca7">ETA</div>
+        </div>
+      </div>
+
+      <div class="igp-stats">
+        <div class="igp-stat">
+          <b id="IGGPSPRO_SPEED">0</b>
+          <span>km/h</span>
+        </div>
+        <div class="igp-stat">
+          <b id="IGGPSPRO_REMAIN">—</b>
+          <span>restantes</span>
+        </div>
+        <div class="igp-stat">
+          <b id="IGGPSPRO_ACC">—</b>
+          <span>GPS ±m</span>
+        </div>
+        <div class="igp-stat">
+          <b id="IGGPSPRO_TRIP">0.0</b>
+          <span>km viaje</span>
+        </div>
+      </div>
+
+      <div class="igp-actions">
+        <button class="igp-action primary" id="IGGPSPRO_START">▶ Iniciar</button>
+        <button class="igp-action" id="IGGPSPRO_PAUSE">Ⅱ Pausar</button>
+        <button class="igp-action danger" id="IGGPSPRO_END">■ Finalizar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="IGGPSPRO_DRAWER">
+    <div class="igp-drawer-head">
+      <div>
+        <div class="igp-title">International Gateway GPS PRO</div>
+        <div class="igp-sub">Navegación inteligente · versión autónoma</div>
+      </div>
+      <button class="igp-iconbtn" id="IGGPSPRO_CLOSE">×</button>
+    </div>
+
+    <div class="igp-section">
+      <h3>🎯 Destino</h3>
+      <div class="igp-row">
+        <input class="igp-field" id="IGGPSPRO_COORDS"
+               placeholder="Latitud, longitud">
+        <button class="igp-action primary" id="IGGPSPRO_COORDBTN">Ir</button>
+      </div>
+      <button class="igp-action" style="width:100%" id="IGGPSPRO_SAVEDEST">
+        ⭐ Guardar destino actual
+      </button>
+    </div>
+
+    <div class="igp-section">
+      <h3>⚡ Accesos rápidos</h3>
+      <div class="igp-grid">
+        <button class="igp-mini" id="IGGPSPRO_HOME">
+          🏠 <strong>Casa</strong>
+          <small>Destino guardado</small>
+        </button>
+        <button class="igp-mini" id="IGGPSPRO_WORK">
+          💼 <strong>Trabajo</strong>
+          <small>Destino guardado</small>
+        </button>
+        <button class="igp-mini" id="IGGPSPRO_SET_HOME">
+          🏠 <strong>Definir casa</strong>
+          <small>Usar destino actual</small>
+        </button>
+        <button class="igp-mini" id="IGGPSPRO_SET_WORK">
+          💼 <strong>Definir trabajo</strong>
+          <small>Usar destino actual</small>
+        </button>
+      </div>
+    </div>
+
+    <div class="igp-section">
+      <h3>🛣️ Rutas disponibles</h3>
+      <div id="IGGPSPRO_ROUTES">
+        <div style="font-size:11px;color:#7f8d98">Todavía no hay una ruta calculada.</div>
+      </div>
+    </div>
+
+    <div class="igp-section">
+      <h3>⭐ Favoritos y recientes</h3>
+      <div id="IGGPSPRO_PLACES"></div>
+    </div>
+
+    <div class="igp-section">
+      <h3>📊 Viaje actual</h3>
+      <div class="igp-grid">
+        <div class="igp-mini">
+          <strong id="IGGPSPRO_DKM">0.0 km</strong>
+          <small>distancia recorrida</small>
+        </div>
+        <div class="igp-mini">
+          <strong id="IGGPSPRO_DTIME">00:00</strong>
+          <small>tiempo de viaje</small>
+        </div>
+        <div class="igp-mini">
+          <strong id="IGGPSPRO_DAVG">0 km/h</strong>
+          <small>velocidad media</small>
+        </div>
+        <div class="igp-mini">
+          <strong id="IGGPSPRO_DMAX">0 km/h</strong>
+          <small>velocidad máxima</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="igp-section">
+      <h3>⚙️ Configuración</h3>
+
+      <div class="igp-switch">
+        <label>
+          Navegación por voz
+          <small>Indicaciones habladas de maniobras</small>
+        </label>
+        <input type="checkbox" id="IGGPSPRO_VOICE" checked>
+      </div>
+
+      <div class="igp-switch">
+        <label>
+          Seguimiento automático
+          <small>Mantiene tu posición centrada</small>
+        </label>
+        <input type="checkbox" id="IGGPSPRO_FOLLOW" checked>
+      </div>
+
+      <div class="igp-switch">
+        <label>
+          Alerta de velocidad
+          <small>Usa el límite que configures</small>
+        </label>
+        <input type="checkbox" id="IGGPSPRO_OVERSPEED">
+      </div>
+
+      <div style="margin-top:9px">
+        <input class="igp-field" id="IGGPSPRO_SPEEDLIMIT"
+               type="number" min="10" max="200" value="80"
+               placeholder="Límite de alerta km/h">
+      </div>
+
+      <div class="igp-switch">
+        <label>
+          Recalcular con mayor sensibilidad
+          <small>40 m en lugar de 65 m</small>
+        </label>
+        <input type="checkbox" id="IGGPSPRO_SENSITIVE">
+      </div>
+    </div>
+
+    <div class="igp-section">
+      <h3>📍 Información GPS</h3>
+      <div id="IGGPSPRO_GPSINFO" style="font-size:11px;line-height:1.8;color:#a9b4bd">
+        Esperando señal…
+      </div>
+    </div>
+
+    <div class="igp-section">
+      <h3>📤 Compartir</h3>
+      <div class="igp-grid">
+        <button class="igp-mini" id="IGGPSPRO_SHAREPOS">
+          📍 <strong>Mi ubicación</strong>
+          <small>Compartir posición</small>
+        </button>
+        <button class="igp-mini" id="IGGPSPRO_SHAREDEST">
+          🎯 <strong>Destino</strong>
+          <small>Compartir destino</small>
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;text-align:center;color:#6f7d88;font-size:9px">
+      International Gateway · GPS PRO<br>
+      © International Gateway
+    </div>
+  </div>
+
+  <div id="IGGPSPRO_TOAST"></div>
+
+  <div class="igp-modal" id="IGGPSPRO_ROUTE_MODAL">
+    <div class="igp-modal-card">
+      <div class="igp-modal-title">🛣️ Ruta preparada</div>
+      <div class="igp-modal-text" id="IGGPSPRO_MODAL_TEXT">
+        Seleccioná una ruta para comenzar.
+      </div>
+      <div class="igp-arrival">
+        <div><b id="IGGPSPRO_MODAL_KM">—</b><span>DISTANCIA</span></div>
+        <div><b id="IGGPSPRO_MODAL_TIME">—</b><span>TIEMPO</span></div>
+        <div><b id="IGGPSPRO_MODAL_ARRIVE">—</b><span>LLEGADA</span></div>
+      </div>
+      <div class="igp-row">
+        <button class="igp-action" id="IGGPSPRO_MODAL_CANCEL">Cancelar</button>
+        <button class="igp-action primary" id="IGGPSPRO_MODAL_START">▶ Comenzar navegación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   CONFIGURACIÓN AISLADA
+   ========================================================= */
+const P="IGGPSPRO_";
+const STORAGE="international_gateway_gps_pro_v1";
+const NOMINATIM="https://nominatim.openstreetmap.org/search";
+const OSRM="https://router.project-osrm.org/route/v1/driving";
+const TILE="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+const root=document.getElementById(P+"ROOT");
+if(!root)return;
+
+const $=id=>document.getElementById(P+id);
+
+let map=null;
+let leafletReady=false;
+let watchId=null;
+let currentMarker=null;
+let destinationMarker=null;
+let routeLayers=[];
+let currentRouteLayer=null;
+
+const state={
+  open:false,
+  gps:false,
+  lastFix:null,
+  previousFix:null,
+  lastFixTime:0,
+  gpsLost:false,
+  accuracy:999,
+  speed:0,
+  heading:null,
+  altitude:null,
+  traveled:0,
+  tripStarted:0,
+  movingSeconds:0,
+  maxSpeed:0,
+  lastTripTick:0,
+  navigating:false,
+  paused:false,
+  destination:null,
+  destinationName:"",
+  routes:[],
+  activeRoute:0,
+  activeStep:0,
+  routeProgress:0,
+  routeDistance:0,
+  remaining:0,
+  etaSeconds:0,
+  voice:true,
+  follow:true,
+  overspeed:false,
+  speedLimit:80,
+  sensitive:false,
+  pickMode:false,
+  voiceStep:-1,
+  voiceStage:0,
+  lastReroute:0,
+  rerouting:false,
+  places:[],
+  home:null,
+  work:null,
+  lastSearch:0,
+  orientation:null
+};
+
+function loadState(){
+  try{
+    const x=JSON.parse(localStorage.getItem(STORAGE)||"{}");
+    if(x.voice!==undefined)state.voice=x.voice;
+    if(x.follow!==undefined)state.follow=x.follow;
+    if(x.overspeed!==undefined)state.overspeed=x.overspeed;
+    if(x.speedLimit)state.speedLimit=x.speedLimit;
+    if(x.sensitive!==undefined)state.sensitive=x.sensitive;
+    state.places=Array.isArray(x.places)?x.places:[];
+    state.home=x.home||null;
+    state.work=x.work||null;
+  }catch(e){}
+  $("VOICE").checked=state.voice;
+  $("FOLLOW").checked=state.follow;
+  $("OVERSPEED").checked=state.overspeed;
+  $("SPEEDLIMIT").value=state.speedLimit;
+  $("SENSITIVE").checked=state.sensitive;
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE,JSON.stringify({
+      voice:state.voice,
+      follow:state.follow,
+      overspeed:state.overspeed,
+      speedLimit:state.speedLimit,
+      sensitive:state.sensitive,
+      places:state.places.slice(0,30),
+      home:state.home,
+      work:state.work
+    }));
+  }catch(e){}
+}
+loadState();
+
+/* =========================================================
+   UI
+   ========================================================= */
+function toast(msg,ms=2800){
+  const el=$("TOAST");
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(toast.t);
+  toast.t=setTimeout(()=>el.classList.remove("show"),ms);
+}
+function status(text,type="ok"){
+  $("STATUSTEXT").textContent=text;
+  const dot=$("STATUS").querySelector(".igp-dot");
+  dot.classList.remove("warn","bad");
+  if(type==="warn")dot.classList.add("warn");
+  if(type==="bad")dot.classList.add("bad");
+}
+function openGPS(){
+  root.classList.add("igp-open");
+  root.setAttribute("aria-hidden","false");
+  state.open=true;
+  if(!leafletReady)loadLeaflet();
+  else startGPSPro();
+}
+function closeGPS(){
+  root.classList.remove("igp-open");
+  root.setAttribute("aria-hidden","true");
+  state.open=false;
+  $("DRAWER").classList.remove("open");
+}
+function setDrawer(open){
+  $("DRAWER").classList.toggle("open",open);
+}
+function fmtKm(m){
+  if(!isFinite(m))return "—";
+  return m<1000 ? Math.round(m)+" m" : (m/1000).toFixed(m<10000?1:0)+" km";
+}
+function fmtTime(sec){
+  sec=Math.max(0,Math.round(sec||0));
+  const h=Math.floor(sec/3600);
+  const m=Math.floor((sec%3600)/60);
+  return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"):
+    String(m).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");
+}
+function fmtEta(sec){
+  const d=new Date(Date.now()+Math.max(0,sec)*1000);
+  return d.toLocaleTimeString([],{
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+function rad(x){return x*Math.PI/180}
+function deg(x){return x*180/Math.PI}
+
+/* =========================================================
+   LEAFLET
+   ========================================================= */
+function loadLeaflet(){
+  if(window.L){
+    initMap();
+    return;
+  }
+  if(!document.getElementById("IGGPSPRO_LEAFLET_CSS")){
+    const css=document.createElement("link");
+    css.id="IGGPSPRO_LEAFLET_CSS";
+    css.rel="stylesheet";
+    css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+  }
+  const script=document.createElement("script");
+  script.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  script.onload=()=>{
+    leafletReady=true;
+    initMap();
+  };
+  script.onerror=()=>toast("No se pudo cargar el motor cartográfico.");
+  document.head.appendChild(script);
+}
+function initMap(){
+  if(map)return;
+  if(!window.L)return;
+
+  map=L.map(P+"MAP",{
+    zoomControl:false,
+    attributionControl:true,
+    preferCanvas:true
+  }).setView([-34.60,-58.38],13);
+
+  L.tileLayer(TILE,{
+    maxZoom:19,
+    attribution:'© OpenStreetMap contributors'
+  }).addTo(map);
+
+  map.on("click",e=>{
+    if(!state.pickMode)return;
+    state.pickMode=false;
+    $("PICK").classList.remove("active");
+    setDestination({
+      lat:e.latlng.lat,
+      lng:e.latlng.lng,
+      name:"Destino seleccionado en el mapa"
+    },true);
+  });
+
+  startGPSPro();
+}
+function startGPSPro(){
+  if(!navigator.geolocation){
+    status("GPS no disponible","bad");
+    return;
+  }
+  if(watchId!==null)return;
+
+  status("Solicitando ubicación GPS…","warn");
+
+  watchId=navigator.geolocation.watchPosition(
+    onPosition,
+    onGeoError,
+    {
+      enableHighAccuracy:true,
+      maximumAge:2000,
+      timeout:15000
+    }
+  );
+
+  setInterval(checkGPSHealth,3000);
+  setInterval(updateTripClock,1000);
+  requestOrientation();
+}
+
+/* =========================================================
+   GPS
+   ========================================================= */
+function onPosition(pos){
+  const c=pos.coords;
+  const now=Date.now();
+  const lat=c.latitude;
+  const lng=c.longitude;
+
+  state.gps=true;
+  state.gpsLost=false;
+  state.accuracy=isFinite(c.accuracy)?c.accuracy:999;
+  state.altitude=isFinite(c.altitude)?c.altitude:null;
+
+  let speed=isFinite(c.speed)&&c.speed>=0?c.speed*3.6:0;
+  let heading=isFinite(c.heading)&&c.heading>=0?c.heading:null;
+
+  if(state.previousFix){
+    const d=distanceMeters(
+      state.previousFix.lat,state.previousFix.lng,lat,lng
+    );
+    const dt=(now-state.previousFix.time)/1000;
+
+    if((!speed||speed<0.5)&&dt>0&&dt<20){
+      speed=clamp((d/dt)*3.6,0,250);
+    }
+
+    if((heading===null||heading<0)&&d>4&&dt<20){
+      heading=bearing(
+        state.previousFix.lat,state.previousFix.lng,lat,lng
+      );
+    }
+
+    if(
+      d>=2 &&
+      d<Math.max(250,state.accuracy*5) &&
+      dt<60 &&
+      (state.accuracy<80 || d>state.accuracy)
+    ){
+      state.traveled+=d;
+    }
+  }
+
+  state.previousFix={
+    lat,lng,time:now
+  };
+  state.lastFix={lat,lng,time:now};
+  state.lastFixTime=now;
+  state.speed=speed;
+  if(heading!==null)state.heading=heading;
+  state.maxSpeed=Math.max(state.maxSpeed,speed);
+
+  updateMarker(lat,lng);
+  updateGPSUI();
+
+  if(state.navigating&&!state.paused){
+    updateNavigation();
+  }
+
+  if(state.follow&&map&&state.gps){
+    const z=map.getZoom();
+    if(z<15)map.setView([lat,lng],15,{animate:true});
+    else map.panTo([lat,lng],{animate:true});
+  }
+
+  if(state.overspeed&&speed>Number(state.speedLimit||80)){
+    status("⚠️ Velocidad superior a la alerta","bad");
+  }else if(state.accuracy>60){
+    status("GPS activo · precisión baja","warn");
+  }else if(state.navigating&&!state.paused){
+    status("Navegando · ruta activa","ok");
+  }else{
+    status("GPS activo","ok");
+  }
+}
+function onGeoError(err){
+  state.gpsLost=true;
+  if(err&&err.code===1)status("Permiso de ubicación denegado","bad");
+  else status("Señal GPS perdida","bad");
+  toast("📡 No se recibe una posición GPS válida.");
+}
+function checkGPSHealth(){
+  if(!state.open)return;
+  if(state.lastFixTime&&Date.now()-state.lastFixTime>15000){
+    state.gpsLost=true;
+    status("📡 Señal GPS perdida","bad");
+  }
+}
+function updateMarker(lat,lng){
+  if(!map)return;
+  if(!currentMarker){
+    currentMarker=L.marker([lat,lng],{
+      icon:L.divIcon({
+        className:"",
+        html:'<div class="igp-current"></div>',
+        iconSize:[18,18],
+        iconAnchor:[9,9]
+      }),
+      zIndexOffset:1000
+    }).addTo(map);
+  }else{
+    currentMarker.setLatLng([lat,lng]);
+  }
+}
+function updateGPSUI(){
+  $("SPEED").textContent=Math.round(state.speed);
+  $("ACC").textContent=isFinite(state.accuracy)?Math.round(state.accuracy):"—";
+  $("TRIP").textContent=(state.traveled/1000).toFixed(1);
+
+  $("DKM").textContent=(state.traveled/1000).toFixed(1)+" km";
+  $("DMAX").textContent=Math.round(state.maxSpeed)+" km/h";
+
+  let moving=state.speed>3;
+  if(moving)state.movingSeconds++;
+
+  const avg=state.movingSeconds>20?
+    state.traveled/Math.max(1,state.movingSeconds)*3.6:0;
+
+  $("DAVG").textContent=Math.round(avg)+" km/h";
+
+  $("GPSINFO").innerHTML=
+    "Latitud: <b>"+state.lastFix?.lat.toFixed(6)+"</b><br>"+
+    "Longitud: <b>"+state.lastFix?.lng.toFixed(6)+"</b><br>"+
+    "Precisión: <b>±"+Math.round(state.accuracy)+" m</b><br>"+
+    "Velocidad: <b>"+Math.round(state.speed)+" km/h</b><br>"+
+    "Rumbo: <b>"+(state.heading==null?"—":Math.round(state.heading)+"°")+"</b><br>"+
+    "Altitud: <b>"+(state.altitude==null?"No disponible":Math.round(state.altitude)+" m")+"</b><br>"+
+    "Estado: <b>"+(state.gpsLost?"SEÑAL PERDIDA":"ACTIVO")+"</b>";
+}
+function updateTripClock(){
+  if(!state.tripStarted)return;
+  const sec=Math.max(0,Math.floor((Date.now()-state.tripStarted)/1000));
+  $("DTIME").textContent=fmtTime(sec);
+}
+
+/* =========================================================
+   GEOMETRÍA
+   ========================================================= */
+function distanceMeters(a,b,c,d){
+  const R=6371000;
+  const p1=rad(a),p2=rad(c);
+  const dp=rad(c-a),dl=rad(d-b);
+  const x=Math.sin(dp/2)**2+
+    Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function bearing(a,b,c,d){
+  const y=Math.sin(rad(d-b))*Math.cos(rad(c));
+  const x=Math.cos(rad(a))*Math.sin(rad(c))-
+    Math.sin(rad(a))*Math.cos(rad(c))*Math.cos(rad(d-b));
+  return (deg(Math.atan2(y,x))+360)%360;
+}
+function nearestOnRoute(lat,lng,coords){
+  if(!coords||coords.length<2)return {distance:Infinity,index:0,along:0};
+  let best={distance:Infinity,index:0,along:0};
+  let cumulative=0;
+
+  for(let i=0;i<coords.length-1;i++){
+    const a=coords[i],b=coords[i+1];
+    const midLat=rad((a[1]+b[1])/2);
+    const x1=rad(a[0])*Math.cos(midLat)*6371000;
+    const y1=rad(a[1])*6371000;
+    const x2=rad(b[0])*Math.cos(midLat)*6371000;
+    const y2=rad(b[1])*6371000;
+    const px=rad(lng)*Math.cos(midLat)*6371000;
+    const py=rad(lat)*6371000;
+    const dx=x2-x1,dy=y2-y1;
+    const len2=dx*dx+dy*dy;
+    let t=len2?((px-x1)*dx+(py-y1)*dy)/len2:0;
+    t=clamp(t,0,1);
+    const qx=x1+t*dx,qy=y1+t*dy;
+    const dist=Math.hypot(px-qx,py-qy);
+    const seg=distanceMeters(a[1],a[0],b[1],b[0]);
+
+    if(dist<best.distance){
+      best={
+        distance:dist,
+        index:i,
+        along:cumulative+seg*t
+      };
+    }
+    cumulative+=seg;
+  }
+  return best;
+}
+function routeTotal(coords){
+  let d=0;
+  for(let i=1;i<coords.length;i++)
+    d+=distanceMeters(
+      coords[i-1][1],coords[i-1][0],
+      coords[i][1],coords[i][0]
+    );
+  return d;
+}
+
+/* =========================================================
+   GEOCODIFICACIÓN
+   BÚSQUEDA EXPLÍCITA — SIN AUTOCOMPLETADO
+   ========================================================= */
+async function searchPlace(){
+  const q=$("SEARCH").value.trim();
+  if(!q)return;
+
+  if(Date.now()-state.lastSearch<1100){
+    toast("Esperá un instante antes de realizar otra búsqueda.");
+    return;
+  }
+  state.lastSearch=Date.now();
+
+  toast("🔎 Buscando destino…");
+
+  try{
+    const url=NOMINATIM+
+      "?format=jsonv2&limit=5&accept-language=es&q="+
+      encodeURIComponent(q);
+
+    const r=await fetch(url,{headers:{"Accept":"application/json"}});
+    if(!r.ok)throw new Error("geocoder");
+    const data=await r.json();
+
+    if(!data.length){
+      toast("No encontré ese destino.");
+      return;
+    }
+
+    const p=data[0];
+    setDestination({
+      lat:Number(p.lat),
+      lng:Number(p.lon),
+      name:p.display_name
+    },true);
+
+    if(data.length>1){
+      showSearchAlternatives(data);
+    }
+  }catch(e){
+    toast("No se pudo buscar el destino. Probá nuevamente.");
+  }
+}
+function showSearchAlternatives(data){
+  const places=data.map((p,i)=>({
+    lat:Number(p.lat),
+    lng:Number(p.lon),
+    name:p.display_name
+  }));
+
+  const html=places.map((p,i)=>
+    '<div class="igp-route" data-search="'+i+'">'+
+      '<b>'+escapeHtml(p.name.split(",")[0])+'</b>'+
+      '<span>'+escapeHtml(p.name)+'</span>'+
+    '</div>'
+  ).join("");
+
+  $("ROUTES").innerHTML=
+    '<div style="font-size:11px;color:#9ba8b2;margin-bottom:7px">Resultados encontrados:</div>'+
+    html;
+
+  places.forEach((p,i)=>{
+    const el=document.querySelector('[data-search="'+i+'"]');
+    if(el)el.onclick=()=>{
+      setDestination(p,true);
+      setDrawer(false);
+    };
+  });
+
+  setDrawer(true);
+}
+function parseCoordinates(text){
+  const m=text.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if(!m)return null;
+  const lat=Number(m[1]),lng=Number(m[2]);
+  if(lat<-90||lat>90||lng<-180||lng>180)return null;
+  return {lat,lng};
+}
+
+/* =========================================================
+   DESTINO
+   ========================================================= */
+function setDestination(dest,calculate){
+  if(!dest)return;
+
+  state.destination={
+    lat:Number(dest.lat),
+    lng:Number(dest.lng)
+  };
+  state.destinationName=dest.name||"Destino";
+
+  if(destinationMarker)map.removeLayer(destinationMarker);
+
+  destinationMarker=L.marker(
+    [state.destination.lat,state.destination.lng],
+    {
+      icon:L.divIcon({
+        className:"",
+        html:'<div class="igp-pin"></div>',
+        iconSize:[22,22],
+        iconAnchor:[4,20]
+      })
+    }
+  ).addTo(map);
+
+  $("SEARCH").value=state.destinationName;
+  saveRecent(dest);
+
+  if(state.lastFix){
+    map.fitBounds([
+      [state.lastFix.lat,state.lastFix.lng],
+      [state.destination.lat,state.destination.lng]
+    ],{padding:[100,100]});
+  }else{
+    map.setView(
+      [state.destination.lat,state.destination.lng],15
+    );
+  }
+
+  if(calculate)calculateRoutes();
+}
+function saveRecent(dest){
+  const item={
+    lat:Number(dest.lat),
+    lng:Number(dest.lng),
+    name:dest.name||"Destino"
+  };
+
+  state.places=[
+    item,
+    ...state.places.filter(x=>
+      distanceMeters(x.lat,x.lng,item.lat,item.lng)>30
+    )
+  ].slice(0,30);
+
+  saveState();
+  renderPlaces();
+}
+function setStoredDestination(type){
+  const x=type==="home"?state.home:state.work;
+  if(!x){
+    toast(type==="home"?
+      "Todavía no definiste Casa.":
+      "Todavía no definiste Trabajo.");
+    return;
+  }
+  setDestination(x,true);
+  setDrawer(false);
+}
+function renderPlaces(){
+  const box=$("PLACES");
+  let html="";
+
+  if(state.home){
+    html+=placeHTML("🏠","Casa",state.home);
+  }
+  if(state.work){
+    html+=placeHTML("💼","Trabajo",state.work);
+  }
+
+  state.places.slice(0,12).forEach((p,i)=>{
+    html+=placeHTML("🕘",p.name,p,i);
+  });
+
+  box.innerHTML=html||'<div style="font-size:11px;color:#7f8d98">No hay destinos guardados todavía.</div>';
+
+  box.querySelectorAll("[data-place]").forEach(el=>{
+    el.onclick=()=>{
+      const i=Number(el.dataset.place);
+      const p=state.places[i];
+      if(p){
+        setDestination(p,true);
+        setDrawer(false);
+      }
+    };
+  });
+}
+function placeHTML(icon,name,p,i){
+  return '<div class="igp-place">'+
+    '<div style="font-size:18px">'+icon+'</div>'+
+    '<div class="igp-place-main">'+
+      '<b>'+escapeHtml(name)+'</b>'+
+      '<span>'+Number(p.lat).toFixed(5)+", "+Number(p.lng).toFixed(5)+'</span>'+
+    '</div>'+
+    '<button '+(i!==undefined?'data-place="'+i+'"':'')+'>Ir</button>'+
+  '</div>';
+}
+
+/* =========================================================
+   RUTAS OSRM
+   ========================================================= */
+async function calculateRoutes(){
+  if(!state.lastFix||!state.destination){
+    toast("Necesito tu ubicación y un destino.");
+    return;
+  }
+
+  state.rerouting=true;
+  status("Calculando rutas…","warn");
+  toast("🛣️ Calculando mejor ruta…");
+
+  try{
+    const origin=state.lastFix.lng+","+state.lastFix.lat;
+    const dest=state.destination.lng+","+state.destination.lat;
+
+    const url=OSRM+"/"+origin+";"+dest+
+      "?alternatives=3&steps=true&overview=full&geometries=geojson";
+
+    const r=await fetch(url);
+    if(!r.ok)throw new Error("router");
+
+    const json=await r.json();
+
+    if(json.code!=="Ok"||!json.routes?.length)
+      throw new Error("no route");
+
+    state.routes=json.routes;
+    state.activeRoute=0;
+
+    prepareRoutes();
+    drawRoutes();
+    renderRoutes();
+
+    const rt=state.routes[0];
+
+    $("MODAL_TEXT").textContent=
+      state.destinationName||"Destino seleccionado";
+
+    $("MODAL_KM").textContent=fmtKm(rt.distance);
+    $("MODAL_TIME").textContent=fmtTime(rt.duration);
+    $("MODAL_ARRIVE").textContent=fmtEta(rt.duration);
+
+    $("ROUTE_MODAL").classList.add("open");
+    status("Ruta preparada","ok");
+  }catch(e){
+    toast("No se pudo calcular la ruta. Verificá conexión y destino.");
+    status("No se pudo calcular la ruta","bad");
+  }finally{
+    state.rerouting=false;
+  }
+}
+function prepareRoutes(){
+  state.routes.forEach(rt=>{
+    rt._coords=rt.geometry.coordinates;
+    rt._total=rt.distance||routeTotal(rt._coords);
+
+    let cumulative=0;
+    rt._stepCum=[];
+
+    (rt.legs||[]).forEach(leg=>{
+      (leg.steps||[]).forEach(step=>{
+        cumulative+=Number(step.distance||0);
+        rt._stepCum.push(cumulative);
+      });
+    });
+  });
+}
+function drawRoutes(){
+  if(!map)return;
+
+  routeLayers.forEach(x=>{
+    try{map.removeLayer(x)}catch(e){}
+  });
+  routeLayers=[];
+  currentRouteLayer=null;
+
+  state.routes.forEach((rt,i)=>{
+    const latlngs=rt._coords.map(c=>[c[1],c[0]]);
+
+    const layer=L.polyline(latlngs,{
+      color:i===state.activeRoute?"#159eea":"#657785",
+      weight:i===state.activeRoute?7:4,
+      opacity:i===state.activeRoute?.94:.52,
+      dashArray:i===state.activeRoute?null:"9 9",
+      lineCap:"round",
+      lineJoin:"round"
+    }).addTo(map);
+
+    layer.on("click",()=>{
+      selectRoute(i);
+    });
+
+    routeLayers.push(layer);
+    if(i===state.activeRoute)currentRouteLayer=layer;
+  });
+
+  if(currentRouteLayer){
+    map.fitBounds(currentRouteLayer.getBounds(),{
+      padding:[80,80]
+    });
+  }
+}
+function selectRoute(i){
+  if(!state.routes[i])return;
+  state.activeRoute=i;
+  drawRoutes();
+  renderRoutes();
+  updateNavigation();
+
+  const rt=state.routes[i];
+  $("MODAL_KM").textContent=fmtKm(rt.distance);
+  $("MODAL_TIME").textContent=fmtTime(rt.duration);
+  $("MODAL_ARRIVE").textContent=fmtEta(rt.duration);
+  toast("Ruta "+(i+1)+" seleccionada.");
+}
+function renderRoutes(){
+  const box=$("ROUTES");
+  if(!state.routes.length){
+    box.innerHTML='<div style="font-size:11px;color:#7f8d98">Todavía no hay una ruta calculada.</div>';
+    return;
+  }
+
+  box.innerHTML=state.routes.map((rt,i)=>{
+    const label=i===0?"Recomendada":
+      "Alternativa "+i;
+
+    return '<div class="igp-route '+(i===state.activeRoute?"selected":"")+
+      '" data-route="'+i+'">'+
+      '<b>🛣️ '+label+'</b>'+
+      '<span>'+fmtKm(rt.distance)+" · "+fmtTime(rt.duration)+'</span>'+
+    '</div>';
+  }).join("");
+
+  box.querySelectorAll("[data-route]").forEach(el=>{
+    el.onclick=()=>{
+      selectRoute(Number(el.dataset.route));
+    };
+  });
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+function startNavigation(){
+  if(!state.routes.length){
+    if(state.destination)calculateRoutes();
+    else toast("Primero elegí un destino.");
+    return;
+  }
+
+  $("ROUTE_MODAL").classList.remove("open");
+
+  state.navigating=true;
+  state.paused=false;
+  state.tripStarted=Date.now();
+  state.traveled=0;
+  state.movingSeconds=0;
+  state.maxSpeed=0;
+  state.lastTripTick=Date.now();
+  state.activeStep=0;
+  state.voiceStep=-1;
+  state.voiceStage=0;
+
+  status("Navegando · ruta activa","ok");
+  toast("🚗 Navegación iniciada");
+
+  if(state.voice)speak(
+    "Navegación iniciada. Preparado para salir."
+  );
+
+  updateNavigation();
+}
+function pauseNavigation(){
+  if(!state.navigating)return;
+  state.paused=!state.paused;
+
+  $("PAUSE").textContent=state.paused?
+    "▶ Reanudar":"Ⅱ Pausar";
+
+  if(state.paused){
+    status("Navegación pausada","warn");
+    toast("Navegación pausada.");
+  }else{
+    status("Navegando · ruta activa","ok");
+    toast("Navegación reanudada.");
+  }
+}
+function endNavigation(){
+  if(!state.navigating)return;
+
+  state.navigating=false;
+  state.paused=false;
+  $("PAUSE").textContent="Ⅱ Pausar";
+  status("Navegación finalizada","ok");
+
+  if(state.voice)speak("Navegación finalizada.");
+
+  toast(
+    "Viaje finalizado · "+
+    (state.traveled/1000).toFixed(1)+" kilómetros recorridos."
+  );
+}
+function updateNavigation(){
+  if(!state.lastFix||!state.routes.length)return;
+
+  const rt=state.routes[state.activeRoute];
+  if(!rt||!rt._coords)return;
+
+  const near=nearestOnRoute(
+    state.lastFix.lat,
+    state.lastFix.lng,
+    rt._coords
+  );
+
+  const sensitivity=state.sensitive?40:65;
+
+  if(
+    state.navigating &&
+    !state.paused &&
+    near.distance>sensitivity
+  ){
+    maybeReroute();
+  }
+
+  state.routeProgress=near.along;
+  state.remaining=Math.max(0,rt.distance-near.along);
+
+  const ratio=rt.distance>0?
+    clamp(state.remaining/rt.distance,0,1):1;
+
+  state.etaSeconds=rt.duration*ratio;
+
+  $("REMAIN").textContent=fmtKm(state.remaining);
+  $("ETA").textContent=fmtEta(state.etaSeconds);
+
+  updateStep(rt,near.along);
+}
+function updateStep(rt,along){
+  const steps=[];
+  (rt.legs||[]).forEach(leg=>{
+    (leg.steps||[]).forEach(s=>steps.push(s));
+  });
+
+  if(!steps.length){
+    $("NEXTDIST").textContent=fmtKm(state.remaining);
+    $("NEXTROAD").textContent=state.destinationName;
+    return;
+  }
+
+  let cum=0;
+  let current=steps[steps.length-1];
+  let currentIndex=steps.length-1;
+
+  for(let i=0;i<steps.length;i++){
+    const d=Number(steps[i].distance||0);
+    if(along<=cum+d+8){
+      current=steps[i];
+      currentIndex=i;
+      break;
+    }
+    cum+=d;
+  }
+
+  state.activeStep=currentIndex;
+
+  const stepRemaining=Math.max(
+    0,
+    cum+Number(current.distance||0)-along
+  );
+
+  const man=current.maneuver||{};
+  const type=String(man.type||"continue");
+  const modifier=String(man.modifier||"");
+
+  $("TURN").textContent=turnIcon(type,modifier);
+  $("NEXTDIST").textContent=
+    stepRemaining<1000?
+    Math.round(stepRemaining)+" m":
+    (stepRemaining/1000).toFixed(1)+" km";
+
+  const road=current.name||current.ref||"la ruta";
+  $("NEXTROAD").textContent=
+    maneuverText(type,modifier)+" · "+road;
+
+  if(state.navigating&&!state.paused){
+    voiceGuidance(current,currentIndex,stepRemaining);
+  }
+
+  if(
+    state.navigating &&
+    state.remaining<35 &&
+    state.speed<15
+  ){
+    arrive();
+  }
+}
+function turnIcon(type,modifier){
+  if(type==="arrive")return"🏁";
+  if(type==="depart")return"↑";
+  if(type==="roundabout")return"⟳";
+  if(modifier.includes("left"))return"↰";
+  if(modifier.includes("right"))return"↱";
+  if(modifier.includes("uturn"))return"↩";
+  return"↑";
+}
+function maneuverText(type,modifier){
+  if(type==="arrive")return"Has llegado a destino";
+  if(type==="depart")return"Continuá";
+  if(type==="roundabout")return"En la rotonda";
+  if(modifier.includes("left"))return"Girá a la izquierda";
+  if(modifier.includes("right"))return"Girá a la derecha";
+  if(modifier.includes("uturn"))return"Realizá un giro";
+  return"Continuá";
+}
+function voiceGuidance(step,index,distance){
+  if(!state.voice)return;
+  if(index!==state.voiceStep){
+    state.voiceStep=index;
+    state.voiceStage=0;
+  }
+
+  if(distance<=320&&distance>200&&state.voiceStage<1){
+    state.voiceStage=1;
+    speak("Preparáte para girar.");
+  }
+
+  if(distance<=180&&distance>70&&state.voiceStage<2){
+    state.voiceStage=2;
+    const text=Math.max(50,Math.round(distance/10)*10);
+    speak(
+      "En "+text+" metros, "+
+      maneuverText(
+        step.maneuver?.type||"continue",
+        step.maneuver?.modifier||""
+      ).toLowerCase()
+    );
+  }
+
+  if(distance<=65&&state.voiceStage<3){
+    state.voiceStage=3;
+    speak(
+      maneuverText(
+        step.maneuver?.type||"continue",
+        step.maneuver?.modifier||""
+      )
+    );
+  }
+}
+function arrive(){
+  if(!state.navigating)return;
+
+  state.navigating=false;
+  state.paused=false;
+
+  status("🏁 Has llegado a destino","ok");
+  $("NEXTDIST").textContent="Has llegado";
+  $("NEXTROAD").textContent=state.destinationName||"Destino";
+
+  if(state.voice)speak("Has llegado a destino.");
+
+  toast("🏁 Has llegado a destino.",5000);
+}
+async function maybeReroute(){
+  if(
+    state.rerouting||
+    !state.lastFix||
+    !state.destination||
+    Date.now()-state.lastReroute<12000
+  )return;
+
+  state.lastReroute=Date.now();
+  state.rerouting=true;
+
+  status("🔄 Recalculando ruta…","warn");
+  if(state.voice)speak("Has salido de la ruta. Recalculando.");
+
+  try{
+    const origin=state.lastFix.lng+","+state.lastFix.lat;
+    const dest=state.destination.lng+","+state.destination.lat;
+
+    const url=OSRM+"/"+origin+";"+dest+
+      "?alternatives=3&steps=true&overview=full&geometries=geojson";
+
+    const r=await fetch(url);
+    const json=await r.json();
+
+    if(json.code==="Ok"&&json.routes?.length){
+      state.routes=json.routes;
+      state.activeRoute=0;
+      prepareRoutes();
+      drawRoutes();
+      renderRoutes();
+
+      toast("🔄 Ruta recalculada.");
+      if(state.voice)speak("Ruta recalculada.");
+    }
+  }catch(e){
+    toast("No se pudo recalcular. Continuá con precaución.");
+  }finally{
+    state.rerouting=false;
+  }
+}
+
+/* =========================================================
+   VOZ
+   ========================================================= */
+function speak(text){
+  if(!state.voice||!("speechSynthesis"in window))return;
+
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="es-AR";
+    u.rate=.96;
+    u.pitch=1;
+    u.volume=1;
+
+    const voices=speechSynthesis.getVoices();
+    const v=
+      voices.find(x=>x.lang==="es-AR")||
+      voices.find(x=>x.lang?.startsWith("es"));
+
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* =========================================================
+   BRÚJULA / ORIENTACIÓN
+   ========================================================= */
+async function requestOrientation(){
+  try{
+    if(
+      typeof DeviceOrientationEvent!=="undefined" &&
+      typeof DeviceOrientationEvent.requestPermission==="function"
+    ){
+      const p=await DeviceOrientationEvent.requestPermission();
+      if(p!=="granted")return;
+    }
+
+    window.addEventListener(
+      "deviceorientationabsolute",
+      onOrientation,
+      true
+    );
+    window.addEventListener(
+      "deviceorientation",
+      onOrientation,
+      true
+    );
+  }catch(e){}
+}
+function onOrientation(e){
+  let h=null;
+
+  if(typeof e.webkitCompassHeading==="number"){
+    h=e.webkitCompassHeading;
+  }else if(typeof e.alpha==="number"){
+    h=(360-e.alpha)%360;
+  }
+
+  if(h!==null){
+    state.orientation=h;
+    state.heading=h;
+  }
+}
+
+/* =========================================================
+   COMPARTIR
+   ========================================================= */
+async function sharePosition(){
+  if(!state.lastFix){
+    toast("Todavía no tengo una posición GPS.");
+    return;
+  }
+
+  const url="https://www.google.com/maps?q="+
+    state.lastFix.lat+","+state.lastFix.lng;
+
+  shareText(
+    "Mi ubicación — International Gateway GPS PRO",
+    url
+  );
+}
+async function shareDestination(){
+  if(!state.destination){
+    toast("No hay destino seleccionado.");
+    return;
+  }
+
+  const url="https://www.google.com/maps?q="+
+    state.destination.lat+","+state.destination.lng;
+
+  shareText(
+    "Destino — International Gateway GPS PRO\n"+
+    state.destinationName,
+    url
+  );
+}
+async function shareText(text,url){
+  try{
+    if(navigator.share){
+      await navigator.share({title:"International Gateway GPS PRO",text,url});
+    }else{
+      await navigator.clipboard.writeText(text+"\n"+url);
+      toast("📋 Ubicación copiada al portapapeles.");
+    }
+  }catch(e){}
+}
+
+/* =========================================================
+   AUTENTICACIÓN
+   ========================================================= */
+function getSupabaseClient(){
+  try{
+    if(typeof supabaseClient!=="undefined" &&
+       supabaseClient &&
+       typeof supabaseClient.from==="function")
+      return supabaseClient;
+  }catch(e){}
+
+  try{
+    if(typeof sb!=="undefined" &&
+       sb &&
+       typeof sb.from==="function")
+      return sb;
+  }catch(e){}
+
+  try{
+    if(window.IG_SUPABASE &&
+       typeof window.IG_SUPABASE.from==="function")
+      return window.IG_SUPABASE;
+  }catch(e){}
+
+  try{
+    if(window.supabaseClient &&
+       typeof window.supabaseClient.from==="function")
+      return window.supabaseClient;
+  }catch(e){}
+
+  return null;
+}
+async function isAuthorized(){
+  const c=getSupabaseClient();
+  if(!c||!c.auth)return false;
+
+  try{
+    const ses=await c.auth.getSession();
+    const user=ses?.data?.session?.user;
+    if(!user)return false;
+
+    let admin=false;
+    let driver=false;
+
+    try{
+      const a=await c.from("ig_admins").select("*").limit(50);
+      if(!a.error&&Array.isArray(a.data)){
+        admin=a.data.some(row=>{
+          const vals=[
+            row.user_id,
+            row.email,
+            row.admin_email,
+            row.username
+          ].filter(Boolean).map(String).map(x=>x.toLowerCase());
+
+          return vals.includes(String(user.id).toLowerCase())||
+                 vals.includes(String(user.email||"").toLowerCase());
+        });
+      }
+    }catch(e){}
+
+    if(admin)return true;
+
+    try{
+      const d=await c.from("ig_driver_config").select("*").limit(20);
+      if(!d.error&&Array.isArray(d.data)){
+        driver=d.data.some(row=>{
+          const enabled=row.enabled!==false;
+          const vals=[
+            row.driver_email,
+            row.email,
+            row.driver
+          ].filter(Boolean).map(String).map(x=>x.toLowerCase());
+
+          return enabled &&
+            vals.includes(String(user.email||"").toLowerCase());
+        });
+      }
+    }catch(e){}
+
+    return admin||driver;
+  }catch(e){
+    return false;
+  }
+}
+
+/* =========================================================
+   APERTURA SEGURA
+   ========================================================= */
+async function createLauncher(){
+  if(document.getElementById("IGGPSPRO_LAUNCHER"))return;
+
+  const ok=await isAuthorized();
+  if(!ok)return;
+
+  const b=document.createElement("button");
+  b.id="IGGPSPRO_LAUNCHER";
+  b.innerHTML="🛰️ GPS PRO";
+  b.title="International Gateway GPS PRO";
+
+  Object.assign(b.style,{
+    position:"fixed",
+    right:"14px",
+    top:"14px",
+    zIndex:"2147482999",
+    border:"1px solid rgba(33,167,255,.45)",
+    borderRadius:"15px",
+    padding:"11px 14px",
+    background:"linear-gradient(135deg,#071827,#123b58)",
+    color:"#fff",
+    fontWeight:"900",
+    fontSize:"12px",
+    boxShadow:"0 10px 30px rgba(0,0,0,.35)",
+    cursor:"pointer"
+  });
+
+  b.onclick=openGPS;
+  document.body.appendChild(b);
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+$("SEARCHBTN").onclick=searchPlace;
+$("SEARCH").addEventListener("keydown",e=>{
+  if(e.key==="Enter")searchPlace();
+});
+
+$("MENU").onclick=()=>setDrawer(true);
+$("CLOSE").onclick=()=>setDrawer(false);
+
+$("CENTER").onclick=()=>{
+  if(!state.lastFix){
+    toast("Esperando ubicación GPS…");
+    return;
+  }
+  map.setView(
+    [state.lastFix.lat,state.lastFix.lng],
+    Math.max(map.getZoom(),16),
+    {animate:true}
+  );
+  state.follow=true;
+  $("FOLLOW").checked=true;
+};
+
+$("PICK").onclick=()=>{
+  state.pickMode=!state.pickMode;
+  $("PICK").classList.toggle("active",state.pickMode);
+
+  if(state.pickMode)
+    toast("🎯 Tocá el mapa para fijar el destino.");
+  else
+    toast("Selección de destino cancelada.");
+};
+
+$("COMPASS").onclick=()=>{
+  requestOrientation();
+  if(state.heading!=null)
+    toast("🧭 Rumbo: "+Math.round(state.heading)+"°");
+  else
+    toast("El dispositivo todavía no proporciona rumbo.");
+};
+
+$("SOUND").onclick=()=>{
+  state.voice=!state.voice;
+  $("SOUND").textContent=state.voice?"🔊":"🔇";
+  $("VOICE").checked=state.voice;
+  saveState();
+  toast(state.voice?"🔊 Voz activada":"🔇 Voz desactivada");
+  if(state.voice)speak("Voz activada.");
+};
+
+$("START").onclick=startNavigation;
+$("PAUSE").onclick=pauseNavigation;
+$("END").onclick=endNavigation;
+
+$("MODAL_CANCEL").onclick=()=>{
+  $("ROUTE_MODAL").classList.remove("open");
+};
+$("MODAL_START").onclick=startNavigation;
+
+$("COORDBTN").onclick=()=>{
+  const p=parseCoordinates($("COORDS").value.trim());
+  if(!p){
+    toast("Formato inválido. Ejemplo: -34.665, -58.700");
+    return;
+  }
+  setDestination({
+    lat:p.lat,
+    lng:p.lng,
+    name:"Coordenadas manuales"
+  },true);
+  setDrawer(false);
+};
+
+$("SAVEDEST").onclick=()=>{
+  if(!state.destination){
+    toast("Primero seleccioná un destino.");
+    return;
+  }
+  const item={
+    lat:state.destination.lat,
+    lng:state.destination.lng,
+    name:state.destinationName||"Destino guardado"
+  };
+  state.places=[
+    item,
+    ...state.places.filter(x=>
+      distanceMeters(x.lat,x.lng,item.lat,item.lng)>30
+    )
+  ].slice(0,30);
+  saveState();
+  renderPlaces();
+  toast("⭐ Destino guardado.");
+};
+
+$("HOME").onclick=()=>setStoredDestination("home");
+$("WORK").onclick=()=>setStoredDestination("work");
+
+$("SET_HOME").onclick=()=>{
+  if(!state.destination){
+    toast("Primero seleccioná un destino.");
+    return;
+  }
+  state.home={
+    lat:state.destination.lat,
+    lng:state.destination.lng,
+    name:state.destinationName||"Casa"
+  };
+  saveState();
+  renderPlaces();
+  toast("🏠 Casa guardada.");
+};
+
+$("SET_WORK").onclick=()=>{
+  if(!state.destination){
+    toast("Primero seleccioná un destino.");
+    return;
+  }
+  state.work={
+    lat:state.destination.lat,
+    lng:state.destination.lng,
+    name:state.destinationName||"Trabajo"
+  };
+  saveState();
+  renderPlaces();
+  toast("💼 Trabajo guardado.");
+};
+
+$("VOICE").onchange=e=>{
+  state.voice=e.target.checked;
+  $("SOUND").textContent=state.voice?"🔊":"🔇";
+  saveState();
+};
+
+$("FOLLOW").onchange=e=>{
+  state.follow=e.target.checked;
+  saveState();
+};
+
+$("OVERSPEED").onchange=e=>{
+  state.overspeed=e.target.checked;
+  saveState();
+};
+
+$("SPEEDLIMIT").onchange=e=>{
+  state.speedLimit=clamp(Number(e.target.value)||80,10,200);
+  e.target.value=state.speedLimit;
+  saveState();
+};
+
+$("SENSITIVE").onchange=e=>{
+  state.sensitive=e.target.checked;
+  saveState();
+};
+
+$("SHAREPOS").onclick=sharePosition;
+$("SHAREDEST").onclick=shareDestination;
+
+/* =========================================================
+   ESC / CIERRE
+   ========================================================= */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if($("ROUTE_MODAL").classList.contains("open"))
+      $("ROUTE_MODAL").classList.remove("open");
+    else
+      closeGPS();
+  }
+});
+
+/* =========================================================
+   RENDER INICIAL
+   ========================================================= */
+renderPlaces();
+createLauncher();
+
+/*
+  Reintento ligero de autorización por si Supabase
+  termina de inicializar después de este script.
+*/
+setTimeout(createLauncher,1500);
+setTimeout(createLauncher,4000);
+
+window.IGGPSPRO={
+  open:openGPS,
+  close:closeGPS,
+  state:state
+};
+
+})();
+</script>
+<!-- FIN INTERNATIONAL GATEWAY GPS PRO -->
+ 
 
 </body>
 </html>
