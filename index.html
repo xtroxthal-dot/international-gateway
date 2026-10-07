@@ -54202,6 +54202,82 @@ window.IGGPSPRO={
 })();
 </script>
 <!-- FIN INTERNATIONAL GATEWAY GPS PRO -->
+ <!-- IG GPS PRO - AJUSTE QUIRÚRGICO DE BOTONES -->
+<script>
+(function(){
+  "use strict";
+
+  function ajustarGPSPro(){
+    /* 1. Mover el botón lanzador GPS PRO */
+    const launcher = document.getElementById("IGGPSPRO_LAUNCHER");
+
+    if(launcher){
+      launcher.style.setProperty("right","auto","important");
+      launcher.style.setProperty("left","10px","important");
+      launcher.style.setProperty("top","52px","important");
+      launcher.style.setProperty("z-index","2147482999","important");
+    }
+
+    /* 2. Agregar botón SALIR dentro del GPS PRO */
+    const controles = document.getElementById("IGGPSPRO_RIGHT");
+
+    if(controles && !document.getElementById("IGGPSPRO_EXIT")){
+      const salir = document.createElement("button");
+
+      salir.className = "igp-mapbtn";
+      salir.id = "IGGPSPRO_EXIT";
+      salir.type = "button";
+      salir.title = "Salir del GPS PRO";
+      salir.setAttribute("aria-label","Salir del GPS PRO");
+      salir.textContent = "✕";
+
+      salir.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+        if(typeof window.IGGPSPRO === "object" &&
+           typeof window.IGGPSPRO.close === "function"){
+          window.IGGPSPRO.close();
+          return;
+        }
+
+        const root = document.getElementById("IGGPSPRO_ROOT");
+        if(root){
+          root.classList.remove("open");
+          root.setAttribute("aria-hidden","true");
+          root.style.display = "none";
+        }
+      });
+
+      controles.insertBefore(salir,controles.firstElementChild);
+    }
+  }
+
+  /* Ejecutar ahora */
+  ajustarGPSPro();
+
+  /* Por si el lanzador se crea unos milisegundos después */
+  let intentos = 0;
+
+  const reloj = setInterval(function(){
+    ajustarGPSPro();
+    intentos++;
+
+    if(
+      document.getElementById("IGGPSPRO_LAUNCHER") &&
+      document.getElementById("IGGPSPRO_EXIT")
+    ){
+      clearInterval(reloj);
+    }
+
+    if(intentos >= 40){
+      clearInterval(reloj);
+    }
+  },250);
+
+})();
+</script>
+<!-- FIN AJUSTE QUIRÚRGICO DE BOTONES GPS PRO -->
  
 
 </body>
