@@ -54278,6 +54278,1051 @@ window.IGGPSPRO={
 })();
 </script>
 <!-- FIN AJUSTE QUIRÚRGICO DE BOTONES GPS PRO -->
+       <!-- =========================================================
+     INTERNATIONAL GATEWAY — ESCAPARATE DIGITAL
+     Módulo aislado / IGESC
+     ========================================================= -->
+
+<style id="IGESC_styles">
+#IGESC_launcher{
+  position:fixed;
+  right:16px;
+  bottom:18px;
+  z-index:2147482000;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;
+  padding:13px 17px;
+  background:linear-gradient(135deg,#111827,#0b0f19);
+  color:#fff;
+  font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  box-shadow:0 12px 35px rgba(0,0,0,.45),0 0 24px rgba(255,190,70,.16);
+  cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+
+#IGESC_launcher:hover{
+  transform:translateY(-2px);
+  box-shadow:0 15px 42px rgba(0,0,0,.52),0 0 30px rgba(255,190,70,.25);
+}
+
+#IGESC_root{
+  position:fixed;
+  inset:0;
+  z-index:2147481999;
+  display:none;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,197,78,.10),transparent 34%),
+    rgba(4,6,12,.97);
+  color:#fff;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  overflow:auto;
+}
+
+#IGESC_root.IGESC_open{
+  display:block;
+  animation:IGESC_fade .22s ease;
+}
+
+@keyframes IGESC_fade{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+#IGESC_root *{
+  box-sizing:border-box;
+}
+
+.IGESC_shell{
+  min-height:100%;
+  padding:18px 14px 42px;
+}
+
+.IGESC_top{
+  max-width:1180px;
+  margin:0 auto 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.IGESC_brand small{
+  display:block;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  opacity:.62;
+  font-size:10px;
+}
+
+.IGESC_brand strong{
+  display:block;
+  font-size:20px;
+  letter-spacing:.02em;
+}
+
+.IGESC_close,
+.IGESC_back{
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.07);
+  color:#fff;
+  border-radius:12px;
+  padding:10px 13px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.IGESC_hero{
+  max-width:1180px;
+  margin:0 auto 24px;
+  text-align:center;
+}
+
+.IGESC_hero h1{
+  margin:4px 0 8px;
+  font-size:clamp(30px,7vw,58px);
+  line-height:1;
+  letter-spacing:-.045em;
+}
+
+.IGESC_hero p{
+  margin:0 auto;
+  max-width:680px;
+  opacity:.72;
+  font-size:14px;
+}
+
+.IGESC_stores{
+  max-width:1180px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+
+.IGESC_store{
+  position:relative;
+  min-height:310px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:26px;
+  padding:22px;
+  cursor:pointer;
+  text-align:left;
+  color:#fff;
+  background:#111827;
+  box-shadow:0 18px 55px rgba(0,0,0,.32);
+  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+
+.IGESC_store:hover{
+  transform:translateY(-5px);
+  border-color:rgba(255,255,255,.35);
+  box-shadow:0 24px 65px rgba(0,0,0,.45);
+}
+
+.IGESC_store:before{
+  content:"";
+  position:absolute;
+  width:190px;
+  height:190px;
+  right:-55px;
+  top:-55px;
+  border-radius:50%;
+  background:rgba(255,255,255,.10);
+  filter:blur(2px);
+}
+
+.IGESC_store[data-store="gateway"]{
+  background:linear-gradient(145deg,#172033,#080b12 72%);
+}
+
+.IGESC_store[data-store="granja"]{
+  background:linear-gradient(145deg,#26361e,#0d120b 72%);
+}
+
+.IGESC_store[data-store="iberian"]{
+  background:linear-gradient(145deg,#382018,#120b09 72%);
+}
+
+.IGESC_icon{
+  font-size:48px;
+  display:block;
+  margin-bottom:18px;
+}
+
+.IGESC_store h2{
+  margin:0 0 9px;
+  font-size:25px;
+}
+
+.IGESC_store p{
+  margin:0;
+  opacity:.72;
+  font-size:13px;
+  line-height:1.5;
+  max-width:330px;
+}
+
+.IGESC_enter{
+  position:absolute;
+  left:22px;
+  bottom:22px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius:999px;
+  padding:9px 12px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.14);
+  font-size:12px;
+  font-weight:800;
+}
+
+.IGESC_storeview{
+  max-width:1180px;
+  margin:0 auto;
+}
+
+.IGESC_storehead{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:18px;
+}
+
+.IGESC_storehead h2{
+  margin:0;
+  font-size:clamp(26px,6vw,42px);
+}
+
+.IGESC_storehead p{
+  margin:5px 0 0;
+  opacity:.65;
+  font-size:13px;
+}
+
+.IGESC_count{
+  white-space:nowrap;
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  font-size:12px;
+  font-weight:800;
+}
+
+.IGESC_grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+}
+
+.IGESC_card{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  background:rgba(255,255,255,.055);
+  box-shadow:0 10px 30px rgba(0,0,0,.20);
+}
+
+.IGESC_pic{
+  aspect-ratio:1/1;
+  background:linear-gradient(145deg,#202637,#0b0d13);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.IGESC_pic img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.IGESC_noimg{
+  opacity:.38;
+  font-size:12px;
+}
+
+.IGESC_body{
+  padding:12px;
+}
+
+.IGESC_cat{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  opacity:.48;
+  margin-bottom:5px;
+}
+
+.IGESC_name{
+  font-size:14px;
+  font-weight:850;
+  line-height:1.25;
+  min-height:36px;
+}
+
+.IGESC_price{
+  margin-top:9px;
+  font-size:18px;
+  font-weight:900;
+}
+
+.IGESC_status{
+  margin-top:4px;
+  font-size:10px;
+  opacity:.55;
+}
+
+.IGESC_add{
+  width:100%;
+  margin-top:10px;
+  border:0;
+  border-radius:11px;
+  padding:10px 8px;
+  background:linear-gradient(135deg,#f2c15d,#b47a19);
+  color:#111;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.IGESC_add:disabled{
+  opacity:.38;
+  cursor:not-allowed;
+}
+
+.IGESC_empty,
+.IGESC_loading{
+  grid-column:1/-1;
+  padding:42px 18px;
+  border:1px dashed rgba(255,255,255,.18);
+  border-radius:20px;
+  text-align:center;
+  opacity:.72;
+}
+
+@media(max-width:900px){
+  .IGESC_stores{
+    grid-template-columns:1fr;
+  }
+
+  .IGESC_store{
+    min-height:245px;
+  }
+
+  .IGESC_grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:650px){
+  #IGESC_launcher{
+    right:12px;
+    bottom:12px;
+    padding:12px 14px;
+  }
+
+  .IGESC_shell{
+    padding:12px 10px 32px;
+  }
+
+  .IGESC_grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+
+  .IGESC_storehead{
+    align-items:start;
+  }
+
+  .IGESC_count{
+    font-size:10px;
+  }
+
+  .IGESC_card{
+    border-radius:15px;
+  }
+
+  .IGESC_body{
+    padding:10px;
+  }
+}
+</style>
+
+<button
+  id="IGESC_launcher"
+  type="button"
+  aria-label="Abrir Escaparate Digital">
+  🏪 Escaparate
+</button>
+
+<div id="IGESC_root" aria-hidden="true">
+
+  <div class="IGESC_shell">
+
+    <div class="IGESC_top">
+
+      <div class="IGESC_brand">
+        <small>International Gateway</small>
+        <strong>Escaparate Digital</strong>
+      </div>
+
+      <button
+        id="IGESC_close"
+        class="IGESC_close"
+        type="button">
+        ✕ Cerrar
+      </button>
+
+    </div>
+
+    <section id="IGESC_facade">
+
+      <div class="IGESC_hero">
+        <h1>Entrá a nuestras tiendas</h1>
+
+        <p>
+          Tres espacios, tres identidades y un mismo carrito de compra.
+        </p>
+      </div>
+
+      <div class="IGESC_stores">
+
+        <button
+          class="IGESC_store"
+          data-store="gateway"
+          type="button">
+
+          <span class="IGESC_icon">🌐</span>
+
+          <h2>International Gateway</h2>
+
+          <p>
+            La tienda general: hogar, cocina, tecnología,
+            herramientas, librería, juguetes, regalería y mucho más.
+          </p>
+
+          <span class="IGESC_enter">
+            Entrar →
+          </span>
+
+        </button>
+
+        <button
+          class="IGESC_store"
+          data-store="granja"
+          type="button">
+
+          <span class="IGESC_icon">🐄</span>
+
+          <h2>Granja lo de Nico</h2>
+
+          <p>
+            El espacio dedicado exclusivamente a los productos
+            de la granja.
+          </p>
+
+          <span class="IGESC_enter">
+            Entrar →
+          </span>
+
+        </button>
+
+        <button
+          class="IGESC_store"
+          data-store="iberian"
+          type="button">
+
+          <span class="IGESC_icon">🇪🇸</span>
+
+          <h2>Iberian Mediterránea</h2>
+
+          <p>
+            Un escaparate propio para la propuesta ibérica
+            y mediterránea.
+          </p>
+
+          <span class="IGESC_enter">
+            Entrar →
+          </span>
+
+        </button>
+
+      </div>
+
+    </section>
+
+    <section
+      id="IGESC_storeview"
+      class="IGESC_storeview"
+      hidden>
+
+      <div class="IGESC_storehead">
+
+        <div>
+          <h2 id="IGESC_storetitle"></h2>
+          <p id="IGESC_storesubtitle"></p>
+        </div>
+
+        <div
+          id="IGESC_count"
+          class="IGESC_count">
+          0 productos
+        </div>
+
+      </div>
+
+      <div
+        id="IGESC_grid"
+        class="IGESC_grid">
+      </div>
+
+      <button
+        id="IGESC_back"
+        class="IGESC_back"
+        type="button"
+        style="margin-top:18px">
+
+        ← Volver a las tres tiendas
+
+      </button>
+
+    </section>
+
+  </div>
+
+</div>
+
+<script id="IGESC_script">
+(function(){
+
+  "use strict";
+
+  const ROOT_ID = "IGESC_root";
+
+  const facade =
+    document.getElementById("IGESC_facade");
+
+  const view =
+    document.getElementById("IGESC_storeview");
+
+  const grid =
+    document.getElementById("IGESC_grid");
+
+  const title =
+    document.getElementById("IGESC_storetitle");
+
+  const subtitle =
+    document.getElementById("IGESC_storesubtitle");
+
+  const count =
+    document.getElementById("IGESC_count");
+
+  const stores = {
+
+    gateway: {
+
+      title: "International Gateway",
+
+      subtitle:
+        "La Casa del Barrio · Tu puerta de entrada al mundo",
+
+      icon: "🌐",
+
+      filter: function(product){
+
+        const category =
+          String(product && product.category || "")
+          .trim()
+          .toLowerCase();
+
+        return (
+          category !== "granja lo de nico" &&
+          category !== "iberian mediterránea"
+        );
+      }
+
+    },
+
+    granja: {
+
+      title: "Granja lo de Nico",
+
+      subtitle:
+        "Productos de la categoría Granja lo de Nico",
+
+      icon: "🐄",
+
+      filter: function(product){
+
+        return String(
+          product && product.category || ""
+        )
+        .trim()
+        .toLowerCase()
+        === "granja lo de nico";
+
+      }
+
+    },
+
+    iberian: {
+
+      title: "Iberian Mediterránea",
+
+      subtitle:
+        "Productos de la categoría Iberian Mediterránea",
+
+      icon: "🇪🇸",
+
+      filter: function(product){
+
+        return String(
+          product && product.category || ""
+        )
+        .trim()
+        .toLowerCase()
+        === "iberian mediterránea";
+
+      }
+
+    }
+
+  };
+
+  function esc(value){
+
+    return String(
+      value == null ? "" : value
+    )
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+  }
+
+  function money(value){
+
+    if(typeof window.money === "function"){
+
+      try{
+        return window.money(value);
+      }catch(error){}
+
+    }
+
+    return new Intl.NumberFormat(
+      "es-AR",
+      {
+        style:"currency",
+        currency:"ARS",
+        maximumFractionDigits:2
+      }
+    ).format(Number(value) || 0);
+
+  }
+
+  function getProducts(){
+
+    if(Array.isArray(window.products)){
+
+      return window.products.slice();
+
+    }
+
+    return [];
+
+  }
+
+  function imageOf(product){
+
+    const images =
+      Array.isArray(product && product.ig_product_images)
+      ? product.ig_product_images
+      : [];
+
+    const primary =
+      images.find(function(image){
+
+        return image && image.is_primary;
+
+      });
+
+    return (
+      (primary || images[0] || {}).public_url
+      || ""
+    );
+
+  }
+
+  function openRoot(){
+
+    const root =
+      document.getElementById(ROOT_ID);
+
+    if(!root){
+      return;
+    }
+
+    root.classList.add("IGESC_open");
+
+    root.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    document.body.style.overflow = "hidden";
+
+  }
+
+  function closeRoot(){
+
+    const root =
+      document.getElementById(ROOT_ID);
+
+    if(!root){
+      return;
+    }
+
+    root.classList.remove("IGESC_open");
+
+    root.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    document.body.style.overflow = "";
+
+  }
+
+  function showFacade(){
+
+    facade.hidden = false;
+
+    view.hidden = true;
+
+  }
+
+  function renderStore(key){
+
+    const config =
+      stores[key];
+
+    if(!config){
+      return;
+    }
+
+    openRoot();
+
+    facade.hidden = true;
+
+    view.hidden = false;
+
+    title.textContent =
+      config.icon + " " + config.title;
+
+    subtitle.textContent =
+      config.subtitle;
+
+    grid.innerHTML =
+      '<div class="IGESC_loading">' +
+      'Cargando escaparate…' +
+      '</div>';
+
+    const products =
+      getProducts()
+      .filter(function(product){
+
+        return (
+          product &&
+          product.active !== false &&
+          config.filter(product)
+        );
+
+      });
+
+    count.textContent =
+      products.length +
+      " " +
+      (
+        products.length === 1
+          ? "producto"
+          : "productos"
+      );
+
+    if(!products.length){
+
+      grid.innerHTML =
+        '<div class="IGESC_empty">' +
+        '<strong>Esta tienda todavía no tiene productos visibles.</strong>' +
+        '<br>' +
+        '<small>' +
+        'Cuando se agreguen o activen desde Administración ' +
+        'aparecerán aquí automáticamente.' +
+        '</small>' +
+        '</div>';
+
+      return;
+
+    }
+
+    grid.innerHTML =
+      products
+      .map(function(product){
+
+        const image =
+          imageOf(product);
+
+        const available =
+          product.available === true;
+
+        const imageHTML =
+          image
+            ? '<img src="' +
+              esc(image) +
+              '" alt="' +
+              esc(product.name) +
+              '" loading="lazy">'
+            : '<span class="IGESC_noimg">' +
+              'Sin imagen' +
+              '</span>';
+
+        return (
+
+          '<article class="IGESC_card">' +
+
+            '<div class="IGESC_pic">' +
+              imageHTML +
+            '</div>' +
+
+            '<div class="IGESC_body">' +
+
+              '<div class="IGESC_cat">' +
+                esc(product.category || "") +
+              '</div>' +
+
+              '<div class="IGESC_name">' +
+                esc(product.name || "Producto") +
+              '</div>' +
+
+              '<div class="IGESC_price">' +
+                money(product.price) +
+              '</div>' +
+
+              '<div class="IGESC_status">' +
+                (
+                  available
+                    ? "Disponible"
+                    : "Agotado"
+                ) +
+              '</div>' +
+
+              '<button ' +
+                'class="IGESC_add" ' +
+                'type="button" ' +
+                'data-igesc-add="' +
+                esc(product.id) +
+                '" ' +
+                (
+                  available
+                    ? ""
+                    : "disabled"
+                ) +
+              '>' +
+
+                (
+                  available
+                    ? "Agregar al carrito"
+                    : "Agotado"
+                ) +
+
+              '</button>' +
+
+            '</div>' +
+
+          '</article>'
+
+        );
+
+      })
+      .join("");
+
+    grid
+      .querySelectorAll("[data-igesc-add]")
+      .forEach(function(button){
+
+        button.addEventListener(
+          "click",
+          function(){
+
+            const id =
+              button.getAttribute(
+                "data-igesc-add"
+              );
+
+            if(
+              typeof window.addToCart ===
+              "function"
+            ){
+
+              window.addToCart(id);
+
+            }
+            else if(
+              typeof addToCart ===
+              "function"
+            ){
+
+              addToCart(id);
+
+            }
+            else{
+
+              alert(
+                "El carrito todavía no está disponible."
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+  }
+
+  const launcher =
+    document.getElementById(
+      "IGESC_launcher"
+    );
+
+  if(launcher){
+
+    launcher.addEventListener(
+      "click",
+      openRoot
+    );
+
+  }
+
+  const closeButton =
+    document.getElementById(
+      "IGESC_close"
+    );
+
+  if(closeButton){
+
+    closeButton.addEventListener(
+      "click",
+      closeRoot
+    );
+
+  }
+
+  const backButton =
+    document.getElementById(
+      "IGESC_back"
+    );
+
+  if(backButton){
+
+    backButton.addEventListener(
+      "click",
+      showFacade
+    );
+
+  }
+
+  document
+    .querySelectorAll(".IGESC_store")
+    .forEach(function(button){
+
+      button.addEventListener(
+        "click",
+        function(){
+
+          renderStore(
+            button.getAttribute(
+              "data-store"
+            )
+          );
+
+        }
+      );
+
+    });
+
+  const root =
+    document.getElementById(
+      ROOT_ID
+    );
+
+  if(root){
+
+    root.addEventListener(
+      "click",
+      function(event){
+
+        if(event.target === this){
+
+          closeRoot();
+
+        }
+
+      }
+    );
+
+  }
+
+  document.addEventListener(
+    "keydown",
+    function(event){
+
+      if(event.key === "Escape"){
+
+        const currentRoot =
+          document.getElementById(
+            ROOT_ID
+          );
+
+        if(
+          currentRoot &&
+          currentRoot.classList.contains(
+            "IGESC_open"
+          )
+        ){
+
+          closeRoot();
+
+        }
+
+      }
+
+    }
+  );
+
+  window.IGESC = {
+
+    open: openRoot,
+
+    close: closeRoot,
+
+    show: renderStore,
+
+    home: showFacade
+
+  };
+
+})();
+</script>
+
+<!-- FIN INTERNATIONAL GATEWAY — ESCAPARATE DIGITAL -->  
  
 
 </body>
