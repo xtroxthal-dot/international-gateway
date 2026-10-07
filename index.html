@@ -54279,7 +54279,2434 @@ window.IGGPSPRO={
 </script>
 <!-- FIN AJUSTE QUIRÚRGICO DE BOTONES GPS PRO -->
 
+<!-- =========================================================
+     INTERNATIONAL GATEWAY
+     RADIO PROFESIONAL DEL CONDUCTOR
+     SOLO DENTRO DE 🚚 CONDUCTOR
+     ========================================================= -->
 
+<style id="IG_CONDUCTOR_RADIO_STYLE">
+
+#IG_CONDUCTOR_RADIO{
+  margin:16px 0 4px;
+  border-radius:22px;
+  overflow:hidden;
+  color:#fff;
+  background:linear-gradient(145deg,#07131d,#0d2230 55%,#061018);
+  border:1px solid rgba(48,183,255,.28);
+  box-shadow:0 14px 38px rgba(0,0,0,.24);
+}
+
+#IG_CONDUCTOR_RADIO *{
+  box-sizing:border-box;
+}
+
+#IG_CONDUCTOR_RADIO .igr-head{
+  padding:14px 15px 11px;
+  background:linear-gradient(
+    135deg,
+    rgba(0,145,255,.22),
+    rgba(0,0,0,.08)
+  );
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+#IG_CONDUCTOR_RADIO .igr-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-disc{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:radial-gradient(
+    circle,
+    #21b8ff 0 16%,
+    #0d4566 17% 43%,
+    #07131d 44% 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.12),
+    0 0 22px rgba(33,184,255,.28);
+  font-size:20px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-title{
+  font-size:17px;
+  font-weight:900;
+  line-height:1.1;
+}
+
+#IG_CONDUCTOR_RADIO .igr-sub{
+  color:#8fa8b8;
+  font-size:10px;
+  margin-top:3px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-now{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:12px 15px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-logo{
+  width:48px;
+  height:48px;
+  border-radius:13px;
+  object-fit:cover;
+  background:#122938;
+  border:1px solid rgba(255,255,255,.09);
+}
+
+#IG_CONDUCTOR_RADIO .igr-nowmain{
+  min-width:0;
+}
+
+#IG_CONDUCTOR_RADIO .igr-station{
+  font-size:14px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_CONDUCTOR_RADIO .igr-meta{
+  color:#8fa8b8;
+  font-size:10px;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_CONDUCTOR_RADIO .igr-live{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  color:#6ee7b7;
+  font-size:9px;
+  font-weight:800;
+  margin-top:4px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-live i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#36e59c;
+  box-shadow:0 0 9px #36e59c;
+}
+
+#IG_CONDUCTOR_RADIO .igr-mainplay{
+  width:50px;
+  height:50px;
+  border:0;
+  border-radius:50%;
+  background:linear-gradient(135deg,#0796df,#20c2ff);
+  color:#fff;
+  font-size:21px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 7px 20px rgba(0,151,225,.28);
+}
+
+#IG_CONDUCTOR_RADIO .igr-controls{
+  display:grid;
+  grid-template-columns:48px 48px minmax(0,1fr) 48px 48px;
+  gap:7px;
+  padding:0 15px 13px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-btn{
+  min-height:42px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;
+  background:#122735;
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  font-size:16px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-btn:active{
+  transform:scale(.97);
+}
+
+#IG_CONDUCTOR_RADIO .igr-vol{
+  width:100%;
+  accent-color:#18b9ff;
+}
+
+#IG_CONDUCTOR_RADIO .igr-search{
+  padding:0 15px 12px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-searchrow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+}
+
+#IG_CONDUCTOR_RADIO input,
+#IG_CONDUCTOR_RADIO select{
+  width:100%;
+  height:42px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.1);
+  background:#0e202d;
+  color:#fff;
+  outline:0;
+  padding:0 11px;
+}
+
+#IG_CONDUCTOR_RADIO input::placeholder{
+  color:#708695;
+}
+
+#IG_CONDUCTOR_RADIO .igr-filters{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:7px;
+  margin-top:7px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  padding:0 15px 12px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-tab{
+  border:1px solid rgba(255,255,255,.08);
+  background:#102431;
+  color:#9db2bf;
+  border-radius:10px;
+  padding:9px 5px;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+#IG_CONDUCTOR_RADIO .igr-tab.active{
+  color:#fff;
+  background:#145477;
+  border-color:#24baff;
+}
+
+#IG_CONDUCTOR_RADIO .igr-status{
+  min-height:18px;
+  padding:0 15px 9px;
+  color:#8fa8b8;
+  font-size:10px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-list{
+  max-height:330px;
+  overflow:auto;
+  padding:0 10px 10px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-item{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 38px;
+  gap:9px;
+  align-items:center;
+  padding:9px 7px;
+  border-top:1px solid rgba(255,255,255,.055);
+  cursor:pointer;
+}
+
+#IG_CONDUCTOR_RADIO .igr-item:hover{
+  background:rgba(255,255,255,.035);
+}
+
+#IG_CONDUCTOR_RADIO .igr-item img{
+  width:42px;
+  height:42px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#142b3a;
+}
+
+#IG_CONDUCTOR_RADIO .igr-itemmain{
+  min-width:0;
+}
+
+#IG_CONDUCTOR_RADIO .igr-itemname{
+  font-size:12px;
+  font-weight:850;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_CONDUCTOR_RADIO .igr-itemmeta{
+  font-size:9px;
+  color:#78909e;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#IG_CONDUCTOR_RADIO .igr-star{
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:10px;
+  background:#122735;
+  color:#849aa8;
+  cursor:pointer;
+  font-size:17px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-star.on{
+  color:#ffd45a;
+}
+
+#IG_CONDUCTOR_RADIO .igr-more{
+  display:block;
+  width:calc(100% - 30px);
+  margin:2px 15px 14px;
+  height:40px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:11px;
+  background:#102735;
+  color:#fff;
+  font-weight:800;
+}
+
+#IG_CONDUCTOR_RADIO .igr-sleep{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  align-items:center;
+  padding:0 15px 13px;
+}
+
+#IG_CONDUCTOR_RADIO .igr-sleep label{
+  font-size:10px;
+  color:#8fa8b8;
+}
+
+#IG_CONDUCTOR_RADIO_GPS{
+  position:absolute;
+  left:10px;
+  top:112px;
+  width:min(225px,calc(100vw - 72px));
+  z-index:12;
+  display:none;
+}
+
+#IGGPSPRO_ROOT.igp-open #IG_CONDUCTOR_RADIO_GPS{
+  display:block;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini{
+  margin:0;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini > *{
+  display:none !important;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-now{
+  display:grid !important;
+  padding:7px 9px;
+  grid-template-columns:34px minmax(0,1fr) 38px;
+  gap:7px;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-logo{
+  width:34px;
+  height:34px;
+  border-radius:9px;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-station{
+  font-size:10px;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-meta{
+  font-size:8px;
+  margin-top:2px;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-live{
+  display:none;
+}
+
+#IG_CONDUCTOR_RADIO.igr-gps-mini .igr-mainplay{
+  width:38px;
+  height:38px;
+  font-size:15px;
+}
+
+@media(max-width:600px){
+
+  #IG_CONDUCTOR_RADIO .igr-controls{
+    grid-template-columns:43px 43px minmax(0,1fr) 43px 43px;
+  }
+
+  #IG_CONDUCTOR_RADIO .igr-filters{
+    grid-template-columns:1fr;
+  }
+
+  #IG_CONDUCTOR_RADIO .igr-list{
+    max-height:290px;
+  }
+
+}
+
+</style>
+
+
+<script id="IG_CONDUCTOR_RADIO_SCRIPT">
+
+(function(){
+
+  "use strict";
+
+  if(window.__IG_CONDUCTOR_RADIO_V1){
+    return;
+  }
+
+  window.__IG_CONDUCTOR_RADIO_V1=true;
+
+  var API="https://de1.api.radio-browser.info";
+
+  var FAVKEY="ig_driver_radio_favorites_v1";
+
+  var LASTKEY="ig_driver_radio_current_v1";
+
+  var state={
+    stations:[],
+    index:-1,
+    offset:0,
+    loading:false,
+    mode:"top",
+    query:"",
+    country:"",
+    language:"",
+    tag:"",
+    audio:null,
+    volume:.85,
+    muted:false,
+    sleepTimer:null,
+    root:null,
+    gpsMini:null
+  };
+
+
+  function esc(v){
+
+    return String(v==null?"":v)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+
+  }
+
+
+  function favs(){
+
+    try{
+      return JSON.parse(
+        localStorage.getItem(FAVKEY)||"[]"
+      );
+    }catch(e){
+      return [];
+    }
+
+  }
+
+
+  function saveFavs(a){
+
+    try{
+      localStorage.setItem(
+        FAVKEY,
+        JSON.stringify(a)
+      );
+    }catch(e){}
+
+  }
+
+
+  function isFav(s){
+
+    return !!(
+      s &&
+      favs().indexOf(s.stationuuid)>=0
+    );
+
+  }
+
+
+  function toggleFav(s){
+
+    if(!s)return;
+
+    var a=favs();
+
+    var id=s.stationuuid;
+
+    var i=a.indexOf(id);
+
+    if(i>=0){
+      a.splice(i,1);
+    }else{
+      a.push(id);
+    }
+
+    saveFavs(a);
+
+    renderList();
+
+  }
+
+
+  function stationUrl(s){
+
+    return s &&
+      (
+        s.url_resolved ||
+        s.url ||
+        ""
+      );
+
+  }
+
+
+  function stationTitle(s){
+
+    return (
+      s &&
+      s.name
+    ) || "Emisora";
+
+  }
+
+
+  function setLast(s){
+
+    try{
+
+      localStorage.setItem(
+        LASTKEY,
+        JSON.stringify({
+          stationuuid:s.stationuuid,
+          name:s.name,
+          url_resolved:s.url_resolved||"",
+          url:s.url||"",
+          favicon:s.favicon||"",
+          country:s.country||"",
+          language:s.language||"",
+          tags:s.tags||"",
+          codec:s.codec||"",
+          bitrate:s.bitrate||0
+        })
+      );
+
+    }catch(e){}
+
+  }
+
+
+  function getLast(){
+
+    try{
+
+      return JSON.parse(
+        localStorage.getItem(
+          LASTKEY
+        ) || "null"
+      );
+
+    }catch(e){
+
+      return null;
+
+    }
+
+  }
+
+
+  function ensureAudio(){
+
+    if(state.audio){
+      return state.audio;
+    }
+
+    state.audio=new Audio();
+
+    state.audio.preload="none";
+
+    state.audio.volume=state.volume;
+
+
+    state.audio.addEventListener(
+      "playing",
+      function(){
+        updateNow();
+      }
+    );
+
+
+    state.audio.addEventListener(
+      "pause",
+      function(){
+        updateNow();
+      }
+    );
+
+
+    state.audio.addEventListener(
+      "waiting",
+      function(){
+        setStatus(
+          "Conectando con la emisora…"
+        );
+      }
+    );
+
+
+    state.audio.addEventListener(
+      "stalled",
+      function(){
+        setStatus(
+          "La señal se ha detenido…"
+        );
+      }
+    );
+
+
+    state.audio.addEventListener(
+      "error",
+      function(){
+
+        setStatus(
+          "No se pudo reproducir esta emisora."
+        );
+
+        updateNow();
+
+      }
+    );
+
+
+    return state.audio;
+
+  }
+
+
+  function playStation(s){
+
+    if(!s)return;
+
+    var url=stationUrl(s);
+
+    if(!url){
+
+      setStatus(
+        "Esta emisora no tiene una señal reproducible."
+      );
+
+      return;
+
+    }
+
+
+    var a=ensureAudio();
+
+
+    try{
+      a.pause();
+    }catch(e){}
+
+
+    a.src=url;
+
+    a.volume=
+      state.muted ?
+      0 :
+      state.volume;
+
+
+    state.index=
+      state.stations.findIndex(
+        function(x){
+          return x.stationuuid===
+            s.stationuuid;
+        }
+      );
+
+
+    setLast(s);
+
+    setStatus(
+      "Conectando: "+
+      stationTitle(s)
+    );
+
+    updateNow(s);
+
+
+    a.play()
+      .then(function(){
+
+        setStatus(
+          "▶ Reproduciendo en directo"
+        );
+
+        updateNow(s);
+
+        countClick(s);
+
+      })
+      .catch(function(){
+
+        setStatus(
+          "Toca ▶ para iniciar la emisora."
+        );
+
+        updateNow(s);
+
+      });
+
+  }
+
+
+  function countClick(s){
+
+    if(
+      !s ||
+      !s.stationuuid
+    ){
+      return;
+    }
+
+    fetch(
+      API+
+      "/json/url/"+
+      encodeURIComponent(
+        s.stationuuid
+      ),
+      {
+        method:"GET"
+      }
+    ).catch(function(){});
+
+  }
+
+
+  function togglePlay(){
+
+    var a=ensureAudio();
+
+    if(!a.src){
+
+      var s=
+        state.stations[
+          state.index>=0 ?
+          state.index :
+          0
+        ] ||
+        getLast();
+
+      if(s){
+
+        playStation(s);
+
+      }else{
+
+        loadStations(true);
+
+      }
+
+      return;
+
+    }
+
+
+    if(a.paused){
+
+      a.play()
+        .then(function(){
+
+          setStatus(
+            "▶ Reproduciendo en directo"
+          );
+
+        })
+        .catch(function(){});
+
+    }else{
+
+      a.pause();
+
+    }
+
+
+    updateNow();
+
+  }
+
+
+  function next(){
+
+    if(
+      !state.stations.length
+    ){
+      return;
+    }
+
+    var i=
+      state.index<0 ?
+      0 :
+      (
+        state.index+1
+      ) %
+      state.stations.length;
+
+    playStation(
+      state.stations[i]
+    );
+
+  }
+
+
+  function prev(){
+
+    if(
+      !state.stations.length
+    ){
+      return;
+    }
+
+    var i=
+      state.index<=0 ?
+      state.stations.length-1 :
+      state.index-1;
+
+    playStation(
+      state.stations[i]
+    );
+
+  }
+
+
+  function setVolume(v){
+
+    state.volume=
+      Math.max(
+        0,
+        Math.min(
+          1,
+          Number(v)
+        )
+      );
+
+    state.muted=
+      state.volume===0;
+
+    if(state.audio){
+
+      state.audio.volume=
+        state.muted ?
+        0 :
+        state.volume;
+
+    }
+
+    updateNow();
+
+  }
+
+
+  function toggleMute(){
+
+    state.muted=
+      !state.muted;
+
+    if(state.audio){
+
+      state.audio.volume=
+        state.muted ?
+        0 :
+        state.volume;
+
+    }
+
+    updateNow();
+
+  }
+
+
+  function setStatus(t){
+
+    var el=
+      document.getElementById(
+        "IGR_STATUS"
+      );
+
+    if(el){
+      el.textContent=t||"";
+    }
+
+  }
+
+
+  function updateNow(s){
+
+    if(!state.root){
+      return;
+    }
+
+    s=
+      s ||
+      state.stations[state.index] ||
+      getLast();
+
+
+    var name=
+      document.getElementById(
+        "IGR_STATION"
+      );
+
+    var meta=
+      document.getElementById(
+        "IGR_META"
+      );
+
+    var img=
+      document.getElementById(
+        "IGR_LOGO"
+      );
+
+    var play=
+      document.getElementById(
+        "IGR_PLAY"
+      );
+
+    var mute=
+      document.getElementById(
+        "IGR_MUTE"
+      );
+
+
+    if(name){
+
+      name.textContent=
+        s ?
+        stationTitle(s) :
+        "Selecciona una emisora";
+
+    }
+
+
+    if(meta){
+
+      meta.textContent=
+        s ?
+        [
+          s.country,
+          s.language,
+          s.tags
+        ]
+        .filter(Boolean)
+        .join(" · ") :
+        "Miles de emisoras · búsqueda mundial";
+
+    }
+
+
+    if(img){
+
+      img.src=
+        (
+          s &&
+          s.favicon
+        ) ||
+        (
+          "data:image/svg+xml;charset=UTF-8,"+
+          encodeURIComponent(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>"+
+            "<rect width='80' height='80' rx='18' fill='#122635'/>"+
+            "<text x='40' y='50' text-anchor='middle' font-size='34'>📻</text>"+
+            "</svg>"
+          )
+        );
+
+    }
+
+
+    if(play){
+
+      play.textContent=
+        (
+          state.audio &&
+          !state.audio.paused
+        ) ?
+        "Ⅱ" :
+        "▶";
+
+    }
+
+
+    if(mute){
+
+      mute.textContent=
+        state.muted ?
+        "🔇" :
+        "🔊";
+
+    }
+
+  }
+
+
+  function renderList(){
+
+    var box=
+      document.getElementById(
+        "IGR_LIST"
+      );
+
+    if(!box)return;
+
+
+    var list=
+      state.stations || [];
+
+
+    if(state.mode==="fav"){
+
+      var fs=favs();
+
+      list=
+        list.filter(
+          function(s){
+            return fs.indexOf(
+              s.stationuuid
+            )>=0;
+          }
+        );
+
+    }
+
+
+    if(!list.length){
+
+      box.innerHTML=
+        "<div style='padding:18px;text-align:center;color:#8298a5;font-size:11px'>"+
+        "No hay emisoras para mostrar."+
+        "</div>";
+
+      return;
+
+    }
+
+
+    box.innerHTML=
+      list.map(
+        function(s,i){
+
+          var meta=[
+            s.country,
+            s.language,
+            s.tags
+          ]
+          .filter(Boolean)
+          .join(" · ");
+
+
+          return (
+            "<div class='igr-item' data-i='"+i+"'>"+
+              "<img loading='lazy' src='"+esc(s.favicon||"")+"' "+
+              "onerror=\"this.style.visibility='hidden'\">"+
+              "<div class='igr-itemmain'>"+
+                "<div class='igr-itemname'>"+
+                  esc(stationTitle(s))+
+                "</div>"+
+                "<div class='igr-itemmeta'>"+
+                  esc(
+                    meta ||
+                    (
+                      (s.codec||"")+
+                      (
+                        s.bitrate ?
+                        " · "+
+                        s.bitrate+
+                        " kbps" :
+                        ""
+                      )
+                    )
+                  )+
+                "</div>"+
+              "</div>"+
+              "<button class='igr-star "+
+              (
+                isFav(s) ?
+                "on" :
+                ""
+              )+
+              "' data-fav='"+i+"' type='button'>★</button>"+
+            "</div>"
+          );
+
+        }
+      )
+      .join("");
+
+
+    Array.prototype.forEach.call(
+      box.querySelectorAll(
+        ".igr-item"
+      ),
+      function(el){
+
+        el.addEventListener(
+          "click",
+          function(e){
+
+            if(
+              e.target &&
+              e.target.closest(
+                ".igr-star"
+              )
+            ){
+              return;
+            }
+
+            var i=
+              Number(
+                el.getAttribute(
+                  "data-i"
+                )
+              );
+
+            if(
+              state.stations[i]
+            ){
+
+              playStation(
+                state.stations[i]
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+    Array.prototype.forEach.call(
+      box.querySelectorAll(
+        ".igr-star"
+      ),
+      function(el){
+
+        el.addEventListener(
+          "click",
+          function(e){
+
+            e.stopPropagation();
+
+            var i=
+              Number(
+                el.getAttribute(
+                  "data-fav"
+                )
+              );
+
+            if(
+              state.stations[i]
+            ){
+
+              toggleFav(
+                state.stations[i]
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  function buildUrl(){
+
+    var p=
+      new URLSearchParams();
+
+
+    if(state.query){
+      p.set(
+        "name",
+        state.query
+      );
+    }
+
+
+    if(state.country){
+      p.set(
+        "country",
+        state.country
+      );
+    }
+
+
+    if(state.language){
+      p.set(
+        "language",
+        state.language
+      );
+    }
+
+
+    if(state.tag){
+      p.set(
+        "tag",
+        state.tag
+      );
+    }
+
+
+    p.set(
+      "hidebroken",
+      "true"
+    );
+
+
+    p.set(
+      "limit",
+      "50"
+    );
+
+
+    p.set(
+      "offset",
+      String(
+        state.offset
+      )
+    );
+
+
+    if(state.mode==="top"){
+
+      p.set(
+        "order",
+        "clickcount"
+      );
+
+      p.set(
+        "reverse",
+        "true"
+      );
+
+    }
+    else if(
+      state.mode==="votes"
+    ){
+
+      p.set(
+        "order",
+        "votes"
+      );
+
+      p.set(
+        "reverse",
+        "true"
+      );
+
+    }
+    else{
+
+      p.set(
+        "order",
+        "name"
+      );
+
+    }
+
+
+    return (
+      API+
+      "/json/stations/search?"+
+      p.toString()
+    );
+
+  }
+
+
+  async function loadStations(reset){
+
+    if(state.loading){
+      return;
+    }
+
+
+    if(reset){
+
+      state.offset=0;
+      state.stations=[];
+
+    }
+
+
+    state.loading=true;
+
+
+    setStatus(
+      "Buscando emisoras…"
+    );
+
+
+    try{
+
+      var r=
+        await fetch(
+          buildUrl()
+        );
+
+
+      if(!r.ok){
+
+        throw new Error(
+          "HTTP "+
+          r.status
+        );
+
+      }
+
+
+      var data=
+        await r.json();
+
+
+      var existing={};
+
+
+      state.stations.forEach(
+        function(s){
+          existing[
+            s.stationuuid
+          ]=1;
+        }
+      );
+
+
+      data.forEach(
+        function(s){
+
+          if(
+            !existing[
+              s.stationuuid
+            ]
+          ){
+
+            state.stations.push(s);
+
+            existing[
+              s.stationuuid
+            ]=1;
+
+          }
+
+        }
+      );
+
+
+      state.offset+=
+        data.length;
+
+
+      renderList();
+
+
+      if(data.length){
+
+        setStatus(
+          state.stations.length+
+          " emisoras cargadas"
+        );
+
+      }else{
+
+        setStatus(
+          "No se encontraron más emisoras."
+        );
+
+      }
+
+
+      var last=
+        getLast();
+
+
+      if(
+        last &&
+        !state.audio &&
+        state.index<0
+      ){
+
+        var match=
+          state.stations.find(
+            function(s){
+              return (
+                s.stationuuid===
+                last.stationuuid
+              );
+            }
+          );
+
+
+        if(match){
+
+          state.index=
+            state.stations.indexOf(
+              match
+            );
+
+          updateNow(match);
+
+        }else{
+
+          updateNow(last);
+
+        }
+
+      }
+
+    }
+    catch(e){
+
+      setStatus(
+        "No se pudo cargar el catálogo. "+
+        "Reintentá en unos segundos."
+      );
+
+    }
+    finally{
+
+      state.loading=false;
+
+    }
+
+  }
+
+
+  function applySearch(){
+
+    state.query=
+      (
+        document.getElementById(
+          "IGR_SEARCH"
+        ) || {}
+      ).value || "";
+
+
+    state.country=
+      (
+        document.getElementById(
+          "IGR_COUNTRY"
+        ) || {}
+      ).value || "";
+
+
+    state.language=
+      (
+        document.getElementById(
+          "IGR_LANGUAGE"
+        ) || {}
+      ).value || "";
+
+
+    state.tag=
+      (
+        document.getElementById(
+          "IGR_TAG"
+        ) || {}
+      ).value || "";
+
+
+    state.mode="top";
+
+
+    Array.prototype.forEach.call(
+      document.querySelectorAll(
+        "#IG_CONDUCTOR_RADIO .igr-tab"
+      ),
+      function(x){
+
+        x.classList.toggle(
+          "active",
+          x.getAttribute(
+            "data-mode"
+          )==="top"
+        );
+
+      }
+    );
+
+
+    loadStations(true);
+
+  }
+
+
+  function loadFavorites(){
+
+    state.mode="fav";
+
+    state.offset=0;
+
+    state.stations=[];
+
+
+    setStatus(
+      "Favoritos guardados en este teléfono"
+    );
+
+
+    renderList();
+
+  }
+
+
+  function setupTabs(){
+
+    Array.prototype.forEach.call(
+      document.querySelectorAll(
+        "#IG_CONDUCTOR_RADIO .igr-tab"
+      ),
+      function(btn){
+
+        btn.addEventListener(
+          "click",
+          function(){
+
+            var mode=
+              btn.getAttribute(
+                "data-mode"
+              );
+
+
+            Array.prototype.forEach.call(
+              document.querySelectorAll(
+                "#IG_CONDUCTOR_RADIO .igr-tab"
+              ),
+              function(x){
+                x.classList.remove(
+                  "active"
+                );
+              }
+            );
+
+
+            btn.classList.add(
+              "active"
+            );
+
+
+            if(mode==="fav"){
+
+              loadFavorites();
+
+              return;
+
+            }
+
+
+            state.mode=mode;
+
+            loadStations(true);
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  function buildRadio(){
+
+    if(
+      document.getElementById(
+        "IG_CONDUCTOR_RADIO"
+      )
+    ){
+
+      return;
+
+    }
+
+
+    var host=
+      document.getElementById(
+        "igDeliveryContent"
+      );
+
+
+    if(!host){
+      return;
+    }
+
+
+    var root=
+      document.createElement(
+        "section"
+      );
+
+
+    root.id=
+      "IG_CONDUCTOR_RADIO";
+
+
+    root.innerHTML=
+      "<div class='igr-head'>"+
+        "<div class='igr-brand'>"+
+          "<div class='igr-disc'>📻</div>"+
+          "<div>"+
+            "<div class='igr-title'>"+
+              "Radio del Conductor"+
+            "</div>"+
+            "<div class='igr-sub'>"+
+              "Emisoras de todo el mundo · en directo"+
+            "</div>"+
+          "</div>"+
+        "</div>"+
+      "</div>"+
+
+      "<div class='igr-now'>"+
+        "<img id='IGR_LOGO' class='igr-logo' alt=''>"+
+        "<div class='igr-nowmain'>"+
+          "<div id='IGR_STATION' class='igr-station'>"+
+            "Selecciona una emisora"+
+          "</div>"+
+          "<div id='IGR_META' class='igr-meta'>"+
+            "Miles de emisoras · búsqueda mundial"+
+          "</div>"+
+          "<div class='igr-live'>"+
+            "<i></i> EN DIRECTO"+
+          "</div>"+
+        "</div>"+
+        "<button id='IGR_PLAY' class='igr-mainplay' type='button'>"+
+          "▶"+
+        "</button>"+
+      "</div>"+
+
+      "<div class='igr-controls'>"+
+        "<button id='IGR_PREV' class='igr-btn' type='button'>⏮</button>"+
+        "<button id='IGR_NEXT' class='igr-btn' type='button'>⏭</button>"+
+        "<input id='IGR_VOLUME' class='igr-vol' type='range' min='0' max='100' value='85'>"+
+        "<button id='IGR_MUTE' class='igr-btn' type='button'>🔊</button>"+
+        "<button id='IGR_SLEEPBTN' class='igr-btn' type='button'>⏱</button>"+
+      "</div>"+
+
+      "<div class='igr-search'>"+
+        "<div class='igr-searchrow'>"+
+          "<input id='IGR_SEARCH' placeholder='🔎 Buscar emisora…' autocomplete='off'>"+
+          "<button id='IGR_SEARCHBTN' class='igr-btn' type='button'>Buscar</button>"+
+        "</div>"+
+
+        "<div class='igr-filters'>"+
+          "<input id='IGR_COUNTRY' placeholder='🌎 País'>"+
+          "<input id='IGR_LANGUAGE' placeholder='🗣️ Idioma'>"+
+          "<input id='IGR_TAG' placeholder='🎵 Género / estilo'>"+
+        "</div>"+
+      "</div>"+
+
+      "<div class='igr-tabs'>"+
+        "<button class='igr-tab active' data-mode='top' type='button'>🔥 Populares</button>"+
+        "<button class='igr-tab' data-mode='votes' type='button'>⭐ Más votadas</button>"+
+        "<button class='igr-tab' data-mode='fav' type='button'>💛 Favoritas</button>"+
+      "</div>"+
+
+      "<div id='IGR_STATUS' class='igr-status'>"+
+        "Preparando catálogo…"+
+      "</div>"+
+
+      "<div id='IGR_LIST' class='igr-list'></div>"+
+
+      "<button id='IGR_MORE' class='igr-more' type='button'>"+
+        "Cargar más emisoras"+
+      "</button>"+
+
+      "<div class='igr-sleep'>"+
+        "<label>Temporizador de apagado</label>"+
+        "<select id='IGR_SLEEP'>"+
+          "<option value='0'>Desactivado</option>"+
+          "<option value='15'>15 min</option>"+
+          "<option value='30'>30 min</option>"+
+          "<option value='45'>45 min</option>"+
+          "<option value='60'>60 min</option>"+
+          "<option value='90'>90 min</option>"+
+          "<option value='120'>120 min</option>"+
+        "</select>"+
+      "</div>";
+
+
+    host.appendChild(
+      root
+    );
+
+
+    state.root=root;
+
+
+    document.getElementById(
+      "IGR_PLAY"
+    ).addEventListener(
+      "click",
+      togglePlay
+    );
+
+
+    document.getElementById(
+      "IGR_PREV"
+    ).addEventListener(
+      "click",
+      prev
+    );
+
+
+    document.getElementById(
+      "IGR_NEXT"
+    ).addEventListener(
+      "click",
+      next
+    );
+
+
+    document.getElementById(
+      "IGR_VOLUME"
+    ).addEventListener(
+      "input",
+      function(){
+
+        setVolume(
+          Number(
+            this.value
+          )/100
+        );
+
+      }
+    );
+
+
+    document.getElementById(
+      "IGR_MUTE"
+    ).addEventListener(
+      "click",
+      toggleMute
+    );
+
+
+    document.getElementById(
+      "IGR_SEARCHBTN"
+    ).addEventListener(
+      "click",
+      applySearch
+    );
+
+
+    document.getElementById(
+      "IGR_SEARCH"
+    ).addEventListener(
+      "keydown",
+      function(e){
+
+        if(e.key==="Enter"){
+          applySearch();
+        }
+
+      }
+    );
+
+
+    document.getElementById(
+      "IGR_MORE"
+    ).addEventListener(
+      "click",
+      function(){
+        loadStations(false);
+      }
+    );
+
+
+    document.getElementById(
+      "IGR_SLEEP"
+    ).addEventListener(
+      "change",
+      function(){
+
+        var n=
+          Number(
+            this.value
+          );
+
+
+        if(state.sleepTimer){
+
+          clearTimeout(
+            state.sleepTimer
+          );
+
+        }
+
+
+        if(n>0){
+
+          state.sleepTimer=
+            setTimeout(
+              function(){
+
+                if(state.audio){
+
+                  state.audio.pause();
+
+                }
+
+                document.getElementById(
+                  "IGR_SLEEP"
+                ).value="0";
+
+
+                setStatus(
+                  "⏱ Radio apagada por temporizador."
+                );
+
+              },
+              n*60000
+            );
+
+
+          setStatus(
+            "⏱ Se apagará en "+
+            n+
+            " minutos."
+          );
+
+        }
+
+      }
+    );
+
+
+    document.getElementById(
+      "IGR_SLEEPBTN"
+    ).addEventListener(
+      "click",
+      function(){
+
+        var s=
+          document.getElementById(
+            "IGR_SLEEP"
+          );
+
+        if(s){
+          s.focus();
+        }
+
+      }
+    );
+
+
+    setupTabs();
+
+    updateNow();
+
+    var last=getLast();
+
+    if(last){
+      updateNow(last);
+    }
+
+    loadStations(true);
+
+  }
+
+
+  function removeRadio(){
+
+    var root=
+      document.getElementById(
+        "IG_CONDUCTOR_RADIO"
+      );
+
+
+    var gps=
+      document.getElementById(
+        "IG_CONDUCTOR_RADIO_GPS"
+      );
+
+
+    var gpsRoot=
+      document.getElementById(
+        "IGGPSPRO_ROOT"
+      );
+
+
+    var gpsOpen=
+      gpsRoot &&
+      gpsRoot.classList.contains(
+        "igp-open"
+      );
+
+
+    if(
+      !gpsOpen &&
+      state.audio
+    ){
+
+      try{
+
+        state.audio.pause();
+
+        state.audio.removeAttribute(
+          "src"
+        );
+
+        state.audio.load();
+
+      }catch(e){}
+
+    }
+
+
+    if(gps){
+      gps.remove();
+    }
+
+
+    if(root){
+      root.remove();
+    }
+
+
+    state.root=null;
+
+    state.gpsMini=null;
+
+  }
+
+
+  function isDriverScreen(){
+
+    var c=
+      document.getElementById(
+        "igDeliveryContent"
+      );
+
+
+    if(!c){
+      return false;
+    }
+
+
+    var h=
+      c.querySelector(
+        "h2"
+      );
+
+
+    if(!h){
+      return false;
+    }
+
+
+    return /Conductor/i.test(
+      (
+        h.textContent ||
+        ""
+      )
+    );
+
+  }
+
+
+  function ensureDriverRadio(){
+
+    var modal=
+      document.getElementById(
+        "igDeliveryModal"
+      );
+
+
+    if(
+      !modal ||
+      !modal.classList.contains(
+        "open"
+      ) ||
+      !isDriverScreen()
+    ){
+
+      if(
+        !modal ||
+        !modal.classList.contains(
+          "open"
+        )
+      ){
+
+        removeRadio();
+
+      }
+
+      return;
+
+    }
+
+
+    buildRadio();
+
+  }
+
+
+  function syncGPSMini(){
+
+    var gps=
+      document.getElementById(
+        "IGGPSPRO_ROOT"
+      );
+
+
+    var radio=
+      document.getElementById(
+        "IG_CONDUCTOR_RADIO"
+      );
+
+
+    if(
+      !gps ||
+      !radio
+    ){
+
+      return;
+
+    }
+
+
+    var open=
+      gps.classList.contains(
+        "igp-open"
+      );
+
+
+    if(open){
+
+      if(!state.gpsMini){
+
+        state.gpsMini=
+          document.createElement(
+            "div"
+          );
+
+        state.gpsMini.id=
+          "IG_CONDUCTOR_RADIO_GPS";
+
+        gps.appendChild(
+          state.gpsMini
+        );
+
+      }
+
+
+      if(
+        radio.parentNode !==
+        state.gpsMini
+      ){
+
+        state.gpsMini.appendChild(
+          radio
+        );
+
+      }
+
+
+      radio.classList.add(
+        "igr-gps-mini"
+      );
+
+
+      updateNow();
+
+    }else{
+
+      var host=
+        document.getElementById(
+          "igDeliveryContent"
+        );
+
+
+      if(
+        host &&
+        radio.parentNode !==
+        host
+      ){
+
+        host.appendChild(
+          radio
+        );
+
+      }
+
+
+      radio.classList.remove(
+        "igr-gps-mini"
+      );
+
+
+      if(state.gpsMini){
+
+        state.gpsMini.remove();
+
+      }
+
+
+      state.gpsMini=null;
+
+    }
+
+  }
+
+
+  function duck(on){
+
+    if(!state.audio){
+      return;
+    }
+
+
+    if(on){
+
+      if(
+        state.audio.dataset.igDuck==="1"
+      ){
+
+        return;
+
+      }
+
+
+      state.audio.dataset.igDuck="1";
+
+
+      state.audio.volume=
+        state.muted ?
+        0 :
+        Math.min(
+          state.volume*.07,
+          .08
+        );
+
+
+    }else{
+
+      if(
+        state.audio.dataset.igDuck!=="1"
+      ){
+
+        return;
+
+      }
+
+
+      state.audio.volume=
+        state.muted ?
+        0 :
+        state.volume;
+
+
+      delete state.audio.dataset.igDuck;
+
+    }
+
+  }
+
+
+  function hookVoice(){
+
+    if(
+      window.__IG_RADIO_VOICE_HOOK
+    ){
+
+      return;
+
+    }
+
+
+    if(
+      !window.speechSynthesis ||
+      !window.speechSynthesis.speak
+    ){
+
+      return;
+
+    }
+
+
+    window.__IG_RADIO_VOICE_HOOK=true;
+
+
+    var ss=
+      window.speechSynthesis;
+
+
+    var originalSpeak=
+      ss.speak.bind(ss);
+
+
+    var originalCancel=
+      ss.cancel.bind(ss);
+
+
+    ss.speak=
+      function(utterance){
+
+        try{
+
+          if(
+            state.audio &&
+            state.audio.src
+          ){
+
+            duck(true);
+
+          }
+
+
+          if(utterance){
+
+            var done=
+              function(){
+
+                setTimeout(
+                  function(){
+                    duck(false);
+                  },
+                  180
+                );
+
+              };
+
+
+            utterance.addEventListener(
+              "end",
+              done,
+              {once:true}
+            );
+
+
+            utterance.addEventListener(
+              "error",
+              done,
+              {once:true}
+            );
+
+          }
+
+        }catch(e){}
+
+
+        return originalSpeak(
+          utterance
+        );
+
+      };
+
+
+    ss.cancel=
+      function(){
+
+        var r=
+          originalCancel();
+
+
+        setTimeout(
+          function(){
+            duck(false);
+          },
+          220
+        );
+
+
+        return r;
+
+      };
+
+  }
+
+
+  function watch(){
+
+    var content=
+      document.getElementById(
+        "igDeliveryContent"
+      );
+
+
+    var modal=
+      document.getElementById(
+        "igDeliveryModal"
+      );
+
+
+    if(
+      !content ||
+      !modal
+    ){
+
+      setTimeout(
+        watch,
+        1000
+      );
+
+      return;
+
+    }
+
+
+    hookVoice();
+
+
+    var observer=
+      new MutationObserver(
+        function(){
+
+          ensureDriverRadio();
+
+          syncGPSMini();
+
+        }
+      );
+
+
+    observer.observe(
+      content,
+      {
+        childList:true,
+        subtree:true
+      }
+    );
+
+
+    observer.observe(
+      modal,
+      {
+        attributes:true,
+        attributeFilter:[
+          "class"
+        ]
+      }
+    );
+
+
+    var gps=
+      document.getElementById(
+        "IGGPSPRO_ROOT"
+      );
+
+
+    if(gps){
+
+      observer.observe(
+        gps,
+        {
+          attributes:true,
+          attributeFilter:[
+            "class"
+          ]
+        }
+      );
+
+    }
+
+
+    ensureDriverRadio();
+
+    syncGPSMini();
+
+
+    setInterval(
+      function(){
+
+        ensureDriverRadio();
+
+        syncGPSMini();
+
+      },
+      1000
+    );
+
+  }
+
+
+  if(
+    document.readyState===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      watch,
+      {once:true}
+    );
+
+  }else{
+
+    watch();
+
+  }
+
+
+  window.IGDriverRadio={
+
+    play:function(){
+      togglePlay();
+    },
+
+    next:function(){
+      next();
+    },
+
+    prev:function(){
+      prev();
+    },
+
+    stop:function(){
+
+      if(state.audio){
+        state.audio.pause();
+      }
+
+    }
+
+  };
+
+})();
+
+</script>
+
+<!-- FIN RADIO PROFESIONAL DEL CONDUCTOR -->
 
 </body>
 </html>
