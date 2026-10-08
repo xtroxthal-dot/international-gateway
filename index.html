@@ -26992,7 +26992,7 @@ function start(){
     return `
 
       <article
-        class="product-card"
+        class="product-card ig-special-product-card"
         data-ig-special-product-id="${esc(producto.id)}">
 
         <div class="product-image">
@@ -27041,7 +27041,9 @@ function start(){
               : ""
           }
 
-
+          <div class="price ig-special-price">
+            ${precioProducto(producto.price)}
+          </div>
       <button
   class="button full"
   type="button"
