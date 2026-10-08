@@ -56708,5 +56708,395 @@ window.IGGPSPRO={
 
 <!-- FIN RADIO PROFESIONAL DEL CONDUCTOR -->
 
+ <!-- =========================================================
+     INTERNATIONAL GATEWAY
+     PARCHE — TARJETAS GRanja lo de Nico + IBERIAN MEDITERRÁNEA
+     
+     CORRIGE:
+     1. Precio visible en cada producto.
+     2. Tarjetas especiales más grandes.
+     3. Imágenes más grandes.
+     4. No modifica las tarjetas normales de International Gateway.
+     ========================================================= -->
+<style id="igSpecialCardsFinalFix">
+
+/* TARJETAS ESPECIALES */
+#productsContainer .ig-special-product-card{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+
+/* IMAGEN MÁS GRANDE */
+#productsContainer .ig-special-product-card .product-image{
+  height:300px !important;
+  min-height:300px !important;
+  overflow:hidden !important;
+}
+
+#productsContainer .ig-special-product-card .product-image img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+/* CONTENIDO */
+#productsContainer .ig-special-product-card .product-content{
+  padding:22px !important;
+}
+
+/* NOMBRE */
+#productsContainer .ig-special-product-card .product-content h3{
+  font-size:clamp(21px,4vw,28px) !important;
+  line-height:1.15 !important;
+  margin:8px 0 10px !important;
+}
+
+/* PRECIO */
+#productsContainer .ig-special-product-card .ig-special-price{
+  display:block !important;
+  position:relative !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+
+  margin:14px 0 16px !important;
+  padding:10px 0 !important;
+
+  font-size:clamp(24px,5vw,32px) !important;
+  line-height:1.1 !important;
+  font-weight:900 !important;
+
+  visibility:visible !important;
+  opacity:1 !important;
+}
+
+/* BOTONES DE LA TARJETA */
+#productsContainer .ig-special-product-card .button.full,
+#productsContainer .ig-special-product-card .ig-product-share{
+  width:100% !important;
+  box-sizing:border-box !important;
+}
+
+/* ESCRITORIO: TARJETAS MÁS ANCHAS */
+@media (min-width:701px){
+
+  #productsContainer{
+    grid-template-columns:
+      repeat(auto-fit,minmax(320px,1fr)) !important;
+    gap:24px !important;
+  }
+
+  #productsContainer .ig-special-product-card{
+    min-width:320px !important;
+  }
+
+  #productsContainer .ig-special-product-card .product-image{
+    height:340px !important;
+    min-height:340px !important;
+  }
+}
+
+/* MÓVIL */
+@media (max-width:700px){
+
+  #productsContainer .ig-special-product-card{
+    width:100% !important;
+  }
+
+  #productsContainer .ig-special-product-card .product-image{
+    height:300px !important;
+    min-height:300px !important;
+  }
+
+  #productsContainer .ig-special-product-card .product-content{
+    padding:20px !important;
+  }
+}
+
+</style>
+
+<script>
+(function(){
+
+  "use strict";
+
+  /*
+   * Añade la clase especial a las tarjetas que
+   * pertenecen a Nico o Iberian.
+   */
+  function marcarTarjetasEspeciales(){
+
+    const container =
+      document.getElementById("productsContainer");
+
+    if(!container){
+      return;
+    }
+
+    const cards =
+      container.querySelectorAll(".product-card");
+
+    cards.forEach(function(card){
+
+      if(
+        card.dataset.igSpecialMarked === "1"
+      ){
+        return;
+      }
+
+      /*
+       * Las tarjetas especiales creadas por
+       * tarjetaProducto() llevan este atributo.
+       */
+      if(
+        card.hasAttribute(
+          "data-ig-special-product-id"
+        )
+      ){
+
+        card.classList.add(
+          "ig-special-product-card"
+        );
+
+        card.dataset.igSpecialMarked = "1";
+      }
+
+    });
+
+  }
+
+
+  /*
+   * El precio se inserta directamente en la tarjeta
+   * si la función especial existente no lo muestra.
+   */
+  function repararPrecios(){
+
+    const container =
+      document.getElementById("productsContainer");
+
+    if(!container){
+      return;
+    }
+
+    const cards =
+      container.querySelectorAll(
+        ".ig-special-product-card"
+      );
+
+    cards.forEach(function(card){
+
+      if(
+        card.querySelector(".ig-special-price")
+      ){
+        return;
+      }
+
+      /*
+       * Buscar el producto asociado.
+       */
+      const id =
+        card.dataset.igSpecialProductId;
+
+      if(!id){
+        return;
+      }
+
+      let producto = null;
+
+      const listas = [
+        window.products,
+        window.productos,
+        window.allProducts,
+        window.allProductsData,
+        window.igProducts,
+        window.IG_PRODUCTS
+      ];
+
+      for(
+        let i=0;
+        i<listas.length && !producto;
+        i++
+      ){
+
+        const lista = listas[i];
+
+        if(!Array.isArray(lista)){
+          continue;
+        }
+
+        producto =
+          lista.find(function(item){
+
+            return String(
+              item.id
+            ) === String(id);
+
+          });
+      }
+
+      /*
+       * Si no está en las listas globales,
+       * la tarjeta puede haber sido generada por
+       * el módulo especial. En ese caso buscamos
+       * el precio disponible en datos embebidos.
+       */
+      if(!producto){
+        return;
+      }
+
+      if(
+        producto.price === undefined ||
+        producto.price === null ||
+        producto.price === ""
+      ){
+        return;
+      }
+
+      const contenido =
+        card.querySelector(
+          ".product-content"
+        );
+
+      if(!contenido){
+        return;
+      }
+
+      const precio =
+        document.createElement("div");
+
+      precio.className =
+        "price ig-special-price";
+
+      try{
+
+        if(
+          typeof window.money === "function"
+        ){
+
+          precio.textContent =
+            window.money(producto.price);
+
+        }else{
+
+          precio.textContent =
+            new Intl.NumberFormat(
+              "es-AR",
+              {
+                style:"currency",
+                currency:"ARS",
+                maximumFractionDigits:2
+              }
+            ).format(
+              Number(producto.price)
+            );
+
+        }
+
+      }catch(error){
+
+        precio.textContent =
+          "$" +
+          Number(producto.price).toLocaleString(
+            "es-AR"
+          );
+
+      }
+
+      /*
+       * El precio queda inmediatamente después
+       * de la descripción/características y antes
+       * de los botones.
+       */
+      const primerBoton =
+        contenido.querySelector("button");
+
+      if(primerBoton){
+
+        contenido.insertBefore(
+          precio,
+          primerBoton
+        );
+
+      }else{
+
+        contenido.appendChild(
+          precio
+        );
+
+      }
+
+    });
+
+  }
+
+
+  function reparar(){
+
+    marcarTarjetasEspeciales();
+
+    repararPrecios();
+
+  }
+
+
+  function iniciar(){
+
+    reparar();
+
+    setTimeout(reparar,300);
+    setTimeout(reparar,800);
+    setTimeout(reparar,1500);
+    setTimeout(reparar,2500);
+
+    const container =
+      document.getElementById(
+        "productsContainer"
+      );
+
+    if(container){
+
+      const observer =
+        new MutationObserver(
+          function(){
+
+            reparar();
+
+          }
+        );
+
+      observer.observe(
+        container,
+        {
+          childList:true,
+          subtree:true
+        }
+      );
+
+    }
+
+  }
+
+
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      iniciar,
+      {once:true}
+    );
+
+  }else{
+
+    iniciar();
+
+  }
+
+})();
+</script>
+<!-- FIN PARCHE TARJETAS ESPECIALES -->
+
 </body>
 </html>
